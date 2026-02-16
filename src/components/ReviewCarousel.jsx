@@ -64,7 +64,7 @@ export default function ReviewCarousel({ reviews = mockReviews }) {
       
       <div 
         ref={scrollRef}
-        className="flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory no-scrollbar px-4"
+        className="flex gap-6 overflow-hidden pb-8 snap-x snap-mandatory no-scrollbar px-4"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {reviews.map((review) => (
@@ -79,7 +79,7 @@ export default function ReviewCarousel({ reviews = mockReviews }) {
                 {review.score}
               </div>
             </div>
-            <p className="text-muted-foreground italic">"{review.text}"</p>
+            <p className="text-muted-foreground italic">&quot;{review.text}&quot;</p>
           </div>
         ))}
       </div>
