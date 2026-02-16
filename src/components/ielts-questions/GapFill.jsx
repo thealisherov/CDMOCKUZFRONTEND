@@ -24,22 +24,40 @@ const GapFill = ({ data, onAnswer, startIndex = 1 }) => {
             const questionNum = match[1];
             const questionId = questionNum;
 
+            const answerText = data.answers && data.answers[questionNum] ? data.answers[questionNum] : '';
+            // Calculate width: minimum 140px, plus space for longer answers
+            const minWidth = Math.max(140, (answerText.length * 12) + 50);
+
             return (
-              <span key={index} style={{ display: 'inline-flex', alignItems: 'center', margin: '0 4px', verticalAlign: 'baseline' }}>
-                {/* Boxed question number */}
-                <span style={{
+              <span
+                key={index}
+                className="gap-fill-container border border-gray-300 focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600"
+                style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '24px',
-                  height: '24px',
-                  border: '1px solid #999',
-                  color: '#333',
-                  fontSize: '11px',
-                  fontWeight: '700',
-                  marginRight: '4px',
-                  flexShrink: 0,
+                  margin: '0 6px',
+                  verticalAlign: 'middle',
+                  borderRadius: '4px',
                   backgroundColor: '#fff',
+                  height: '36px',
+                  width: `${minWidth}px`,
+                  transition: 'all 0.15s',
+                }}
+              >
+                <span style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: '32px',
+                  height: '100%',
+                  color: '#333',
+                  fontSize: '14px',
+                  fontWeight: '700',
+                  flexShrink: 0,
+                  backgroundColor: '#f5f5f5',
+                  borderRight: '1px solid #e0e0e0',
+                  borderTopLeftRadius: '3px',
+                  borderBottomLeftRadius: '3px',
                 }}>
                   {questionNum}
                 </span>
@@ -48,22 +66,8 @@ const GapFill = ({ data, onAnswer, startIndex = 1 }) => {
                   type="text"
                   autoComplete="off"
                   spellCheck={false}
-                  style={{
-                    display: 'inline-block',
-                    width: '112px',
-                    padding: '4px 8px',
-                    border: '2px solid #4a7ab5',
-                    backgroundColor: '#fff',
-                    color: '#333',
-                    fontWeight: '500',
-                    fontSize: '13px',
-                    outline: 'none',
-                    transition: 'border-color 0.15s',
-                  }}
-                  onFocus={(e) => { e.target.style.borderColor = '#2a5a95'; }}
-                  onBlur={(e) => { e.target.style.borderColor = '#4a7ab5'; }}
+                  className="w-full h-full bg-transparent border-none outline-none text-gray-800 text-sm px-2"
                   onChange={(e) => onAnswer(questionId, e.target.value)}
-                  placeholder=""
                 />
               </span>
             );
