@@ -1,0 +1,203 @@
+[
+    {
+        "id": "section1_notes",
+        "type": "gap_fill",
+        "instruction": "Complete the notes below. Write ONE WORD AND/OR A NUMBER.",
+        "content": "Music Alive Agency\n\nContact person: Jim Granley\n- Members' details are on a {1}\n- Type of music represented: modern music ({2} and jazz)\n- Newsletter comes out once a {3}\n- Cost of adult membership: £{4}\n- Current number of members: {5}\n- Facilities include: rehearsal rooms and a {6}\n- There is no charge for {7} advice\n\nTo become a member, send:\n- a letter with contact details\n- a recent {8}\n\nAddress: 707, {9} Street, Marbury\nContact email: music.{10}@bsu.co.uk",
+        "answers": {
+            "1": "database",
+            "2": "rock",
+            "3": "month",
+            "4": "45",
+            "5": "750",
+            "6": "studio",
+            "7": "legal",
+            "8": "recording",
+            "9": "Kippax",
+            "10": "talent"
+        }
+    },
+    {
+        "id": "section2_mcq",
+        "type": "true_false",
+        "instruction": "Choose the correct letter A, B or C.",
+        "questions": [
+            {
+                "id": "11",
+                "text": "What do participants need to take to the registration desk?"
+            },
+            {
+                "id": "12",
+                "text": "What does the entrance fee to the competition include?"
+            },
+            {
+                "id": "13",
+                "text": "Participants without a fishing licence are recommended to apply for one"
+            },
+            {
+                "id": "14",
+                "text": "What will happen at 6pm on Sunday?"
+            }
+        ],
+        "options": [
+            "A",
+            "B",
+            "C"
+        ],
+        "answers": {
+            "11": "A",
+            "12": "B",
+            "13": "C",
+            "14": "B"
+        }
+    },
+    {
+        "id": "section2_map",
+        "type": "matrix_match",
+        "instruction": "Label the map. Choose the correct letter A-H.",
+        "columnOptions": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H",
+            "I"
+        ],
+        "questions": [
+            {
+                "id": "15",
+                "text": "Registration area"
+            },
+            {
+                "id": "16",
+                "text": "Shore fishing area"
+            },
+            {
+                "id": "17",
+                "text": "Boat launching area"
+            },
+            {
+                "id": "18",
+                "text": "Judging area"
+            },
+            {
+                "id": "19",
+                "text": "Dining area"
+            },
+            {
+                "id": "20",
+                "text": "Prize-giving area"
+            }
+        ],
+        "answers": {
+            "15": "G",
+            "16": "A",
+            "17": "C",
+            "18": "H",
+            "19": "D",
+            "20": "B"
+        }
+    },
+    {
+        "id": "section3_mcq",
+        "type": "true_false",
+        "instruction": "Choose the correct letter A, B or C.",
+        "questions": [
+            {
+                "id": "21",
+                "text": "Max and Abby agree that in the art exhibition they are looking forward to"
+            },
+            {
+                "id": "22",
+                "text": "In last year's exhibition, both students were impressed by"
+            },
+            {
+                "id": "23",
+                "text": "What has Max decided to call his display?"
+            },
+            {
+                "id": "24",
+                "text": "What does Abby think will be difficult about preparing for their displays?"
+            },
+            {
+                "id": "25",
+                "text": "What does Abby say about the summary they have to write?"
+            },
+            {
+                "id": "26",
+                "text": "What aspect of the display will the students organise themselves?"
+            }
+        ],
+        "options": [
+            "A",
+            "B",
+            "C"
+        ],
+        "answers": {
+            "21": "A",
+            "22": "B",
+            "23": "A",
+            "24": "A",
+            "25": "B",
+            "26": "C"
+        }
+    },
+    {
+        "id": "section3_matching",
+        "type": "matrix_match",
+        "instruction": "Which feature do the speakers identify as particularly interesting for each exhibition?",
+        "columnOptions": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+        ],
+        "questions": [
+            {
+                "id": "27",
+                "text": "On the Water"
+            },
+            {
+                "id": "28",
+                "text": "City Life"
+            },
+            {
+                "id": "29",
+                "text": "Faces"
+            },
+            {
+                "id": "30",
+                "text": "Moods"
+            }
+        ],
+        "answers": {
+            "27": "D",
+            "28": "B",
+            "29": "C",
+            "30": "A"
+        }
+    },
+    {
+        "id": "section4_notes",
+        "type": "gap_fill",
+        "instruction": "Complete the notes below. Write NO MORE THAN TWO WORDS.",
+        "content": "The Mangrove Regeneration Project\n\nMangrove forests:\n- protect coastal areas from {31} by the sea\n- are an important habitat for wildlife\n\nProblems:\n- mangroves had been used by farmers as {32}\n- mangroves were poisoned by the use of {33}\n- local people used the mangroves as a place to put their {34}\n\nActions taken:\n- a barrier made of {35} was constructed - but it failed\n- seeds of the {36} mangrove were used\n\nFirst set of seedlings:\n- kept in small pots in a {37}\n- Watered with {38} water\n- at risk from the large {39} population\n\nSecond set of seedlings:\n- the young plants were destroyed in a {40}",
+        "answers": {
+            "31": "flooding",
+            "32": "firewood",
+            "33": "fertilizer",
+            "34": "trash",
+            "35": "sand",
+            "36": "grey",
+            "37": "hot house",
+            "38": "salty",
+            "39": "rabbit",
+            "40": "storm"
+        }
+    }
+]

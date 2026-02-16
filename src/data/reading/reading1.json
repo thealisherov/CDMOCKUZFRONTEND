@@ -1,0 +1,269 @@
+[
+    {
+        "id": "p1_summary",
+        "type": "gap_fill",
+        "instruction": "Complete the summary below. Write NO MORE THAN TWO WORDS AND/OR A NUMBER.",
+        "content": "Studies at Yale University have shown that a positive attitude can lengthen someone's lifespan by approximately {1}. Another US research team claims to have found a physical reason why this happens. As a result of an eight-year study on {2} male subjects of a certain age, they have noted differences in the {3} among positive and negative thinkers. This discovery has led them to conclude that positive thinking makes the body's entire {4} stronger, which, in turn, reduces ageing. Rosalind Wright cites some early research on {5} in support of this view.",
+        "answers": {
+            "1": "seven years",
+            "2": "670",
+            "3": "lung function",
+            "4": "immune system",
+            "5": "heart patients"
+        }
+    },
+    {
+        "id": "p1_endings",
+        "type": "matrix_match",
+        "instruction": "Complete each sentence with the correct ending, A-H.",
+        "columnOptions": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+        ],
+        "questions": [
+            {
+                "id": "6",
+                "text": "The writer's reference to Sigmund Freud illustrates the point that"
+            },
+            {
+                "id": "7",
+                "text": "According to Brice Pitt of Imperial College, London,"
+            },
+            {
+                "id": "8",
+                "text": "Researchers at the Henley Centre have shown that"
+            },
+            {
+                "id": "9",
+                "text": "The 1995 Adweek survey found that across the USA"
+            },
+            {
+                "id": "10",
+                "text": "The psychotherapist Lynn Myers suggests that"
+            }
+        ],
+        "answers": {
+            "6": "D",
+            "7": "A",
+            "8": "F",
+            "9": "G",
+            "10": "C"
+        }
+    },
+    {
+        "id": "p1_tfng",
+        "type": "true_false",
+        "instruction": "Do the following statements agree with the claims of the writer?",
+        "options": [
+            "YES",
+            "NO",
+            "NOT GIVEN"
+        ],
+        "questions": [
+            {
+                "id": "11",
+                "text": "It has been known for some time that there is a link between optimism and good health."
+            },
+            {
+                "id": "12",
+                "text": "Optimists have better personal relationships with others than pessimists."
+            },
+            {
+                "id": "13",
+                "text": "People who live to be over ninety-five are known to take the same amount of regular exercise."
+            }
+        ],
+        "answers": {
+            "11": "YES",
+            "12": "NOT GIVEN",
+            "13": "NO"
+        }
+    },
+    {
+        "id": "p2_headings",
+        "type": "matrix_match",
+        "instruction": "Which paragraph contains the following information?",
+        "columnOptions": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H"
+        ],
+        "questions": [
+            {
+                "id": "14",
+                "text": "a description of how a test showed some evidence to be fake"
+            },
+            {
+                "id": "15",
+                "text": "reasons why scientists may be unwilling to admit that they play"
+            },
+            {
+                "id": "16",
+                "text": "the result of a trick going wrong"
+            },
+            {
+                "id": "17",
+                "text": "the similarity between a skill used in play and one used in science"
+            },
+            {
+                "id": "18",
+                "text": "how a group of scientists stopped a colleague misusing their results"
+            },
+            {
+                "id": "19",
+                "text": "some examples of the playful nature of scientific language"
+            },
+            {
+                "id": "20",
+                "text": "an example of an everyday object put to a scientific use"
+            }
+        ],
+        "answers": {
+            "14": "E",
+            "15": "A",
+            "16": "F",
+            "17": "B",
+            "18": "G",
+            "19": "D",
+            "20": "C"
+        }
+    },
+    {
+        "id": "p2_multi",
+        "type": "true_false",
+        "instruction": "Which TWO of the following reasons are given as possible explanations of scientists play behaviour? (Select two separately)",
+        "options": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E"
+        ],
+        "questions": [
+            {
+                "id": "21_22",
+                "text": "Select the correct reasons from the list below:"
+            }
+        ],
+        "answers": {
+            "21_22": [
+                "A",
+                "C"
+            ]
+        }
+    },
+    {
+        "id": "p2_summary",
+        "type": "gap_fill",
+        "instruction": "Complete the summary below. Write NO MORE THAN THREE WORDS.",
+        "content": "Scientists play tricks\n\nThe passage gives two examples of tricks. Researchers at Caltech found that a colleague had been stealing their {23} and used a hoax involving a fake NMR spectrum to trap the offender. Another story concerns a plate which a famous {24} is said to have left behind on a visit to California. The {25} that the plate was made of later revealed that it was a fake, a hoax carried out by friends of the director of the {26}.",
+        "answers": {
+            "23": "data",
+            "24": "English navigator",
+            "25": "copper and zinc",
+            "26": "Bancroft Library"
+        }
+    },
+    {
+        "id": "p3_mcq",
+        "type": "true_false",
+        "instruction": "Choose the correct letter, A, B, C, or D.",
+        "options": [
+            "A",
+            "B",
+            "C",
+            "D"
+        ],
+        "questions": [
+            {
+                "id": "27",
+                "text": "What is the writer's main point in the first paragraph?"
+            },
+            {
+                "id": "28",
+                "text": "When describing the way computer generated imagery changes actors' appearance, what does the writer suggest?"
+            },
+            {
+                "id": "29",
+                "text": "What does the writer suggest about the scientists' attitude to their work in the fourth paragraph?"
+            },
+            {
+                "id": "30",
+                "text": "What are we told about computerised tomography?"
+            },
+            {
+                "id": "31",
+                "text": "Which of these advantages does the writer attribute to the current use of computerized tomography?"
+            },
+            {
+                "id": "32",
+                "text": "The writer mentions Kavita Bala in order to"
+            }
+        ],
+        "answers": {
+            "27": "D",
+            "28": "A",
+            "29": "A",
+            "30": "B",
+            "31": "B",
+            "32": "D"
+        }
+    },
+    {
+        "id": "p3_tfng",
+        "type": "true_false",
+        "instruction": "Do the following statements agree with the views of the writer?",
+        "options": [
+            "YES",
+            "NO",
+            "NOT GIVEN"
+        ],
+        "questions": [
+            {
+                "id": "33",
+                "text": "It used to be unusual for university researchers to receive a cinematography award."
+            },
+            {
+                "id": "34",
+                "text": "CGI is popular among ageing actors."
+            },
+            {
+                "id": "35",
+                "text": "The scientists' success in generating images of complete CGI garments has won them many awards."
+            },
+            {
+                "id": "36",
+                "text": "It will be a long time before computerised tomographic fabric is used by filmmakers."
+            }
+        ],
+        "answers": {
+            "33": "YES",
+            "34": "NOT GIVEN",
+            "35": "NO",
+            "36": "NO"
+        }
+    },
+    {
+        "id": "p3_box_gap",
+        "type": "gap_fill",
+        "instruction": "Complete the summary using the list of words (A-I) below. (Use the Letter corresponding to the word)",
+        "content": "The work of Marschner and his colleagues\n\nFor many years, CGI characters did not appear entirely lifelike. Marschner and his colleagues were the first to apply an understanding of how {37} interacts with human skin. Their CGI models is based on a novel application of principles of {38} which had previously been applied in other scientific research. The importance of CGI to the film industry has led to the {39} of Marschner's model by special effects studios. Marschner's model has led to the {40} of cinematography.",
+        "answers": {
+            "37": "A",
+            "38": "E",
+            "39": "D",
+            "40": "G"
+        }
+    }
+]

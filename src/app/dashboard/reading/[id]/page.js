@@ -1,70 +1,250 @@
-"use client";
+'use client';
 
-import { use } from "react";
-import Timer from "@/components/Timer";
-import { Button } from "@/components/ui/button";
+import { use, useState, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import Timer from '@/components/Timer';
+import { Button } from '@/components/ui/button';
+import { QuestionRenderer } from '@/components/ielts-questions';
+import AnswerSheet from '@/components/ielts-questions/AnswerSheet';
+import { ArrowLeft, Send, AlertTriangle } from 'lucide-react';
+
+// Dynamically load test data by ID — no need to edit this file when adding new tests!
+// Just add a new JSON file: src/data/reading/reading{N}.json
+function loadTestData(testId) {
+  try {
+    return require(`@/data/reading/reading${testId}.json`);
+  } catch {
+    return null;
+  }
+}
 
 export default function ReadingTestPage({ params }) {
   const { id } = use(params);
+  const router = useRouter();
 
+  const testData = loadTestData(id);
+
+  const [userAnswers, setUserAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  // Calculate global start index for each block
+  const getStartIndex = useCallback(
+    (blockIndex) => {
+      if (!testData) return 1;
+      let start = 1;
+      for (let i = 0; i < blockIndex; i++) {
+        const block = testData[i];
+        if (block.type === 'gap_fill') {
+          const matches = block.content.match(/\{\d+\}/g);
+          start += matches ? matches.length : 0;
+        } else if (block.questions) {
+          start += block.questions.length;
+        }
+      }
+      return start;
+    },
+    [testData]
+  );
+
+  // Total question count
+  const totalQuestions = useMemo(() => {
+    if (!testData) return 0;
+    let count = 0;
+    testData.forEach((block) => {
+      if (block.type === 'gap_fill') {
+        const matches = block.content.match(/\{\d+\}/g);
+        count += matches ? matches.length : 0;
+      } else if (block.questions) {
+        count += block.questions.length;
+      }
+    });
+    return count;
+  }, [testData]);
+
+  // Count answered questions
+  const answeredCount = useMemo(() => {
+    return Object.values(userAnswers).filter(
+      (v) => v !== undefined && v !== null && v.toString().trim() !== ''
+    ).length;
+  }, [userAnswers]);
+
+  const handleBlockAnswers = useCallback((answers) => {
+    setUserAnswers((prev) => ({ ...prev, ...answers }));
+  }, []);
+
+  const handleSubmit = () => {
+    setSubmitted(true);
+    setShowConfirm(false);
+  };
+
+  const handleRetry = () => {
+    setUserAnswers({});
+    setSubmitted(false);
+  };
+
+  const handleExit = () => {
+    router.push('/dashboard/reading');
+  };
+
+  const handleTimerExpire = () => {
+    setSubmitted(true);
+  };
+
+  if (!testData) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+        <AlertTriangle className="w-12 h-12 text-destructive mb-4" />
+        <h2 className="text-xl font-bold mb-2">Test not found</h2>
+        <p className="text-muted-foreground mb-4">
+          Reading Test #{id} does not exist.
+        </p>
+        <Button onClick={() => router.push('/dashboard/reading')}>
+          Back to Tests
+        </Button>
+      </div>
+    );
+  }
+
+  // ── RESULT VIEW ──
+  if (submitted) {
+    return (
+      <div className="min-h-[calc(100vh-8rem)]">
+        <div className="flex items-center justify-between mb-6 border-b pb-4">
+          <h1 className="text-xl font-bold">Reading Test #{id} — Results</h1>
+          <Button variant="outline" onClick={handleExit}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+        </div>
+        <AnswerSheet
+          userAnswers={userAnswers}
+          testData={testData}
+          onRetry={handleRetry}
+          onExit={handleExit}
+          moduleType="reading"
+        />
+      </div>
+    );
+  }
+
+  // ── TEST VIEW ──
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <div className="flex items-center justify-between mb-4 border-b pb-4">
-        <h1 className="text-xl font-bold">Reading Test #{id}</h1>
-        <div className="flex items-center gap-4">
-          <Timer initialMinutes={60} />
-          <Button variant="destructive">Exit Test</Button>
-          <Button>Submit Answers</Button>
-        </div>
-      </div>
-      
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 h-full overflow-hidden">
-        {/* Left: Passage */}
-        <div className="h-full overflow-y-auto pr-4 border-r">
-          <div className="prose dark:prose-invert max-w-none">
-            <h2 className="text-2xl font-bold mb-4">Passage Title</h2>
-            <p className="mb-4 text-justify leading-relaxed">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-            </p>
-            <p className="mb-4 text-justify leading-relaxed">
-              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-            </p>
-            <p className="mb-4 text-justify leading-relaxed">
-              Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-            </p>
-            {/* More content to demonstrate scrolling */}
-            <p className="mb-4 text-justify leading-relaxed">
-              Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.
+      {/* Top bar */}
+      <div className="flex items-center justify-between mb-4 border-b pb-4 flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push('/dashboard/reading')}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold">Reading Test #{id}</h1>
+            <p className="text-xs text-muted-foreground">
+              {answeredCount}/{totalQuestions} answered
             </p>
           </div>
         </div>
-        
-        {/* Right: Questions */}
-        <div className="h-full overflow-y-auto pl-2">
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg bg-secondary/50 p-2 rounded">Questions 1-5</h3>
-              <p className="text-sm text-muted-foreground">Choose the correct heading for each paragraph from the list of headings below.</p>
-              
-              {[1, 2, 3, 4, 5].map((q) => (
-                <div key={q} className="flex flex-col gap-2 p-4 border rounded-lg bg-card hover:bg-accent/10 transition-colors">
-                  <div className="flex justify-between">
-                     <span className="font-bold">Question {q}</span>
-                     <span className="text-xs text-muted-foreground">1 mark</span>
-                  </div>
-                  <label className="text-sm">Paragraph {String.fromCharCode(64 + q)}</label>
-                  <select className="w-full p-2 border rounded bg-background">
-                    <option>Select heading...</option>
-                    <option>Heading I</option>
-                    <option>Heading II</option>
-                    <option>Heading III</option>
-                  </select>
-                </div>
-              ))}
+
+        <div className="flex items-center gap-3">
+          {/* Question progress pills */}
+          <div className="hidden lg:flex items-center gap-1">
+            {Array.from({ length: totalQuestions }, (_, i) => {
+              const num = i + 1;
+              const qId = num.toString();
+              const isAnswered =
+                userAnswers[qId] !== undefined &&
+                userAnswers[qId] !== null &&
+                userAnswers[qId].toString().trim() !== '';
+              return (
+                <span
+                  key={num}
+                  className={`w-6 h-6 rounded text-[10px] font-bold flex items-center justify-center transition-all ${
+                    isAnswered
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  {num}
+                </span>
+              );
+            })}
+          </div>
+
+          <Timer initialMinutes={60} onExpire={handleTimerExpire} />
+
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => router.push('/dashboard/reading')}
+          >
+            Exit
+          </Button>
+          <Button size="sm" onClick={() => setShowConfirm(true)}>
+            <Send className="w-4 h-4 mr-1" />
+            Submit
+          </Button>
+        </div>
+      </div>
+
+      {/* Questions (scrollable, full width for reading - no passage panel since passages are not provided in JSON) */}
+      <div className="flex-1 overflow-y-auto pr-2">
+        <div className="max-w-4xl mx-auto space-y-6 pb-8">
+          {testData.map((block, idx) => (
+            <QuestionRenderer
+              key={block.id}
+              data={block}
+              startIndex={getStartIndex(idx)}
+              onAnswersChange={handleBlockAnswers}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Submit Confirmation Modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card border border-border rounded-xl p-6 max-w-md mx-4 shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Send className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg text-foreground">Submit Answers?</h3>
+                <p className="text-sm text-muted-foreground">
+                  You have answered {answeredCount} out of {totalQuestions} questions.
+                </p>
+              </div>
+            </div>
+
+            {answeredCount < totalQuestions && (
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mb-4">
+                <p className="text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  You have {totalQuestions - answeredCount} unanswered question(s).
+                </p>
+              </div>
+            )}
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+              >
+                Submit Answers
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
