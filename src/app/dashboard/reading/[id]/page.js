@@ -6,6 +6,7 @@ import Timer from '@/components/Timer';
 import { Button } from '@/components/ui/button';
 import { QuestionRenderer } from '@/components/ielts-questions';
 import AnswerSheet from '@/components/ielts-questions/AnswerSheet';
+import TestNavigator from '@/components/TestNavigator';
 import { ArrowLeft, Send, AlertTriangle, BookOpen } from 'lucide-react';
 
 // Dynamically load test data by ID
@@ -108,7 +109,7 @@ export default function ReadingTestPage({ params }) {
 
   if (!rawData) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+      <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center text-center">
         <AlertTriangle className="w-12 h-12 text-destructive mb-4" />
         <h2 className="text-xl font-bold mb-2">Test not found</h2>
         <p className="text-muted-foreground mb-4">
@@ -124,21 +125,23 @@ export default function ReadingTestPage({ params }) {
   // ── RESULT VIEW ──
   if (submitted) {
     return (
-      <div className="min-h-[calc(100vh-8rem)]">
-        <div className="flex items-center justify-between mb-6 border-b pb-4">
-          <h1 className="text-xl font-bold">{rawData.title} — Results</h1>
-          <Button variant="outline" onClick={handleExit}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
+      <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
+        <div className="max-w-5xl mx-auto p-6 min-h-screen">
+          <div className="flex items-center justify-between mb-6 border-b pb-4">
+            <h1 className="text-xl font-bold">{rawData.title} — Results</h1>
+            <Button variant="outline" onClick={handleExit}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+          </div>
+          <AnswerSheet
+            userAnswers={userAnswers}
+            testData={allBlocks}
+            onRetry={handleRetry}
+            onExit={handleExit}
+            moduleType="reading"
+          />
         </div>
-        <AnswerSheet
-          userAnswers={userAnswers}
-          testData={allBlocks}
-          onRetry={handleRetry}
-          onExit={handleExit}
-          moduleType="reading"
-        />
       </div>
     );
   }
@@ -157,96 +160,82 @@ export default function ReadingTestPage({ params }) {
 
   // ── TEST VIEW ──
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden">
       {/* Top bar */}
-      <div className="flex items-center justify-between mb-3 border-b pb-3 flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.push('/dashboard/reading')}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-lg font-bold">{rawData.title}</h1>
-            <p className="text-xs text-muted-foreground">
-              {answeredCount}/{totalQuestions} answered
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Question progress pills */}
-          <div className="hidden xl:flex items-center gap-0.5">
-            {Array.from({ length: totalQuestions }, (_, i) => {
-              const num = i + 1;
-              const qId = num.toString();
-              const isAnswered =
-                userAnswers[qId] !== undefined &&
-                userAnswers[qId] !== null &&
-                userAnswers[qId].toString().trim() !== '';
-              return (
-                <span
-                  key={num}
-                  className={`w-5 h-5 rounded text-[9px] font-bold flex items-center justify-center transition-all ${
-                    isAnswered
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  {num}
-                </span>
-              );
-            })}
+      <div className="flex-none bg-background/95 backdrop-blur border-b z-20 px-4 py-3">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push('/dashboard/reading')}
+              className="text-muted-foreground hover:text-foreground transition-colors p-2 hover:bg-muted rounded-full"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-lg font-bold">{rawData.title}</h1>
+              <p className="text-xs text-muted-foreground hidden sm:block">
+                {answeredCount}/{totalQuestions} answered
+              </p>
+            </div>
           </div>
 
-          <Timer initialMinutes={timerMinutes} onExpire={handleTimerExpire} />
+          <div className="flex items-center gap-3">
+            {/* Question progress pills (hidden on small screens) */}
+            <div className="hidden xl:flex items-center gap-0.5 mr-4">
+              {Array.from({ length: totalQuestions }, (_, i) => {
+                const num = i + 1;
+                const qId = num.toString();
+                const isAnswered =
+                  userAnswers[qId] !== undefined &&
+                  userAnswers[qId] !== null &&
+                  userAnswers[qId].toString().trim() !== '';
+                return (
+                  <span
+                    key={num}
+                    className={`w-5 h-5 rounded text-[9px] font-bold flex items-center justify-center transition-all ${
+                      isAnswered
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {num}
+                  </span>
+                );
+              })}
+            </div>
 
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => router.push('/dashboard/reading')}
-          >
-            Exit
-          </Button>
-          <Button size="sm" onClick={() => setShowConfirm(true)}>
-            <Send className="w-4 h-4 mr-1" />
-            Submit
-          </Button>
+            <Timer initialMinutes={timerMinutes} onExpire={handleTimerExpire} />
+
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => router.push('/dashboard/reading')}
+              className="hidden sm:flex"
+            >
+              Exit
+            </Button>
+            <Button size="sm" onClick={() => setShowConfirm(true)}>
+              <Send className="w-4 h-4 mr-1" />
+              Submit
+            </Button>
+          </div>
         </div>
-      </div>
-
-      {/* Passage tabs */}
-      <div className="flex items-center gap-2 mb-3 border-b pb-2 overflow-x-auto">
-        {passages.map((p, idx) => (
-          <button
-            key={p.id}
-            onClick={() => setActivePassage(idx)}
-            className={`px-4 py-1.5 rounded-t-lg text-sm font-semibold whitespace-nowrap transition-all border-b-2 ${
-              activePassage === idx
-                ? 'border-primary text-primary bg-primary/5'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            }`}
-          >
-            Passage {idx + 1}
-          </button>
-        ))}
       </div>
 
       {/* Split-screen: Passage (left) | Questions (right) */}
-      <div className="flex-1 flex gap-4 overflow-hidden min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row gap-4 overflow-hidden min-h-0 bg-muted/5 p-4 pb-24">
         {/* Left Panel — Passage text */}
-        <div className="w-1/2 overflow-y-auto border border-border rounded-lg bg-card">
-          <div className="sticky top-0 z-10 bg-primary/5 dark:bg-primary/10 border-b border-border px-5 py-3">
+        <div className="flex-1 md:w-1/2 overflow-y-auto border border-border rounded-lg bg-card shadow-sm h-full">
+          <div className="sticky top-0 z-10 bg-card/95 backdrop-blur border-b border-border px-5 py-4">
             <h2 className="font-bold text-foreground text-lg flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-primary" />
               {currentPassage?.title}
             </h2>
           </div>
-          <div className="p-5">
-            <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed text-foreground/90">
+          <div className="p-6">
+            <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed text-foreground/90 font-serif">
               {currentPassage?.text?.split('\n\n').map((paragraph, idx) => (
-                <p key={idx} className="mb-4 text-[0.92rem] leading-[1.8]">
+                <p key={idx} className="mb-4 text-[1rem] leading-[1.8]">
                   {paragraph}
                 </p>
               ))}
@@ -255,24 +244,32 @@ export default function ReadingTestPage({ params }) {
         </div>
 
         {/* Right Panel — Questions */}
-        <div className="w-1/2 overflow-y-auto pr-1">
-          <div className="space-y-5 pb-8">
+        <div className="flex-1 md:w-1/2 overflow-y-auto h-full pr-1">
+          <div className="space-y-6 pb-8">
             {currentBlocks.map((block, idx) => (
-              <QuestionRenderer
-                key={block.id}
-                data={block}
-                startIndex={getStartIndex(blockOffset + idx)}
-                onAnswersChange={handleBlockAnswers}
-              />
+              <div key={block.id} className="bg-card border border-border rounded-xl p-5 shadow-sm">
+                <QuestionRenderer
+                  data={block}
+                  startIndex={getStartIndex(blockOffset + idx)}
+                  onAnswersChange={handleBlockAnswers}
+                />
+              </div>
             ))}
           </div>
         </div>
       </div>
 
+      {/* Bottom Navigator */}
+      <TestNavigator
+        parts={passages.map((p, i) => `Passage ${i + 1}`)}
+        activePart={activePassage}
+        onPartChange={setActivePassage}
+      />
+
       {/* Submit Confirmation Modal */}
       {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card border border-border rounded-xl p-6 max-w-md mx-4 shadow-2xl">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card border border-border rounded-xl p-6 max-w-md mx-4 shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                 <Send className="w-5 h-5 text-primary" />
