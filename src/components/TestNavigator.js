@@ -1,20 +1,15 @@
 'use client';
 
-import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 /**
- * TestNavigator — IELTS CD pastki navigatsiya paneli.
+ * TestNavigator — IELTS CD bottom navigator.
  *
- * Props:
- *  - parts              : string[]            Part nomlari ["Part 1", "Part 2", ...]
- *  - activePart         : number              Hozirgi aktiv part indeksi
- *  - onPartChange       : (index) => void     Part almashtirganda
- *  - questionNumbers    : number[]            Barcha savol raqamlari [1..40]
- *  - answeredIds        : string[]            Javob berilgan savol ID/raqamlari
- *  - partQuestionRanges : {start,end}[]       Har bir part uchun savol diapazoni
- *  - onSubmit           : () => void          ✓ tugma bosilganda
- *  - onPrevPage         : () => void | null   ← tugma (undefined bo'lsa ko'rinmaydi)
- *  - onNextPage         : () => void | null   → tugma
+ * Dizayn berilgan BottomNavigator kodidan 100% ko'chirilgan:
+ * - h-20 (80px), shadow yuqoriga
+ * - Aktiv part: bold label + w-9 h-9 savol tugmalari
+ * - Inaktiv part: label + answered/total count
+ * - Submit: o'ng chekkada checkmark + "Submit" matni
  */
 export default function TestNavigator({
   parts = [],
@@ -24,34 +19,28 @@ export default function TestNavigator({
   answeredIds = [],
   partQuestionRanges = [],
   onSubmit,
-  onPrevPage,
-  onNextPage,
 }) {
   if (!parts || parts.length === 0) return null;
 
   const answeredSet = new Set(answeredIds.map(String));
 
-  const getPartAnswered = (partIndex) => {
+  const getPartStats = (partIndex) => {
     const range = partQuestionRanges[partIndex];
-    if (!range) return 0;
-    let count = 0;
+    if (!range) return { total: 0, answered: 0, questions: [] };
+    const questions = [];
     for (let i = range.start; i <= range.end; i++) {
-      if (answeredSet.has(String(i))) count++;
+      questions.push(i);
     }
-    return count;
+    const answered = questions.filter((q) => answeredSet.has(String(q))).length;
+    return { total: questions.length, answered, questions };
   };
 
-  const getPartTotal = (partIndex) => {
-    const range = partQuestionRanges[partIndex];
-    if (!range) return 0;
-    return range.end - range.start + 1;
+  const scrollToQuestion = (qNum) => {
+    const element = document.getElementById(`question-${qNum}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
-
-  // Question numbers for the active part
-  const activeRange = partQuestionRanges[activePart];
-  const activeQuestions = activeRange
-    ? questionNumbers.slice(activeRange.start - 1, activeRange.end)
-    : [];
 
   return (
     <div
@@ -60,161 +49,185 @@ export default function TestNavigator({
         bottom: 0,
         left: 0,
         right: 0,
-        zIndex: 50,
-        backgroundColor: '#e8e8e8',
-        borderTop: '1px solid #bbb',
-        height: '50px',
-        userSelect: 'none',
+        height: '80px',
+        zIndex: 40,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 16px',
+        backgroundColor: '#fff',
+        borderTop: '1px solid #d1d5db',
+        color: '#111',
+        boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.1)',
         fontFamily: 'Arial, Helvetica, sans-serif',
+        userSelect: 'none',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'stretch', height: '100%' }}>
+      {/* ═══ Main Navigation Area ═══ */}
+      <div
+        className="no-scrollbar"
+        style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '32px',
+          overflowX: 'auto',
+          padding: '8px 0',
+        }}
+      >
+        {parts.map((label, idx) => {
+          const stats = getPartStats(idx);
+          const isActive = idx === activePart;
 
-        {/* ─── Part Tabs ─── */}
-        {parts.map((label, index) => {
-          const isActive = activePart === index;
-          const answered = getPartAnswered(index);
-          const total = getPartTotal(index);
-
-          return (
-            <button
-              key={index}
-              onClick={() => onPartChange(index)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '0 16px',
-                height: '100%',
-                fontSize: '14px',
-                fontWeight: isActive ? '700' : '400',
-                color: '#222',
-                background: isActive ? '#fff' : 'transparent',
-                border: 'none',
-                borderRight: '1px solid #ccc',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.15s',
-                outline: 'none',
-              }}
-            >
-              <span>{label}</span>
-              {!isActive && total > 0 && (
-                <span style={{ fontSize: '12px', color: '#777', fontWeight: '400' }}>
-                  {answered}/{total}
-                </span>
-              )}
-            </button>
-          );
-        })}
-
-        {/* ─── Question number pills for active part ─── */}
-        <div
-          className="no-scrollbar"
-          style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            padding: '0 12px',
-            overflowX: 'auto',
-          }}
-        >
-          {activeQuestions.map((num) => {
-            const isAnswered = answeredSet.has(String(num));
+          if (isActive) {
+            /* ─── ACTIVE PART ─── */
             return (
-              <span
-                key={num}
+              <div
+                key={idx}
                 style={{
-                  display: 'inline-flex',
+                  display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  minWidth: '34px',
-                  height: '34px',
-                  padding: '0 2px',
-                  fontSize: '14px',
-                  fontWeight: '700',
-                  color: isAnswered ? '#fff' : '#333',
-                  backgroundColor: isAnswered ? '#333' : '#fff',
-                  border: '1px solid #777',
-                  borderRadius: '3px',
-                  cursor: 'default',
-                  userSelect: 'none',
+                  gap: '16px',
+                  flexShrink: 0,
+                  animation: 'fadeIn 0.2s ease',
                 }}
               >
-                {num}
-              </span>
+                {/* Part label */}
+                <div
+                  style={{
+                    fontWeight: '700',
+                    fontSize: '14px',
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap',
+                    color: '#111',
+                  }}
+                >
+                  {label}
+                </div>
+
+                {/* Question number buttons */}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {stats.questions.map((qNum) => {
+                    const isAnswered = answeredSet.has(String(qNum));
+                    return (
+                      <button
+                        key={qNum}
+                        onClick={() => scrollToQuestion(qNum)}
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '14px',
+                          fontWeight: '700',
+                          border: isAnswered ? '2px solid #333' : '1px solid #d1d5db',
+                          borderRadius: '4px',
+                          backgroundColor: isAnswered ? '#f3f4f6' : 'transparent',
+                          color: '#111',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s',
+                          textDecoration: isAnswered ? 'underline' : 'none',
+                          textDecorationThickness: '2px',
+                          textUnderlineOffset: '2px',
+                          outline: 'none',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {qNum}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             );
-          })}
-        </div>
+          } else {
+            /* ─── INACTIVE PART ─── */
+            return (
+              <button
+                key={idx}
+                onClick={() => onPartChange(idx)}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '4px 16px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  outline: 'none',
+                  transition: 'background-color 0.15s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f3f4f6'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+              >
+                <span
+                  style={{
+                    fontWeight: '700',
+                    fontSize: '14px',
+                    textTransform: 'uppercase',
+                    opacity: 0.8,
+                    color: '#111',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {label}
+                </span>
+                <span
+                  style={{
+                    fontSize: '12px',
+                    opacity: 0.6,
+                    color: '#111',
+                  }}
+                >
+                  {stats.answered} / {stats.total}
+                </span>
+              </button>
+            );
+          }
+        })}
+      </div>
 
-        {/* ─── Navigation arrows ← → ─── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '0 8px' }}>
-          {onPrevPage && (
-            <button
-              onClick={onPrevPage}
-              aria-label="Previous"
-              style={{
-                width: '36px',
-                height: '36px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#d0d0d0',
-                border: '1px solid #aaa',
-                borderRadius: '3px',
-                cursor: 'pointer',
-                color: '#333',
-              }}
-            >
-              <ChevronLeft style={{ width: '20px', height: '20px' }} />
-            </button>
-          )}
-          {onNextPage && (
-            <button
-              onClick={onNextPage}
-              aria-label="Next"
-              style={{
-                width: '36px',
-                height: '36px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#d0d0d0',
-                border: '1px solid #aaa',
-                borderRadius: '3px',
-                cursor: 'pointer',
-                color: '#333',
-              }}
-            >
-              <ChevronRight style={{ width: '20px', height: '20px' }} />
-            </button>
-          )}
-        </div>
-
-        {/* ─── Submit ✓ button ─── */}
-        {onSubmit && (
+      {/* ═══ Right Side: Submit Button ═══ */}
+      {onSubmit && (
+        <div style={{ display: 'flex', alignItems: 'center', marginLeft: '16px' }}>
           <button
             onClick={onSubmit}
-            aria-label="Submit"
             style={{
-              width: '34px',
-              height: '100%',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#d0d0d0',
-              border: 'none',
-              borderLeft: '1px solid #aaa',
+              gap: '8px',
+              padding: '8px 24px',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              fontWeight: '700',
+              fontSize: '14px',
+              backgroundColor: '#fff',
+              color: '#111',
               cursor: 'pointer',
-              color: '#333',
-              flexShrink: 0,
+              transition: 'all 0.15s',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              outline: 'none',
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f3f4f6'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#fff'; }}
           >
-            <Check style={{ width: '18px', height: '18px' }} />
+            {/* Checkmark Icon */}
+            <svg
+              style={{ width: '20px', height: '20px', opacity: 0.8 }}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Submit</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

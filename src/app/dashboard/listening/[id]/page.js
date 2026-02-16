@@ -122,8 +122,6 @@ export default function ListeningTestPage({ params }) {
   const handleExit = () => router.push('/dashboard/listening');
   const handleTimerExpire = () => setSubmitted(true);
 
-  const handlePrevPart = () => { if (activePartIndex > 0) setActivePartIndex(activePartIndex - 1); };
-  const handleNextPart = () => { if (activePartIndex < parts.length - 1) setActivePartIndex(activePartIndex + 1); };
 
   if (!rawData) {
     return (
@@ -204,7 +202,7 @@ export default function ListeningTestPage({ params }) {
       </div>
 
       {/* ═══ MAIN CONTENT — white background ═══ */}
-      <div className="flex-1 overflow-y-auto pb-16">
+      <div className="flex-1 overflow-y-auto pb-24">
         <div className="max-w-3xl mx-auto px-5 py-6">
           {visibleSections.map((block) => (
             <div key={block.id} className="mb-8">
@@ -246,8 +244,6 @@ export default function ListeningTestPage({ params }) {
         answeredIds={answeredIds}
         partQuestionRanges={partQuestionRanges}
         onSubmit={() => setShowConfirm(true)}
-        onPrevPage={activePartIndex > 0 ? handlePrevPart : undefined}
-        onNextPage={activePartIndex < parts.length - 1 ? handleNextPart : undefined}
       />
 
       {/* Submit Modal */}

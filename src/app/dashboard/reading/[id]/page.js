@@ -97,8 +97,6 @@ export default function ReadingTestPage({ params }) {
   const handleExit = () => router.push('/dashboard/reading');
   const handleTimerExpire = () => setSubmitted(true);
 
-  const handlePrevPassage = () => { if (activePassage > 0) setActivePassage(activePassage - 1); };
-  const handleNextPassage = () => { if (activePassage < passages.length - 1) setActivePassage(activePassage + 1); };
 
   if (!rawData) {
     return (
@@ -176,7 +174,7 @@ export default function ReadingTestPage({ params }) {
       </div>
 
       {/* ═══ SPLIT SCREEN — passage left | questions right ═══ */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 pb-12">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 pb-17">
         {/* Left — Passage */}
         <div className="flex-1 md:w-1/2 overflow-y-auto bg-white border-r border-[#ddd]">
           {/* Passage title */}
@@ -230,8 +228,6 @@ export default function ReadingTestPage({ params }) {
         answeredIds={answeredIds}
         partQuestionRanges={partQuestionRanges}
         onSubmit={() => setShowConfirm(true)}
-        onPrevPage={activePassage > 0 ? handlePrevPassage : undefined}
-        onNextPage={activePassage < passages.length - 1 ? handleNextPassage : undefined}
       />
 
       {/* Submit Modal */}
