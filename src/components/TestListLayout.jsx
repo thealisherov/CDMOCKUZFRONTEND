@@ -5,8 +5,7 @@ import { Search, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const LEVEL_OPTIONS = ["All Levels", "Easy", "Medium", "Hard"];
-const TYPE_OPTIONS = ["All Types", "Academic", "General Training"];
-const PART_OPTIONS = ["All Parts", "Part 1", "Part 2", "Part 3", "Part 4"];
+const TYPE_OPTIONS = ["All Types", "Full Test", "Section", "Part"];
 const TAB_OPTIONS = [
   { key: "all", label: "All Tests" },
   { key: "free", label: "Free" },
@@ -41,7 +40,7 @@ export default function TestListLayout({
   const [searchQuery, setSearchQuery] = useState("");
   const [levelFilter, setLevelFilter] = useState("All Levels");
   const [typeFilter, setTypeFilter] = useState("All Types");
-  const [partFilter, setPartFilter] = useState("All Parts");
+
 
   const filteredTests = useMemo(() => {
     let result = tests;
@@ -61,11 +60,20 @@ export default function TestListLayout({
 
     // Level filter
     if (levelFilter !== "All Levels") {
-      result = result.filter((t) => t.difficulty?.toLowerCase() === levelFilter.toLowerCase());
+      result = result.filter((t) => (t.level || t.difficulty || '').toLowerCase() === levelFilter.toLowerCase());
+    }
+
+    // Type filter (full_test, section, part)
+    if (typeFilter !== "All Types") {
+      const typeMap = { "Full Test": "full_test", "Section": "section", "Part": "part" };
+      const mapped = typeMap[typeFilter];
+      if (mapped) {
+        result = result.filter((t) => (t.testType || '').toLowerCase().startsWith(mapped));
+      }
     }
 
     return result;
-  }, [tests, activeTab, searchQuery, levelFilter, typeFilter, partFilter]);
+  }, [tests, activeTab, searchQuery, levelFilter, typeFilter]);
 
   return (
     <div className="space-y-0">
@@ -109,9 +117,6 @@ export default function TestListLayout({
         </div>
         <FilterDropdown label="Level" options={LEVEL_OPTIONS} value={levelFilter} onChange={setLevelFilter} />
         <FilterDropdown label="Type" options={TYPE_OPTIONS} value={typeFilter} onChange={setTypeFilter} />
-        {moduleType !== "writing" && (
-          <FilterDropdown label="Part" options={PART_OPTIONS} value={partFilter} onChange={setPartFilter} />
-        )}
       </div>
 
       {/* Test Count */}
@@ -140,10 +145,22 @@ export default function TestListLayout({
 }
 
 function DefaultTestItem({ test, moduleType }) {
+  const levelValue = (test.level || test.difficulty || '').toLowerCase();
   const difficultyColor = {
     easy: "text-green-600",
     medium: "text-yellow-600",
     hard: "text-red-600",
+  };
+
+  const testTypeLabel = {
+    full_test: "Full Test",
+    section_1: "Section 1",
+    section_2: "Section 2",
+    section_3: "Section 3",
+    section_4: "Section 4",
+    part_1: "Part 1",
+    part_2: "Part 2",
+    part_3: "Part 3",
   };
 
   return (
@@ -151,6 +168,11 @@ function DefaultTestItem({ test, moduleType }) {
       <div className="flex-1 space-y-1">
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="font-semibold text-base">{test.title}</h3>
+          {test.testType && (
+            <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-primary/10 text-primary">
+              {testTypeLabel[test.testType] || test.testType}
+            </span>
+          )}
           {test.access === "free" && (
             <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
               🎁 Free
@@ -169,9 +191,9 @@ function DefaultTestItem({ test, moduleType }) {
         </div>
         <p className="text-sm text-muted-foreground">{test.description}</p>
         <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-          <span className={cn("font-semibold uppercase flex items-center gap-1", difficultyColor[test.difficulty?.toLowerCase()] || "")}>
+          <span className={cn("font-semibold uppercase flex items-center gap-1", difficultyColor[levelValue] || "")}>
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-current"></span>
-            {test.difficulty}
+            {levelValue.charAt(0).toUpperCase() + levelValue.slice(1)}
           </span>
           <span className="flex items-center gap-1">⏱ {test.duration} minutes</span>
           {test.questions && <span className="flex items-center gap-1">📝 {test.questions} questions</span>}

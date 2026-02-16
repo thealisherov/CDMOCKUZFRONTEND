@@ -9,8 +9,7 @@ import { QuestionRenderer } from '@/components/ielts-questions';
 import AnswerSheet from '@/components/ielts-questions/AnswerSheet';
 import { ArrowLeft, Send, AlertTriangle } from 'lucide-react';
 
-// Dynamically load test data by ID — no need to edit this file when adding new tests!
-// Just add a new JSON file: src/data/listening/listening{N}.json
+// Dynamically load test data by ID
 function loadTestData(testId) {
   try {
     return require(`@/data/listening/listening${testId}.json`);
@@ -19,24 +18,31 @@ function loadTestData(testId) {
   }
 }
 
-
 export default function ListeningTestPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
 
-  const testData = loadTestData(id);
+  const rawData = loadTestData(id);
 
   const [userAnswers, setUserAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  // Timer is from JSON (in minutes)
+  const timerMinutes = rawData?.timer || 40;
+
+  // Sections are the flat question blocks
+  const sections = useMemo(() => {
+    return rawData?.sections || [];
+  }, [rawData]);
+
   // Calculate global start index for each block
   const getStartIndex = useCallback(
     (blockIndex) => {
-      if (!testData) return 1;
       let start = 1;
       for (let i = 0; i < blockIndex; i++) {
-        const block = testData[i];
+        const block = sections[i];
+        if (!block) break;
         if (block.type === 'gap_fill') {
           const matches = block.content.match(/\{\d+\}/g);
           start += matches ? matches.length : 0;
@@ -46,14 +52,13 @@ export default function ListeningTestPage({ params }) {
       }
       return start;
     },
-    [testData]
+    [sections]
   );
 
   // Total question count
   const totalQuestions = useMemo(() => {
-    if (!testData) return 0;
     let count = 0;
-    testData.forEach((block) => {
+    sections.forEach((block) => {
       if (block.type === 'gap_fill') {
         const matches = block.content.match(/\{\d+\}/g);
         count += matches ? matches.length : 0;
@@ -62,7 +67,7 @@ export default function ListeningTestPage({ params }) {
       }
     });
     return count;
-  }, [testData]);
+  }, [sections]);
 
   // Count answered questions
   const answeredCount = useMemo(() => {
@@ -93,7 +98,7 @@ export default function ListeningTestPage({ params }) {
     setSubmitted(true);
   };
 
-  if (!testData) {
+  if (!rawData) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-center">
         <AlertTriangle className="w-12 h-12 text-destructive mb-4" />
@@ -113,7 +118,7 @@ export default function ListeningTestPage({ params }) {
     return (
       <div className="min-h-[calc(100vh-8rem)]">
         <div className="flex items-center justify-between mb-6 border-b pb-4">
-          <h1 className="text-xl font-bold">Listening Test #{id} — Results</h1>
+          <h1 className="text-xl font-bold">{rawData.title} — Results</h1>
           <Button variant="outline" onClick={handleExit}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
@@ -121,7 +126,7 @@ export default function ListeningTestPage({ params }) {
         </div>
         <AnswerSheet
           userAnswers={userAnswers}
-          testData={testData}
+          testData={sections}
           onRetry={handleRetry}
           onExit={handleExit}
           moduleType="listening"
@@ -129,6 +134,10 @@ export default function ListeningTestPage({ params }) {
       </div>
     );
   }
+
+  // Group sections by their section number (e.g., "Section 1:", "Section 2:")
+  // Each section block already has a `title` field
+  let currentSectionTitle = '';
 
   // ── TEST VIEW ──
   return (
@@ -143,7 +152,7 @@ export default function ListeningTestPage({ params }) {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl font-bold">Listening Test #{id}</h1>
+            <h1 className="text-lg font-bold">{rawData.title}</h1>
             <p className="text-xs text-muted-foreground">
               {answeredCount}/{totalQuestions} answered
             </p>
@@ -152,7 +161,7 @@ export default function ListeningTestPage({ params }) {
 
         <div className="flex items-center gap-3">
           {/* Question progress pills */}
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden xl:flex items-center gap-0.5">
             {Array.from({ length: totalQuestions }, (_, i) => {
               const num = i + 1;
               const qId = num.toString();
@@ -163,7 +172,7 @@ export default function ListeningTestPage({ params }) {
               return (
                 <span
                   key={num}
-                  className={`w-6 h-6 rounded text-[10px] font-bold flex items-center justify-center transition-all ${
+                  className={`w-5 h-5 rounded text-[9px] font-bold flex items-center justify-center transition-all ${
                     isAnswered
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-muted-foreground'
@@ -175,7 +184,7 @@ export default function ListeningTestPage({ params }) {
             })}
           </div>
 
-          <Timer initialMinutes={40} onExpire={handleTimerExpire} />
+          <Timer initialMinutes={timerMinutes} onExpire={handleTimerExpire} />
 
           <Button
             variant="destructive"
@@ -199,14 +208,52 @@ export default function ListeningTestPage({ params }) {
       {/* Questions (scrollable) */}
       <div className="flex-1 overflow-y-auto pr-2">
         <div className="max-w-4xl mx-auto space-y-6 pb-8">
-          {testData.map((block, idx) => (
-            <QuestionRenderer
-              key={block.id}
-              data={block}
-              startIndex={getStartIndex(idx)}
-              onAnswersChange={handleBlockAnswers}
-            />
-          ))}
+          {sections.map((block, idx) => {
+            // Extract the main section label (e.g., "Section 1" from "Section 1: Music Alive Agency")
+            const sectionLabel = block.title?.match(/^(Section \d+|Part \d+)/i)?.[0] || '';
+            const showSectionHeader = sectionLabel && sectionLabel !== currentSectionTitle;
+            if (showSectionHeader) currentSectionTitle = sectionLabel;
+
+            return (
+              <div key={block.id}>
+                {/* Section divider */}
+                {showSectionHeader && (
+                  <div className="flex items-center gap-3 mb-4 mt-2">
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-bold uppercase tracking-wider">
+                      {sectionLabel}
+                    </span>
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+                )}
+
+                {/* Section subtitle */}
+                {block.title && (
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3 pl-1">
+                    {block.title}
+                  </h3>
+                )}
+
+                {/* Legend (for matching questions with option descriptions) */}
+                {block.legend && block.legend.length > 0 && (
+                  <div className="mb-3 p-3 rounded-lg bg-muted/50 border border-border">
+                    <p className="text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">Options</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
+                      {block.legend.map((item, i) => (
+                        <span key={i} className="text-sm text-foreground/80">{item}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <QuestionRenderer
+                  data={block}
+                  startIndex={getStartIndex(idx)}
+                  onAnswersChange={handleBlockAnswers}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 
