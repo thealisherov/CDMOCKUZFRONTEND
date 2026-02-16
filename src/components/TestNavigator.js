@@ -63,7 +63,7 @@ export default function TestNavigator({
         zIndex: 50,
         backgroundColor: '#e8e8e8',
         borderTop: '1px solid #bbb',
-        height: '38px',
+        height: '50px',
         userSelect: 'none',
         fontFamily: 'Arial, Helvetica, sans-serif',
       }}
@@ -83,15 +83,14 @@ export default function TestNavigator({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                padding: '0 14px',
+                gap: '8px',
+                padding: '0 16px',
                 height: '100%',
-                fontSize: '13px',
+                fontSize: '14px',
                 fontWeight: isActive ? '700' : '400',
                 color: '#222',
                 background: isActive ? '#fff' : 'transparent',
                 border: 'none',
-                borderBottom: isActive ? '3px solid #333' : '3px solid transparent',
                 borderRight: '1px solid #ccc',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
@@ -101,7 +100,7 @@ export default function TestNavigator({
             >
               <span>{label}</span>
               {!isActive && total > 0 && (
-                <span style={{ fontSize: '11px', color: '#777', fontWeight: '400' }}>
+                <span style={{ fontSize: '12px', color: '#777', fontWeight: '400' }}>
                   {answered}/{total}
                 </span>
               )}
@@ -116,8 +115,8 @@ export default function TestNavigator({
             flex: 1,
             display: 'flex',
             alignItems: 'center',
-            gap: '1px',
-            padding: '0 8px',
+            gap: '4px',
+            padding: '0 12px',
             overflowX: 'auto',
           }}
         >
@@ -130,16 +129,17 @@ export default function TestNavigator({
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  minWidth: '22px',
-                  height: '22px',
+                  minWidth: '34px',
+                  height: '34px',
                   padding: '0 2px',
-                  fontSize: '11px',
+                  fontSize: '14px',
                   fontWeight: '700',
-                  color: isAnswered ? '#fff' : '#444',
-                  backgroundColor: isAnswered ? '#555' : 'transparent',
-                  borderBottom: !isAnswered ? '2px solid #999' : 'none',
-                  lineHeight: 1,
+                  color: isAnswered ? '#fff' : '#333',
+                  backgroundColor: isAnswered ? '#333' : '#fff',
+                  border: '1px solid #777',
+                  borderRadius: '3px',
                   cursor: 'default',
+                  userSelect: 'none',
                 }}
               >
                 {num}
@@ -149,25 +149,25 @@ export default function TestNavigator({
         </div>
 
         {/* ─── Navigation arrows ← → ─── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2px', padding: '0 4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '0 8px' }}>
           {onPrevPage && (
             <button
               onClick={onPrevPage}
               aria-label="Previous"
               style={{
-                width: '32px',
-                height: '28px',
+                width: '36px',
+                height: '36px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: '#d0d0d0',
                 border: '1px solid #aaa',
-                borderRadius: '2px',
+                borderRadius: '3px',
                 cursor: 'pointer',
                 color: '#333',
               }}
             >
-              <ChevronLeft style={{ width: '16px', height: '16px' }} />
+              <ChevronLeft style={{ width: '20px', height: '20px' }} />
             </button>
           )}
           {onNextPage && (
@@ -175,19 +175,19 @@ export default function TestNavigator({
               onClick={onNextPage}
               aria-label="Next"
               style={{
-                width: '32px',
-                height: '28px',
+                width: '36px',
+                height: '36px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: '#d0d0d0',
                 border: '1px solid #aaa',
-                borderRadius: '2px',
+                borderRadius: '3px',
                 cursor: 'pointer',
                 color: '#333',
               }}
             >
-              <ChevronRight style={{ width: '16px', height: '16px' }} />
+              <ChevronRight style={{ width: '20px', height: '20px' }} />
             </button>
           )}
         </div>
