@@ -4,72 +4,85 @@ import React from 'react';
 
 /**
  * GapFill — "Complete the notes / sentences" component.
- *
- * Expected `data` shape:
- * {
- *   id: "block_1",
- *   type: "gap_fill",
- *   instruction: "Complete the notes below. Write NO MORE THAN TWO WORDS...",
- *   content: "The museum was built in {1} and was originally a {2}. It is located near the {3}.",
- *   questionIds: ["q1", "q2", "q3"]        // optional explicit IDs
- * }
- *
- * Placeholders like {1}, {2} are replaced by inline text inputs.
+ * IELTS CD style: numbered labels with bordered input boxes.
+ * 
+ * IMPORTANT: The placeholder numbers in content (e.g. {1}, {23})
+ * are used directly as question IDs and display numbers.
+ * The startIndex prop is IGNORED because the content already
+ * contains global question numbers.
  */
 const GapFill = ({ data, onAnswer, startIndex = 1 }) => {
-  // Split the content by {n} placeholders
   const parts = data.content.split(/(\{\d+\})/g);
 
   return (
-    <div className="rounded-lg border border-border bg-card text-card-foreground overflow-hidden">
-      {/* ── Header ── */}
-      <div className="bg-primary/5 dark:bg-primary/10 border-b border-border px-5 py-3">
-        <h3 className="font-semibold text-foreground text-[0.95rem] leading-snug">
-          {data.instruction}
-        </h3>
-      </div>
+    <div>
+      <div style={{ lineHeight: '2.4', fontSize: '0.92rem', color: '#333' }}>
+        {parts.map((part, index) => {
+          const match = part.match(/\{(\d+)\}/);
+          if (match) {
+            // The number in the placeholder IS the global question number
+            const questionNum = match[1];
+            const questionId = questionNum;
 
-      {/* ── Body ── */}
-      <div className="p-5">
-        <div className="leading-[2.2] text-[0.95rem] text-foreground/90">
-          {parts.map((part, index) => {
-            const match = part.match(/\{(\d+)\}/);
-            if (match) {
-              const placeholderNum = match[1];
-              const questionIndex = parseInt(placeholderNum, 10);
-              const globalNum = startIndex + questionIndex - 1;
-              const questionId =
-                data.questionIds?.[questionIndex - 1] || `q${globalNum}`;
-
-              return (
-                <span key={index} className="inline-flex items-center mx-1 align-baseline">
-                  {/* Question number badge */}
-                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold mr-1 shrink-0">
-                    {globalNum}
-                  </span>
-                  <input
-                    id={`gap-input-${questionId}`}
-                    type="text"
-                    autoComplete="off"
-                    spellCheck={false}
-                    className="
-                      inline-block w-32 px-2.5 py-1 rounded-md
-                      border border-input bg-background text-foreground
-                      font-medium text-sm
-                      placeholder:text-muted-foreground/50
-                      focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary
-                      transition-shadow
-                    "
-                    onChange={(e) => onAnswer(questionId, e.target.value)}
-                    placeholder={`Answer ${globalNum}`}
-                  />
+            return (
+              <span key={index} style={{ display: 'inline-flex', alignItems: 'center', margin: '0 4px', verticalAlign: 'baseline' }}>
+                {/* Boxed question number */}
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '24px',
+                  height: '24px',
+                  border: '1px solid #999',
+                  color: '#333',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  marginRight: '4px',
+                  flexShrink: 0,
+                  backgroundColor: '#fff',
+                }}>
+                  {questionNum}
                 </span>
-              );
-            }
-            // Regular text
-            return <span key={index}>{part}</span>;
-          })}
-        </div>
+                <input
+                  id={`gap-input-${questionId}`}
+                  type="text"
+                  autoComplete="off"
+                  spellCheck={false}
+                  style={{
+                    display: 'inline-block',
+                    width: '112px',
+                    padding: '4px 8px',
+                    border: '2px solid #4a7ab5',
+                    backgroundColor: '#fff',
+                    color: '#333',
+                    fontWeight: '500',
+                    fontSize: '13px',
+                    outline: 'none',
+                    transition: 'border-color 0.15s',
+                  }}
+                  onFocus={(e) => { e.target.style.borderColor = '#2a5a95'; }}
+                  onBlur={(e) => { e.target.style.borderColor = '#4a7ab5'; }}
+                  onChange={(e) => onAnswer(questionId, e.target.value)}
+                  placeholder=""
+                />
+              </span>
+            );
+          }
+          // Preserve newlines
+          if (part.includes('\n')) {
+            return (
+              <span key={index}>
+                {part.split('\n').map((line, i, arr) => (
+                  <React.Fragment key={i}>
+                    {line}
+                    {i < arr.length - 1 && <br />}
+                  </React.Fragment>
+                ))}
+              </span>
+            );
+          }
+          return <span key={index}>{part}</span>;
+        })}
       </div>
     </div>
   );

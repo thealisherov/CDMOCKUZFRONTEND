@@ -3,22 +3,8 @@
 import React, { useState } from 'react';
 
 /**
- * TrueFalse — "True / False / Not Given", "Yes / No / Not Given",
- *             and "Multiple Choice" component.
- *
- * Renders questions vertically with radio options aligned horizontally.
- *
- * Expected `data` shape:
- * {
- *   id: "block_3",
- *   type: "true_false",          // or "yes_no" / "multiple_choice"
- *   instruction: "Do the following statements agree with the information...",
- *   options: ["TRUE", "FALSE", "NOT GIVEN"],
- *   questions: [
- *     { id: "q27", text: "The statement text." },
- *     { id: "q28", text: "Another statement." },
- *   ]
- * }
+ * TrueFalse — IELTS CD style radio buttons.
+ * Handles: true_false, yes_no, multiple_choice question types.
  */
 const TrueFalse = ({ data, onAnswer, startIndex = 1 }) => {
   const [selectedAnswers, setSelectedAnswers] = useState({});
@@ -28,98 +14,96 @@ const TrueFalse = ({ data, onAnswer, startIndex = 1 }) => {
     onAnswer(questionId, value);
   };
 
-  // Determine the color accent for option pills based on question type
-  const getOptionStyle = (opt, isSelected) => {
-    if (!isSelected) {
-      return 'border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground';
-    }
-
-    const optUpper = opt.toUpperCase();
-    if (optUpper === 'TRUE' || optUpper === 'YES') {
-      return 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 shadow-sm';
-    }
-    if (optUpper === 'FALSE' || optUpper === 'NO') {
-      return 'border-red-500 bg-red-500/10 text-red-700 dark:text-red-400 shadow-sm';
-    }
-    if (optUpper === 'NOT GIVEN') {
-      return 'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-400 shadow-sm';
-    }
-    // Default for any other option (e.g. A, B, C, D)
-    return 'border-primary bg-primary/10 text-primary shadow-sm';
-  };
-
   return (
-    <div className="rounded-lg border border-border bg-card text-card-foreground overflow-hidden">
-      {/* ── Header ── */}
-      <div className="bg-primary/5 dark:bg-primary/10 border-b border-border px-5 py-3">
-        <h3 className="font-semibold text-foreground text-[0.95rem] leading-snug">
-          Questions
-        </h3>
-        <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
-          {data.instruction}
-        </p>
-      </div>
-
-      {/* ── Question List ── */}
-      <div className="divide-y divide-border/50">
+    <div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {data.questions.map((q, qIdx) => {
           const globalNum = startIndex + qIdx;
-          const selected = selectedAnswers[q.id];
+          // Use global number as answer key for consistent tracking
+          const questionId = String(globalNum);
+          const selected = selectedAnswers[questionId];
 
           return (
-            <div
-              key={q.id}
-              className={`
-                px-5 py-4 transition-colors
-                ${selected ? 'bg-primary/[0.02] dark:bg-primary/[0.04]' : ''}
-              `}
-            >
+            <div key={q.id || questionId}>
               {/* Question text */}
-              <div className="flex items-start mb-3">
-                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold mr-3 mt-0.5 shrink-0">
+              <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '6px' }}>
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: '24px',
+                  height: '24px',
+                  border: '1px solid #999',
+                  color: '#333',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  marginRight: '8px',
+                  marginTop: '2px',
+                  flexShrink: 0,
+                  backgroundColor: '#fff',
+                }}>
                   {globalNum}
                 </span>
-                <p className="text-foreground/90 text-[0.92rem] leading-relaxed">
+                <p style={{ color: '#333', fontSize: '0.92rem', lineHeight: '1.6', margin: 0 }}>
                   {q.text}
                 </p>
               </div>
 
-              {/* Option pills */}
-              <div className="flex items-center gap-2 ml-9 flex-wrap">
+              {/* Options — simple radio circles */}
+              <div style={{ marginLeft: '32px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {data.options.map((opt) => {
                   const isSelected = selected === opt;
                   return (
                     <label
                       key={opt}
-                      className={`
-                        inline-flex items-center gap-1.5
-                        px-3.5 py-1.5 rounded-full border
-                        text-xs font-semibold uppercase tracking-wide
-                        cursor-pointer select-none
-                        transition-all duration-150
-                        ${getOptionStyle(opt, isSelected)}
-                      `}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        padding: '2px 0',
+                      }}
                     >
                       <input
                         type="radio"
-                        name={`tf_${data.id}_${q.id}`}
+                        name={`tf_${data.id}_${questionId}`}
                         value={opt}
                         checked={isSelected}
-                        onChange={() => handleSelect(q.id, opt)}
-                        className="sr-only"
+                        onChange={() => handleSelect(questionId, opt)}
+                        style={{ position: 'absolute', width: 0, height: 0, opacity: 0 }}
                       />
-                      {/* Mini radio dot */}
+                      {/* Radio circle */}
                       <span
-                        className={`
-                          w-3 h-3 rounded-full border-2 transition-all duration-150 shrink-0
-                          ${
-                            isSelected
-                              ? 'border-current bg-current shadow-inner'
-                              : 'border-current/40 bg-transparent'
-                          }
-                        `}
-                      />
-                      {opt}
+                        style={{
+                          width: '16px',
+                          height: '16px',
+                          borderRadius: '50%',
+                          border: `2px solid ${isSelected ? '#333' : '#999'}`,
+                          backgroundColor: '#fff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          transition: 'border-color 0.15s',
+                        }}
+                      >
+                        {isSelected && (
+                          <span style={{
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
+                            backgroundColor: '#333',
+                          }} />
+                        )}
+                      </span>
+                      <span style={{
+                        fontSize: '13px',
+                        color: isSelected ? '#333' : '#555',
+                        fontWeight: isSelected ? '500' : '400',
+                      }}>
+                        {opt}
+                      </span>
                     </label>
                   );
                 })}

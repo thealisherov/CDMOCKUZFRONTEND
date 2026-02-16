@@ -57,9 +57,15 @@ const QuestionRenderer = ({ data, onAnswersChange, startIndex = 1 }) => {
 
       default:
         return (
-          <div className="p-6 rounded-lg border border-border bg-card text-card-foreground">
-            <p className="text-muted-foreground italic">
-              ⚠ Unknown question type: <code className="font-mono text-primary">{data.type}</code>
+          <div style={{
+            padding: '24px',
+            borderRadius: '8px',
+            border: '1px solid #e0e0e0',
+            backgroundColor: '#fff',
+            color: '#333',
+          }}>
+            <p style={{ color: '#999', fontStyle: 'italic' }}>
+              ⚠ Unknown question type: <code style={{ fontFamily: 'monospace', color: '#c00' }}>{data.type}</code>
             </p>
           </div>
         );

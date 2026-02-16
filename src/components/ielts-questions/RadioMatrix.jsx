@@ -4,21 +4,7 @@ import React, { useState } from 'react';
 
 /**
  * RadioMatrix — "Matching Features" / "Map Labeling" component.
- *
- * Renders a table where rows = questions, columns = options (A, B, C…).
- * Only one option per row (radio behavior).
- *
- * Expected `data` shape:
- * {
- *   id: "block_2",
- *   type: "matrix_match",
- *   instruction: "Which paragraph contains the following information?",
- *   columnOptions: ["A", "B", "C", "D", "E", "F", "G", "H"],
- *   questions: [
- *     { id: "q14", text: "a reference to how..." },
- *     { id: "q15", text: "an explanation of..." },
- *   ]
- * }
+ * IELTS CD style: clean table with simple radio circles.
  */
 const RadioMatrix = ({ data, onAnswer, startIndex = 1 }) => {
   const [selectedAnswers, setSelectedAnswers] = useState({});
@@ -29,28 +15,16 @@ const RadioMatrix = ({ data, onAnswer, startIndex = 1 }) => {
   };
 
   return (
-    <div className="rounded-lg border border-border bg-card text-card-foreground overflow-hidden">
-      {/* ── Header ── */}
-      <div className="bg-primary/5 dark:bg-primary/10 border-b border-border px-5 py-3">
-        <h3 className="font-semibold text-foreground text-[0.95rem] leading-snug">
-          {data.instruction}
-        </h3>
-      </div>
-
-      {/* ── Table ── */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          {/* Column headers */}
+    <div>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
           <thead>
-            <tr className="border-b border-border bg-muted/50">
-              <th className="p-3 text-left font-semibold text-foreground min-w-[200px]">
+            <tr style={{ borderBottom: '2px solid #ccc' }}>
+              <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#333', minWidth: '200px' }}>
                 Question
               </th>
               {data.columnOptions.map((opt) => (
-                <th
-                  key={opt}
-                  className="p-3 text-center font-bold text-primary w-12"
-                >
+                <th key={opt} style={{ padding: '8px', textAlign: 'center', fontWeight: '700', color: '#333', width: '40px' }}>
                   {opt}
                 </th>
               ))}
@@ -59,22 +33,36 @@ const RadioMatrix = ({ data, onAnswer, startIndex = 1 }) => {
 
           <tbody>
             {data.questions.map((q, qIdx) => {
-              const globalNum =
-                startIndex + qIdx;
-              const isSelected = !!selectedAnswers[q.id];
+              const globalNum = startIndex + qIdx;
+              // Use global number as answer key
+              const questionId = String(globalNum);
 
               return (
                 <tr
-                  key={q.id}
-                  className={`
-                    border-b border-border/50 transition-colors
-                    ${isSelected ? 'bg-primary/[0.03] dark:bg-primary/[0.06]' : ''}
-                    hover:bg-muted/40
-                  `}
+                  key={q.id || questionId}
+                  style={{
+                    borderBottom: '1px solid #e0e0e0',
+                    transition: 'background-color 0.15s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f9f9f9'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
                 >
                   {/* Question text */}
-                  <td className="p-3 text-foreground/90">
-                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold mr-2 shrink-0">
+                  <td style={{ padding: '10px 12px', color: '#333' }}>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: '24px',
+                      height: '24px',
+                      border: '1px solid #999',
+                      color: '#333',
+                      fontSize: '11px',
+                      fontWeight: '700',
+                      marginRight: '8px',
+                      flexShrink: 0,
+                      backgroundColor: '#fff',
+                    }}>
                       {globalNum}
                     </span>
                     {q.text}
@@ -82,35 +70,39 @@ const RadioMatrix = ({ data, onAnswer, startIndex = 1 }) => {
 
                   {/* Radio cells */}
                   {data.columnOptions.map((opt) => {
-                    const isChecked = selectedAnswers[q.id] === opt;
+                    const isChecked = selectedAnswers[questionId] === opt;
                     return (
-                      <td key={opt} className="p-2 text-center">
-                        <label
-                          className="inline-flex items-center justify-center w-8 h-8 rounded-full cursor-pointer transition-all"
-                          title={`${q.id} → ${opt}`}
-                        >
+                      <td key={opt} style={{ padding: '8px', textAlign: 'center' }}>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                           <input
                             type="radio"
-                            name={`matrix_${data.id}_${q.id}`}
+                            name={`matrix_${data.id}_${questionId}`}
                             value={opt}
                             checked={isChecked}
-                            onChange={() => handleSelect(q.id, opt)}
-                            className="sr-only"
+                            onChange={() => handleSelect(questionId, opt)}
+                            style={{ position: 'absolute', width: 0, height: 0, opacity: 0 }}
                           />
-                          {/* Custom radio visual */}
                           <span
-                            className={`
-                              inline-flex items-center justify-center
-                              w-7 h-7 rounded-full border-2 text-xs font-bold
-                              transition-all duration-150
-                              ${
-                                isChecked
-                                  ? 'border-primary bg-primary text-primary-foreground scale-110 shadow-md shadow-primary/25'
-                                  : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-primary'
-                              }
-                            `}
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              borderRadius: '50%',
+                              border: `2px solid ${isChecked ? '#333' : '#999'}`,
+                              backgroundColor: '#fff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'border-color 0.15s',
+                            }}
                           >
-                            {opt}
+                            {isChecked && (
+                              <span style={{
+                                width: '10px',
+                                height: '10px',
+                                borderRadius: '50%',
+                                backgroundColor: '#333',
+                              }} />
+                            )}
                           </span>
                         </label>
                       </td>

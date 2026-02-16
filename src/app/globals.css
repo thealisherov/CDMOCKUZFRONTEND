@@ -89,6 +89,47 @@
   --sidebar-ring: oklch(0.6 0.2 25);
 }
 
+/* ── IELTS Test View — theme-isolated, always light ── */
+.ielts-test-view,
+.ielts-test-view *,
+.dark .ielts-test-view,
+.dark .ielts-test-view * {
+  color-scheme: light !important;
+  --background: #ffffff !important;
+  --foreground: #333333 !important;
+  --primary: #333333 !important;
+  --primary-foreground: #ffffff !important;
+  --secondary: #f5f5f5 !important;
+  --secondary-foreground: #333333 !important;
+  --card: #ffffff !important;
+  --card-foreground: #333333 !important;
+  --popover: #ffffff !important;
+  --popover-foreground: #333333 !important;
+  --muted: #f0f0f0 !important;
+  --muted-foreground: #666666 !important;
+  --accent: #e8e8e8 !important;
+  --accent-foreground: #333333 !important;
+  --destructive: #cc0000 !important;
+  --destructive-foreground: #ffffff !important;
+  --border: #e0e0e0 !important;
+  --input: #e0e0e0 !important;
+  --ring: #333333 !important;
+}
+
+.ielts-test-view {
+  background-color: #f5f5f5 !important;
+  color: #333333 !important;
+}
+
+/* ── Scrollbar hide utility ── */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* ── Theme tokens (Tailwind v4 picks these up) ── */
 @theme inline {
   --color-background: var(--background);

@@ -8,9 +8,8 @@ import AudioPlayer from '@/components/AudioPlayer';
 import { QuestionRenderer } from '@/components/ielts-questions';
 import AnswerSheet from '@/components/ielts-questions/AnswerSheet';
 import TestNavigator from '@/components/TestNavigator';
-import { ArrowLeft, Send, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Send, AlertTriangle, Volume2, Menu } from 'lucide-react';
 
-// Dynamically load test data by ID
 function loadTestData(testId) {
   try {
     return require(`@/data/listening/listening${testId}.json`);
@@ -22,7 +21,6 @@ function loadTestData(testId) {
 export default function ListeningTestPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
-
   const rawData = loadTestData(id);
 
   const [userAnswers, setUserAnswers] = useState({});
@@ -30,27 +28,20 @@ export default function ListeningTestPage({ params }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [activePartIndex, setActivePartIndex] = useState(0);
 
-  // Timer is from JSON (in minutes)
   const timerMinutes = rawData?.timer || 40;
 
-  // Sections are the flat question blocks
-  const allSections = useMemo(() => {
-    return rawData?.sections || [];
-  }, [rawData]);
+  const allSections = useMemo(() => rawData?.sections || [], [rawData]);
 
-  // Group sections into Logical Parts (e.g., "Section 1", "Section 2")
+  // Group sections into logical parts
   const parts = useMemo(() => {
     if (!allSections.length) return [];
-
     const grouped = [];
     let currentPartLabel = null;
     let currentPartSections = [];
 
     allSections.forEach(section => {
-      // Extract "Section X" or "Part X" from title
       const match = section.title?.match(/^(Section|Part) \d+/i);
-      const label = match ? match[0] : (currentPartLabel || "Part 1");
-
+      const label = match ? match[0] : (currentPartLabel || 'Part 1');
       if (label !== currentPartLabel) {
         if (currentPartLabel) {
           grouped.push({ label: currentPartLabel, sections: currentPartSections });
@@ -61,97 +52,86 @@ export default function ListeningTestPage({ params }) {
         currentPartSections.push(section);
       }
     });
-
     if (currentPartSections.length > 0) {
       grouped.push({ label: currentPartLabel, sections: currentPartSections });
     }
-
     return grouped;
   }, [allSections]);
 
-  // Ensure activePartIndex is valid if parts change
   useEffect(() => {
-    if (activePartIndex >= parts.length && parts.length > 0) {
-      setActivePartIndex(0);
-    }
+    if (activePartIndex >= parts.length && parts.length > 0) setActivePartIndex(0);
   }, [parts.length, activePartIndex]);
 
-  // Calculate global start index for questions
-  const getStartIndex = useCallback(
-    (sectionId) => {
-      let start = 1;
-      // Iterate through all previous sections across all parts to find the cumulative count
-      for (let i = 0; i < allSections.length; i++) {
-        const sec = allSections[i];
-        if (sec.id === sectionId) break;
+  // Get question count for a single section block
+  const getBlockQCount = (block) => {
+    if (block.type === 'gap_fill') {
+      const matches = block.content.match(/\{\d+\}/g);
+      return matches ? matches.length : 0;
+    } else if (block.questions) {
+      return block.questions.length;
+    }
+    return 0;
+  };
 
-        if (sec.type === 'gap_fill') {
-          const matches = sec.content.match(/\{\d+\}/g);
-          start += matches ? matches.length : 0;
-        } else if (sec.questions) {
-          start += sec.questions.length;
-        }
-      }
-      return start;
-    },
-    [allSections]
-  );
-
-  // Total question count
-  const totalQuestions = useMemo(() => {
-    let count = 0;
-    allSections.forEach((block) => {
-      if (block.type === 'gap_fill') {
-        const matches = block.content.match(/\{\d+\}/g);
-        count += matches ? matches.length : 0;
-      } else if (block.questions) {
-        count += block.questions.length;
-      }
-    });
-    return count;
+  // Calculate global start index by section id
+  const getStartIndex = useCallback((sectionId) => {
+    let start = 1;
+    for (let i = 0; i < allSections.length; i++) {
+      if (allSections[i].id === sectionId) break;
+      start += getBlockQCount(allSections[i]);
+    }
+    return start;
   }, [allSections]);
 
-  // Count answered questions
-  const answeredCount = useMemo(() => {
-    return Object.values(userAnswers).filter(
-      (v) => v !== undefined && v !== null && v.toString().trim() !== ''
-    ).length;
+  const totalQuestions = useMemo(() => {
+    return allSections.reduce((sum, b) => sum + getBlockQCount(b), 0);
+  }, [allSections]);
+
+  // Question numbers array [1,2,3,...,40]
+  const questionNumbers = useMemo(() => {
+    return Array.from({ length: totalQuestions }, (_, i) => i + 1);
+  }, [totalQuestions]);
+
+  // Part question ranges for TestNavigator
+  const partQuestionRanges = useMemo(() => {
+    const ranges = [];
+    let cursor = 1;
+    parts.forEach(part => {
+      const count = part.sections.reduce((s, b) => s + getBlockQCount(b), 0);
+      ranges.push({ start: cursor, end: cursor + count - 1 });
+      cursor += count;
+    });
+    return ranges;
+  }, [parts]);
+
+  // Answered IDs
+  const answeredIds = useMemo(() => {
+    return Object.entries(userAnswers)
+      .filter(([, v]) => v !== undefined && v !== null && v.toString().trim() !== '')
+      .map(([k]) => k);
   }, [userAnswers]);
+
+  const answeredCount = answeredIds.length;
 
   const handleBlockAnswers = useCallback((answers) => {
     setUserAnswers((prev) => ({ ...prev, ...answers }));
   }, []);
 
-  const handleSubmit = () => {
-    setSubmitted(true);
-    setShowConfirm(false);
-  };
+  const handleSubmit = () => { setSubmitted(true); setShowConfirm(false); };
+  const handleRetry = () => { setUserAnswers({}); setSubmitted(false); setActivePartIndex(0); };
+  const handleExit = () => router.push('/dashboard/listening');
+  const handleTimerExpire = () => setSubmitted(true);
 
-  const handleRetry = () => {
-    setUserAnswers({});
-    setSubmitted(false);
-    setActivePartIndex(0);
-  };
-
-  const handleExit = () => {
-    router.push('/dashboard/listening');
-  };
-
-  const handleTimerExpire = () => {
-    setSubmitted(true);
-  };
+  const handlePrevPart = () => { if (activePartIndex > 0) setActivePartIndex(activePartIndex - 1); };
+  const handleNextPart = () => { if (activePartIndex < parts.length - 1) setActivePartIndex(activePartIndex + 1); };
 
   if (!rawData) {
     return (
-      <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center text-center">
-        <AlertTriangle className="w-12 h-12 text-destructive mb-4" />
-        <h2 className="text-xl font-bold mb-2">Test not found</h2>
-        <p className="text-muted-foreground mb-4">
-          Listening Test #{id} does not exist.
-        </p>
-        <Button onClick={() => router.push('/dashboard/listening')}>
-          Back to Tests
-        </Button>
+      <div className="ielts-test-view fixed inset-0 z-50 bg-white flex flex-col items-center justify-center text-center">
+        <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
+        <h2 className="text-xl font-bold mb-2" style={{ color: '#333' }}>Test not found</h2>
+        <p className="text-gray-500 mb-4">Listening Test #{id} does not exist.</p>
+        <Button onClick={() => router.push('/dashboard/listening')}>Back to Tests</Button>
       </div>
     );
   }
@@ -159,13 +139,12 @@ export default function ListeningTestPage({ params }) {
   // ── RESULT VIEW ──
   if (submitted) {
     return (
-      <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
+      <div className="ielts-test-view fixed inset-0 z-50 bg-white overflow-y-auto">
         <div className="max-w-5xl mx-auto p-6 min-h-screen">
-          <div className="flex items-center justify-between mb-6 border-b pb-4">
-            <h1 className="text-xl font-bold">{rawData.title} — Results</h1>
+          <div className="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
+            <h1 className="text-xl font-bold" style={{ color: '#333' }}>{rawData.title} — Results</h1>
             <Button variant="outline" onClick={handleExit}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              <ArrowLeft className="w-4 h-4 mr-2" /> Back
             </Button>
           </div>
           <AnswerSheet
@@ -181,113 +160,70 @@ export default function ListeningTestPage({ params }) {
   }
 
   const currentPart = parts[activePartIndex];
-  // If no parts (empty test), fallback
   const visibleSections = currentPart ? currentPart.sections : [];
 
   // ── TEST VIEW ──
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col">
-      {/* Top bar */}
-      <div className="flex-none bg-background/95 backdrop-blur border-b z-20 px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-3">
+    <div className="ielts-test-view fixed inset-0 z-50 bg-[#f5f5f5] flex flex-col">
+      {/* ═══ IELTS HEADER — dark bar ═══ */}
+      <div className="flex-none bg-[#1a1a1a] text-white px-4 py-2 z-20">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {/* IELTS Logo */}
+            <span className="bg-[#c00] text-white text-xs font-black px-2 py-0.5 tracking-wider">IELTS</span>
+            <span className="text-sm font-medium hidden sm:inline">{rawData.title}</span>
+            <span className="text-xs text-gray-400 hidden md:inline">
+              <Volume2 className="w-3 h-3 inline mr-1" />Audio is playing
+            </span>
+          </div>
           <div className="flex items-center gap-3">
+            <Timer initialMinutes={timerMinutes} onExpire={handleTimerExpire} />
             <button
               onClick={() => router.push('/dashboard/listening')}
-              className="text-muted-foreground hover:text-foreground transition-colors p-2 hover:bg-muted rounded-full"
+              className="text-gray-400 hover:text-white transition-colors p-1"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <Menu className="w-5 h-5" />
             </button>
-            <div>
-              <h1 className="text-lg font-bold">{rawData.title}</h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">
-                {answeredCount}/{totalQuestions} answered
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Question progress pills (hidden on small screens) */}
-            <div className="hidden xl:flex items-center gap-0.5 mr-4">
-              {Array.from({ length: totalQuestions }, (_, i) => {
-                const num = i + 1;
-                const qId = num.toString();
-                const isAnswered =
-                  userAnswers[qId] !== undefined &&
-                  userAnswers[qId] !== null &&
-                  userAnswers[qId].toString().trim() !== '';
-                return (
-                  <span
-                    key={num}
-                    className={`w-5 h-5 rounded text-[9px] font-bold flex items-center justify-center transition-all ${
-                      isAnswered
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {num}
-                  </span>
-                );
-              })}
-            </div>
-
-            <Timer initialMinutes={timerMinutes} onExpire={handleTimerExpire} />
-
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => router.push('/dashboard/listening')}
-              className="hidden sm:flex"
-            >
-              Exit
-            </Button>
-            <Button size="sm" onClick={() => setShowConfirm(true)}>
-              <Send className="w-4 h-4 mr-1" />
-              Submit
-            </Button>
           </div>
         </div>
       </div>
 
-      {/* Audio Player - Fixed below header */}
-      <div className="flex-none bg-muted/30 border-b px-4 py-2">
+      {/* ═══ PART INDICATOR STRIP — light gray ═══ */}
+      <div className="flex-none bg-[#e8e8e8] border-b border-[#ccc] px-5 py-3">
+        <p className="font-bold text-[#333] text-sm">{currentPart?.label || 'Part 1'}</p>
+        <p className="text-[#666] text-xs mt-0.5">
+          {visibleSections[0]?.instruction || 'Listen and answer the questions.'}
+        </p>
+      </div>
+
+      {/* ═══ AUDIO PLAYER ═══ */}
+      <div className="flex-none bg-white border-b border-[#ddd] px-4 py-2">
         <div className="max-w-3xl mx-auto">
-           <AudioPlayer src="/audio/sample.mp3" />
+          <AudioPlayer src="/audio/sample.mp3" />
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto bg-muted/5 pb-24">
-        <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      {/* ═══ MAIN CONTENT — white background ═══ */}
+      <div className="flex-1 overflow-y-auto pb-16">
+        <div className="max-w-3xl mx-auto px-5 py-6">
           {visibleSections.map((block) => (
-            <div key={block.id} className="bg-card border border-border rounded-xl p-6 shadow-sm">
-              {/* Section Header */}
-              <div className="mb-6 border-b pb-4">
-                 <div className="flex items-center gap-3 mb-2">
-                    <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">
-                      {currentPart?.label || "Part"}
-                    </span>
-                 </div>
-                 {block.title && (
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {block.title}
-                    </h3>
-                  )}
+            <div key={block.id} className="mb-8">
+              {/* Section title */}
+              {block.title && (
+                <div className="mb-4">
+                  <h3 className="font-bold text-[#333] text-base">{block.title}</h3>
                   {block.instruction && (
-                    <p className="text-sm text-muted-foreground mt-1 italic">
-                      {block.instruction}
-                    </p>
+                    <p className="text-sm text-[#555] mt-1">{block.instruction}</p>
                   )}
-              </div>
+                </div>
+              )}
 
-              {/* Legend (for matching questions) */}
+              {/* Legend */}
               {block.legend && block.legend.length > 0 && (
-                <div className="mb-6 p-4 rounded-lg bg-muted/50 border border-border">
-                  <p className="text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wider">Reference Options</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                    {block.legend.map((item, i) => (
-                      <span key={i} className="text-sm text-foreground/80 bg-background px-2 py-1 rounded border border-border/50">{item}</span>
-                    ))}
-                  </div>
+                <div className="mb-4 p-3 bg-[#fafafa] border border-[#e0e0e0] rounded">
+                  {block.legend.map((item, i) => (
+                    <p key={i} className="text-sm text-[#444] leading-6">{item}</p>
+                  ))}
                 </div>
               )}
 
@@ -301,51 +237,45 @@ export default function ListeningTestPage({ params }) {
         </div>
       </div>
 
-      {/* Bottom Navigator */}
+      {/* ═══ BOTTOM NAVIGATOR — IELTS style ═══ */}
       <TestNavigator
         parts={parts.map(p => p.label)}
         activePart={activePartIndex}
         onPartChange={setActivePartIndex}
+        questionNumbers={questionNumbers}
+        answeredIds={answeredIds}
+        partQuestionRanges={partQuestionRanges}
+        onSubmit={() => setShowConfirm(true)}
+        onPrevPage={activePartIndex > 0 ? handlePrevPart : undefined}
+        onNextPage={activePartIndex < parts.length - 1 ? handleNextPart : undefined}
       />
 
-      {/* Submit Confirmation Modal */}
+      {/* Submit Modal */}
       {showConfirm && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card border border-border rounded-xl p-6 max-w-md mx-4 shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl border border-gray-200">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Send className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-full bg-[#f0f0f0] flex items-center justify-center">
+                <Send className="w-5 h-5 text-[#333]" />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-foreground">Submit Answers?</h3>
-                <p className="text-sm text-muted-foreground">
-                  You have answered {answeredCount} out of {totalQuestions} questions.
+                <h3 className="font-bold text-lg text-[#333]">Submit Answers?</h3>
+                <p className="text-sm text-gray-500">
+                  {answeredCount} of {totalQuestions} answered.
                 </p>
               </div>
             </div>
-
             {answeredCount < totalQuestions && (
-              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mb-4">
-                <p className="text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0" />
-                  You have {totalQuestions - answeredCount} unanswered question(s).
+              <div className="bg-amber-50 border border-amber-200 rounded p-3 mb-4">
+                <p className="text-sm text-amber-700 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  {totalQuestions - answeredCount} unanswered question(s).
                 </p>
               </div>
             )}
-
             <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
-              >
-                Submit Answers
-              </button>
+              <button onClick={() => setShowConfirm(false)} className="px-4 py-2 rounded border border-gray-300 text-sm font-medium text-[#333] hover:bg-gray-50">Cancel</button>
+              <button onClick={handleSubmit} className="px-4 py-2 rounded bg-[#333] text-white text-sm font-semibold hover:bg-[#222]">Submit</button>
             </div>
           </div>
         </div>

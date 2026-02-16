@@ -21,8 +21,8 @@ export default function Timer({ initialMinutes = 60, onExpire }) {
   const isLow = secondsLeft < 300; // 5 mins
 
   return (
-    <div className={cn("flex items-center gap-2 font-mono text-xl font-bold bg-secondary px-3 py-1 rounded-md border", isLow ? "text-red-500 border-red-500 animate-pulse" : "text-foreground")}>
-      <Clock className="w-5 h-5" />
+    <div className={cn("flex items-center gap-1.5 font-mono text-base font-bold px-2 py-0.5 rounded", isLow ? "text-red-400 animate-pulse" : "text-inherit")}>
+      <Clock className="w-4 h-4" />
       {formattedTime}
     </div>
   );
