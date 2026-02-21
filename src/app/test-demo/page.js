@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { QuestionRenderer } from '@/components/ielts-questions';
+import Timer from '@/components/Timer';
+import ResizableLayout from '@/components/ResizableLayout';
 
 // ─────────────────────────────────────────────────────
 // Sample Reading Passage (left panel)
@@ -93,6 +95,7 @@ const SAMPLE_QUESTIONS = [
 // ─────────────────────────────────────────────────────
 export default function TestPage() {
   const [allAnswers, setAllAnswers] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Compute global start index for each block
   const getStartIndex = (blockIndex) => {
@@ -115,6 +118,48 @@ export default function TestPage() {
       ...answers,
     }));
   };
+
+  const handleSubmit = () => {
+    setIsSubmitted(true);
+  };
+
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
+        <div className="max-w-2xl w-full space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold text-foreground">Test Complete</h1>
+            <p className="text-muted-foreground">Here are your results.</p>
+          </div>
+
+          <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <h2 className="text-lg font-semibold mb-4">Your Answers</h2>
+            <div className="grid grid-cols-2 gap-4">
+               {Array.from({ length: 13 }, (_, i) => {
+                 const num = i + 1;
+                 const ans = allAnswers[`q${num}`];
+                 return (
+                   <div key={num} className="flex items-center justify-between p-2 rounded bg-muted/50">
+                     <span className="font-mono text-sm font-bold text-muted-foreground">Q{num}</span>
+                     <span className={`text-sm font-medium ${ans ? 'text-foreground' : 'text-red-500'}`}>
+                       {ans || 'No Answer'}
+                     </span>
+                   </div>
+                 );
+               })}
+            </div>
+          </div>
+
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full bg-primary text-primary-foreground font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity"
+          >
+            Take Test Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -161,10 +206,13 @@ export default function TestPage() {
 
           {/* Right: Timer / Submit */}
           <div className="flex items-center gap-3">
-            <div className="text-sm font-mono font-semibold text-foreground bg-muted px-3 py-1.5 rounded-md">
-              54:32
+            <div className="bg-muted px-2 py-1 rounded-md">
+              <Timer initialMinutes={60} onExpire={handleSubmit} />
             </div>
-            <button className="bg-primary text-primary-foreground text-sm font-semibold px-4 py-1.5 rounded-md hover:opacity-90 transition-opacity">
+            <button
+              onClick={handleSubmit}
+              className="bg-primary text-primary-foreground text-sm font-semibold px-4 py-1.5 rounded-md hover:opacity-90 transition-opacity"
+            >
               Submit
             </button>
           </div>
@@ -172,66 +220,67 @@ export default function TestPage() {
       </header>
 
       {/* ── Split Screen Layout ── */}
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-3.5rem)]">
-        {/* ── LEFT PANEL: Reading Passage ── */}
-        <div className="w-full lg:w-1/2 overflow-y-auto border-r border-border p-4 md:p-6 lg:p-8">
-          <div className="max-w-2xl mx-auto">
-            {/* Passage title */}
-            <h2 className="text-xl md:text-2xl font-bold text-foreground mb-6">
-              {SAMPLE_PASSAGE.title}
-            </h2>
-
-            {/* Paragraphs */}
-            <div className="space-y-5">
-              {SAMPLE_PASSAGE.paragraphs.map((para) => (
-                <div key={para.label} className="flex gap-3">
-                  <span className="shrink-0 w-7 h-7 rounded-md bg-muted text-muted-foreground flex items-center justify-center text-sm font-bold mt-0.5">
-                    {para.label}
-                  </span>
-                  <p className="text-foreground/85 text-[0.92rem] leading-relaxed">
-                    {para.text}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── RIGHT PANEL: Questions ── */}
-        <div className="w-full lg:w-1/2 overflow-y-auto bg-muted/20 p-4 md:p-6 lg:p-8">
-          <div className="max-w-2xl mx-auto space-y-6">
-            {/* Section header */}
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-1 h-6 rounded-full bg-primary" />
-              <h2 className="text-lg font-bold text-foreground">
-                Questions 1–13
+      <ResizableLayout
+        leftContent={
+          <div className="p-4 md:p-6 lg:p-8">
+            <div className="max-w-2xl mx-auto">
+              {/* Passage title */}
+              <h2 className="text-xl md:text-2xl font-bold text-foreground mb-6">
+                {SAMPLE_PASSAGE.title}
               </h2>
+
+              {/* Paragraphs */}
+              <div className="space-y-5">
+                {SAMPLE_PASSAGE.paragraphs.map((para) => (
+                  <div key={para.label} className="flex gap-3">
+                    <span className="shrink-0 w-7 h-7 rounded-md bg-muted text-muted-foreground flex items-center justify-center text-sm font-bold mt-0.5">
+                      {para.label}
+                    </span>
+                    <p className="text-foreground/85 text-[0.92rem] leading-relaxed">
+                      {para.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-
-            {/* Render all question blocks */}
-            {SAMPLE_QUESTIONS.map((block, idx) => (
-              <QuestionRenderer
-                key={block.id}
-                data={block}
-                startIndex={getStartIndex(idx)}
-                onAnswersChange={(answers) =>
-                  handleBlockAnswers(block.id, answers)
-                }
-              />
-            ))}
-
-            {/* Debug: Show current answers */}
-            <details className="mt-8 rounded-lg border border-border bg-card p-4">
-              <summary className="text-sm font-semibold text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
-                🔍 Debug: View Current Answers
-              </summary>
-              <pre className="mt-3 text-xs bg-muted p-3 rounded-md overflow-x-auto text-foreground/70 font-mono">
-                {JSON.stringify(allAnswers, null, 2)}
-              </pre>
-            </details>
           </div>
-        </div>
-      </div>
+        }
+        rightContent={
+          <div className="p-4 md:p-6 lg:p-8">
+            <div className="max-w-2xl mx-auto space-y-6">
+              {/* Section header */}
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-1 h-6 rounded-full bg-primary" />
+                <h2 className="text-lg font-bold text-foreground">
+                  Questions 1–13
+                </h2>
+              </div>
+
+              {/* Render all question blocks */}
+              {SAMPLE_QUESTIONS.map((block, idx) => (
+                <QuestionRenderer
+                  key={block.id}
+                  data={block}
+                  startIndex={getStartIndex(idx)}
+                  onAnswersChange={(answers) =>
+                    handleBlockAnswers(block.id, answers)
+                  }
+                />
+              ))}
+
+              {/* Debug: Show current answers */}
+              <details className="mt-8 rounded-lg border border-border bg-card p-4">
+                <summary className="text-sm font-semibold text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+                  🔍 Debug: View Current Answers
+                </summary>
+                <pre className="mt-3 text-xs bg-muted p-3 rounded-md overflow-x-auto text-foreground/70 font-mono">
+                  {JSON.stringify(allAnswers, null, 2)}
+                </pre>
+              </details>
+            </div>
+          </div>
+        }
+      />
     </div>
   );
 }

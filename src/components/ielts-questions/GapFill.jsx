@@ -25,8 +25,8 @@ const GapFill = ({ data, onAnswer, startIndex = 1 }) => {
             const questionId = questionNum;
 
             const answerText = data.answers && data.answers[questionNum] ? data.answers[questionNum] : '';
-            // Calculate width: minimum 140px, plus space for longer answers
-            const minWidth = Math.max(140, (answerText.length * 12) + 50);
+            // Calculate width: minimum 100px, plus space for longer answers
+            const minWidth = Math.max(100, (answerText.length * 10) + 40);
 
             return (
               <span
@@ -35,11 +35,11 @@ const GapFill = ({ data, onAnswer, startIndex = 1 }) => {
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  margin: '0 6px',
+                  margin: '0 4px',
                   verticalAlign: 'middle',
-                  borderRadius: '4px',
+                  borderRadius: '3px',
                   backgroundColor: '#fff',
-                  height: '36px',
+                  height: '24px', // Compact height to match text
                   width: `${minWidth}px`,
                   transition: 'all 0.15s',
                 }}
@@ -48,16 +48,16 @@ const GapFill = ({ data, onAnswer, startIndex = 1 }) => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  minWidth: '32px',
+                  minWidth: '22px',
                   height: '100%',
                   color: '#333',
-                  fontSize: '14px',
+                  fontSize: '12px',
                   fontWeight: '700',
                   flexShrink: 0,
                   backgroundColor: '#f5f5f5',
                   borderRight: '1px solid #e0e0e0',
-                  borderTopLeftRadius: '3px',
-                  borderBottomLeftRadius: '3px',
+                  borderTopLeftRadius: '2px',
+                  borderBottomLeftRadius: '2px',
                 }}>
                   {questionNum}
                 </span>
@@ -66,7 +66,8 @@ const GapFill = ({ data, onAnswer, startIndex = 1 }) => {
                   type="text"
                   autoComplete="off"
                   spellCheck={false}
-                  className="w-full h-full bg-transparent border-none outline-none text-gray-800 text-sm px-2"
+                  className="w-full h-full bg-transparent border-none outline-none text-gray-800 text-xs px-2"
+                  style={{ fontSize: '13px' }}
                   onChange={(e) => onAnswer(questionId, e.target.value)}
                 />
               </span>
