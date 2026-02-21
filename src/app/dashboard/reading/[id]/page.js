@@ -85,7 +85,7 @@ export default function ReadingTestPage({ params }) {
       .filter(([, v]) => v !== undefined && v !== null && v.toString().trim() !== '')
       .map(([k]) => k);
   }, [userAnswers]);
-
+// 
   const answeredCount = answeredIds.length;
 
   const handleBlockAnswers = useCallback((answers) => {
