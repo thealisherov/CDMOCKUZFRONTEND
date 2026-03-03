@@ -115,8 +115,36 @@ export default function ListeningTestPage({ params }) {
 
   const answeredCount = answeredIds.length;
 
+  // Track current question for navigator highlight + Prev/Next buttons
+  const [currentQuestion, setCurrentQuestion] = useState(1);
+
+  const handleNavigate = useCallback((qNum) => {
+    setCurrentQuestion(qNum);
+    const el = document.getElementById(`question-${qNum}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Auto-switch part if needed
+    for (let i = 0; i < partQuestionRanges.length; i++) {
+      const r = partQuestionRanges[i];
+      if (r && qNum >= r.start && qNum <= r.end) { setActivePartIndex(i); break; }
+    }
+  }, [partQuestionRanges]);
+
+  const handleNext = currentQuestion < totalQuestions ? () => handleNavigate(currentQuestion + 1) : null;
+  const handlePrev = currentQuestion > 1 ? () => handleNavigate(currentQuestion - 1) : null;
+
   const handleBlockAnswers = useCallback((answers) => {
-    setUserAnswers((prev) => ({ ...prev, ...answers }));
+    setUserAnswers((prev) => {
+      const updated = { ...prev, ...answers };
+      // Auto-advance currentQuestion when a question is first answered
+      const newlyAnswered = Object.entries(answers)
+        .filter(([k, v]) => v !== undefined && v !== null && v.toString().trim() !== '' && !prev[k])
+        .map(([k]) => Number(k))
+        .filter(Boolean);
+      if (newlyAnswered.length > 0) {
+        setCurrentQuestion(Math.max(...newlyAnswered));
+      }
+      return updated;
+    });
   }, []);
 
   const handleSubmit = () => { setSubmitted(true); setShowConfirm(false); };
@@ -214,36 +242,51 @@ export default function ListeningTestPage({ params }) {
       {/* ═══ MAIN CONTENT — white background, left aligned ═══ */}
       <div className="flex-1 overflow-y-auto pb-24 bg-white">
         <div className="w-full lg:w-1/2 px-8 py-4">
-          {visibleSections.map((block) => (
-            <div key={block.id} className="mb-8">
-              {/* Section title */}
-              {block.title && (
-                <div className="mb-4">
-                  <h3 className="font-bold text-[#333] text-[22px]">{block.title}</h3>
-                  {block.instruction && (
-                    <p className="text-[22px] font-bold text-[#555] mt-1">{block.instruction}</p>
+          {visibleSections.map((block) => {
+              const blockStart = getStartIndex(block.id);
+              return (
+                <div key={block.id} className="mb-8">
+                  {/* Invisible anchor for each question in this block */}
+                  {Array.from({ length: (() => {
+                    if (block.type === 'gap_fill') {
+                      const m = (block.content || '').match(/\{\d+\}/g);
+                      return m ? m.length : 0;
+                    }
+                    return (block.questions || []).length;
+                  })() }, (_, i) => (
+                    <span key={i} id={`question-${blockStart + i}`} className="block h-0 -mt-4 mb-4" />
+                  ))}
+
+                  {/* Section title */}
+                  {block.title && (
+                    <div className="mb-4">
+                      <h3 className="font-bold text-[#333] text-[22px]">{block.title}</h3>
+                      {block.instruction && (
+                        <p className="text-[22px] font-bold text-[#555] mt-1">{block.instruction}</p>
+                      )}
+                    </div>
                   )}
-                </div>
-              )}
 
-              {/* Image (map, plan, etc.) */}
-              {block.image && (
-                <div className="mb-4">
-                  <img src={block.image} alt="Question visual" className="max-w-full rounded border border-gray-200" />
-                </div>
-              )}
+                  {/* Image (map, plan, etc.) */}
+                  {block.image && (
+                    <div className="mb-4">
+                      <img src={block.image} alt="Question visual" className="max-w-full rounded border border-gray-200" />
+                    </div>
+                  )}
 
-              <QuestionRenderer
-                data={block}
-                startIndex={getStartIndex(block.id)}
-                onAnswersChange={handleBlockAnswers}
-              />
-            </div>
-          ))}
+                  <QuestionRenderer
+                    data={block}
+                    startIndex={blockStart}
+                    onAnswersChange={handleBlockAnswers}
+                  />
+                </div>
+              );
+            })}
+
         </div>
       </div>
 
-      {/* ═══ BOTTOM NAVIGATOR — IELTS style ═══ */}
+      {/* ═══ BOTTOM NAVIGATOR ═══ */}
       <TestNavigator
         parts={parts.map(p => p.label)}
         activePart={activePartIndex}
@@ -252,6 +295,9 @@ export default function ListeningTestPage({ params }) {
         answeredIds={answeredIds}
         partQuestionRanges={partQuestionRanges}
         onSubmit={() => setShowConfirm(true)}
+        currentQuestion={currentQuestion}
+        onNext={handleNext}
+        onPrev={handlePrev}
       />
 
       {/* Submit Modal */}

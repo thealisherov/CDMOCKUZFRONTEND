@@ -115,13 +115,33 @@ export default function ReadingTestPage({ params }) {
 
   // handleBlockAnswers: accepts either a full answers object (from QuestionRenderer)
   // or an individual (questionId, value) call (from child components directly)
+  // When a question is answered for the first time, auto-advance currentQuestion tracker
   const handleBlockAnswers = useCallback((answersOrId, value) => {
     if (typeof answersOrId === 'object' && answersOrId !== null) {
       // Called with whole answers map { "1": "A", "2": "B" }
-      setUserAnswers((prev) => ({ ...prev, ...answersOrId }));
+      setUserAnswers((prev) => {
+        const updated = { ...prev, ...answersOrId };
+        // Find the highest newly-answered qNum and set it as current
+        const newlyAnswered = Object.entries(answersOrId)
+          .filter(([k, v]) => v !== undefined && v !== null && v.toString().trim() !== '' && !prev[k])
+          .map(([k]) => Number(k))
+          .filter(Boolean);
+        if (newlyAnswered.length > 0) {
+          const highest = Math.max(...newlyAnswered);
+          setCurrentQuestion(highest);
+        }
+        return updated;
+      });
     } else {
       // Called with individual questionId and value
-      setUserAnswers((prev) => ({ ...prev, [answersOrId]: value }));
+      const qNum = Number(answersOrId);
+      setUserAnswers((prev) => {
+        const isNew = !prev[answersOrId] || prev[answersOrId].toString().trim() === '';
+        const hasValue = value !== undefined && value !== null && value.toString().trim() !== '';
+        // Auto-advance: when answering a question for the first time, set it as current
+        if (isNew && hasValue && qNum) setCurrentQuestion(qNum);
+        return { ...prev, [answersOrId]: value };
+      });
     }
   }, []);
 
