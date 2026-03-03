@@ -54,20 +54,20 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1 }) => {
     <div className="mb-8 font-sans" ref={dropdownRef}>
       {/* instruction */}
       {data.instruction && (
-        <p className="text-black mb-4" style={{ fontSize: '1.1em' }}>
+        <p className="mb-4" style={{ fontSize: '1.1em', color: 'var(--test-fg)' }}>
           {data.instruction}
         </p>
       )}
 
       {/* List Box (e.g. List of Researchers) */}
       {data.optionDescriptions && data.optionDescriptions.length > 0 && (
-        <div className="mb-6 p-5 bg-[#f2f3f2] rounded-md border border-gray-200">
-          <h3 className="text-center font-bold text-black mb-3 text-[18px]">
+        <div className="mb-6 p-5 rounded-md border" style={{ backgroundColor: 'var(--test-strip-bg)', borderColor: 'var(--test-border)', color: 'var(--test-fg)' }}>
+          <h3 className="text-center font-bold mb-3 text-[18px]" style={{ color: 'var(--test-fg)' }}>
             List of Options
           </h3>
           <div className="space-y-1">
             {data.optionDescriptions.map((desc, idx) => (
-              <p key={idx} className="text-black leading-relaxed" style={{ fontSize: '1.05em' }}>
+              <p key={idx} className="leading-relaxed" style={{ fontSize: '1.05em', color: 'var(--test-fg)' }}>
                 {renderOptionText(desc)}
               </p>
             ))}
@@ -87,13 +87,13 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1 }) => {
             <div key={q.id || questionId} className="flex items-start gap-4">
               {/* Question Number Box */}
               <div className="flex-shrink-0 mt-0.5">
-                <span className="inline-flex items-center justify-center w-[2em] h-[2em] border border-gray-300 text-black font-bold bg-white rounded-md shadow-sm select-none" style={{ fontSize: '1.1em' }}>
+                <span className="inline-flex items-center justify-center w-[2em] h-[2em] border font-bold rounded-md shadow-sm select-none" style={{ fontSize: '1.1em', backgroundColor: 'var(--test-header-bg)', color: 'var(--test-header-fg)', borderColor: 'var(--test-border)' }}>
                   {globalNum}
                 </span>
               </div>
               
               {/* Question Text */}
-              <div className="flex-1 pt-1.5 font-medium text-black leading-normal" style={{ fontSize: '1.05em' }}>
+              <div className="flex-1 pt-1.5 font-medium leading-normal" style={{ fontSize: '1.05em', color: 'var(--test-fg)' }}>
                 {q.text}
               </div>
 
@@ -101,17 +101,19 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1 }) => {
               <div className="relative pt-1">
                 <button
                   onClick={() => toggleDropdown(questionId)}
-                  className="flex items-center justify-between min-w-[60px] h-[34px] px-3 bg-[#f2f3f2] border border-gray-300 rounded hover:bg-gray-200 transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="flex items-center justify-between min-w-[60px] h-[34px] px-3 border rounded transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  style={{ backgroundColor: 'var(--test-input-bg)', borderColor: 'var(--test-border)', color: 'var(--test-fg)' }}
                 >
-                  <span className="text-black font-medium leading-none text-[15px]">
+                  <span className="font-medium leading-none text-[15px]">
                     {selected ? selected : globalNum}
                   </span>
                   <svg
-                    className="w-4 h-4 text-gray-600 ml-2"
+                    className="w-4 h-4 ml-2"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg"
+                    style={{ color: 'var(--test-fg)' }}
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                   </svg>
@@ -119,16 +121,26 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1 }) => {
 
                 {/* Dropdown Menu */}
                 {isOpen && (
-                  <div className="absolute right-0 top-full mt-1 w-full min-w-[80px] bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1">
+                  <div className="absolute right-0 top-full mt-1 w-full min-w-[80px] border rounded-md shadow-lg z-50 py-1" style={{ backgroundColor: 'var(--opts-bg)', borderColor: 'var(--opts-border)' }}>
                     {optionLetters.map((opt) => (
                       <div
                         key={opt}
                         onClick={() => handleSelect(questionId, opt)}
-                        className={`px-4 py-2 cursor-pointer text-center font-medium ${
-                          selected === opt
-                            ? 'bg-red-500 text-white'
-                            : 'text-black hover:bg-red-500 hover:text-white'
-                        } transition-colors`}
+                        className={`px-4 py-2 cursor-pointer text-center font-medium transition-colors`}
+                        style={{
+                          backgroundColor: selected === opt ? 'rgba(239, 68, 68, 0.9)' : 'transparent',
+                          color: selected === opt ? '#fff' : 'var(--opts-fg)',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (selected !== opt) {
+                            e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (selected !== opt) {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }
+                        }}
                       >
                         {opt}
                       </div>

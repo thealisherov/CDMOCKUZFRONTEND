@@ -48,7 +48,7 @@ export default function ResizableSplitPane({
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (
-    <div className={`flex ${isVertical ? 'flex-col' : 'flex-row'} h-full overflow-hidden bg-gray-100`}>
+    <div className={`flex ${isVertical ? 'flex-col' : 'flex-row'} h-full overflow-hidden`} style={{ background: 'var(--test-bg)' }}>
       {/* Left Pane */}
       <div 
         style={{ width: `${leftWidth}%` }} 
@@ -61,7 +61,11 @@ export default function ResizableSplitPane({
 
       {/* Resizer Handle */}
       <div
-        className={`w-4 flex items-center justify-center bg-gray-200 hover:bg-blue-200 cursor-col-resize z-10 select-none transition-colors border-l border-r border-gray-300 shadow-sm ${isDragging ? 'bg-blue-400' : ''}`}
+        className={`w-4 flex items-center justify-center cursor-col-resize z-10 select-none transition-colors border-l border-r shadow-sm ${isDragging ? 'bg-blue-400' : 'hover:bg-blue-200'}`}
+        style={{
+          background: 'var(--test-strip-bg)',
+          borderColor: 'var(--test-border)',
+        }}
         onMouseDown={handleMouseDown}
       >
         <div className="flex flex-col gap-1">

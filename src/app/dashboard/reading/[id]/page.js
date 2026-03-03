@@ -9,10 +9,12 @@ import AnswerSheet from '@/components/ielts-questions/AnswerSheet';
 import HeadingDropZone from '@/components/ielts-questions/HeadingDropZone';
 import MatchHeadings from '@/components/ielts-questions/MatchHeadings';
 import TestNavigator from '@/components/TestNavigator';
-import { ArrowLeft, Send, AlertTriangle, Menu } from 'lucide-react';
+import { ArrowLeft, Send, AlertTriangle } from 'lucide-react';
 import ResizableSplitPane from '@/components/ResizableSplitPane';
 import HighlightableContent from '@/components/HighlightableContent';
 import { adaptReadingData } from '@/utils/readingDataAdapter';
+import IELTSOptionsModal from '@/components/ielts/IELTSOptionsModal';
+import { useIELTSTheme } from '@/hooks/useIELTSTheme';
 
 function loadTestData(testId) {
   try {
@@ -25,40 +27,36 @@ function loadTestData(testId) {
 
 export default function ReadingTestPage({ params }) {
   const { id } = use(params);
-  const router = useRouter();
+  const router  = useRouter();
   const rawData = loadTestData(id);
 
-  const [userAnswers, setUserAnswers] = useState({});
-  const [submitted, setSubmitted] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const { contrast, setContrast, textSize, setTextSize, getWrapperStyle } = useIELTSTheme();
+
+  const [userAnswers,   setUserAnswers]   = useState({});
+  const [submitted,     setSubmitted]     = useState(false);
+  const [showConfirm,   setShowConfirm]   = useState(false);
   const [activePassage, setActivePassage] = useState(0);
+  const [optionsOpen,   setOptionsOpen]   = useState(false);
 
   const timerMinutes = rawData?.timer || 60;
-  const passages = rawData?.passages || [];
+  const passages     = rawData?.passages || [];
 
   const allBlocks = useMemo(() => {
     const blocks = [];
-    passages.forEach(p => {
-      if (p.questions) p.questions.forEach(q => blocks.push(q));
-    });
+    passages.forEach(p => { if (p.questions) p.questions.forEach(q => blocks.push(q)); });
     return blocks;
   }, [passages]);
 
   const getBlockQCount = (block) => {
     if (!block) return 0;
     if (block.type === 'gap_fill' || block.type === 'drag_drop_summary') {
-      // Count {N} placeholders in content
-      const matches = block.content?.match(/\{\d+\}/g);
-      return matches ? matches.length : 0;
-    } else if (block.type === 'checkbox_multiple') {
-      // Each question in checkbox_multiple has a 'numbers' array
-      return (block.questions || []).reduce((sum, q) => {
-        return sum + (q.numbers ? q.numbers.length : 1);
-      }, 0);
-    } else if (block.questions) {
-      return block.questions.length;
+      const m = block.content?.match(/\{\d+\}/g);
+      return m ? m.length : 0;
     }
-    return 0;
+    if (block.type === 'checkbox_multiple') {
+      return (block.questions || []).reduce((s, q) => s + (q.numbers ? q.numbers.length : 1), 0);
+    }
+    return block.questions ? block.questions.length : 0;
   };
 
   const getStartIndex = useCallback((blockIndex) => {
@@ -70,13 +68,8 @@ export default function ReadingTestPage({ params }) {
     return start;
   }, [allBlocks]);
 
-  const totalQuestions = useMemo(() => {
-    return allBlocks.reduce((s, b) => s + getBlockQCount(b), 0);
-  }, [allBlocks]);
-
-  const questionNumbers = useMemo(() => {
-    return Array.from({ length: totalQuestions }, (_, i) => i + 1);
-  }, [totalQuestions]);
+  const totalQuestions = useMemo(() => allBlocks.reduce((s, b) => s + getBlockQCount(b), 0), [allBlocks]);
+  const questionNumbers = useMemo(() => Array.from({ length: totalQuestions }, (_, i) => i + 1), [totalQuestions]);
 
   const partQuestionRanges = useMemo(() => {
     const ranges = [];
@@ -89,15 +82,13 @@ export default function ReadingTestPage({ params }) {
     return ranges;
   }, [passages]);
 
-  const answeredIds = useMemo(() => {
-    return Object.entries(userAnswers)
+  const answeredIds = useMemo(() => (
+    Object.entries(userAnswers)
       .filter(([, v]) => v !== undefined && v !== null && v.toString().trim() !== '')
-      .map(([k]) => k);
-  }, [userAnswers]);
+      .map(([k]) => k)
+  ), [userAnswers]);
 
   const answeredCount = answeredIds.length;
-
-  // Current question tracking for navigator highlight + next/prev
   const [currentQuestion, setCurrentQuestion] = useState(1);
 
   const handleNavigate = useCallback((qNum) => {
@@ -111,52 +102,28 @@ export default function ReadingTestPage({ params }) {
   }, [partQuestionRanges]);
 
   const handleNext = currentQuestion < totalQuestions ? () => handleNavigate(currentQuestion + 1) : null;
-  const handlePrev = currentQuestion > 1 ? () => handleNavigate(currentQuestion - 1) : null;
+  const handlePrev = currentQuestion > 1              ? () => handleNavigate(currentQuestion - 1) : null;
 
-  // handleBlockAnswers: accepts either a full answers object (from QuestionRenderer)
-  // or an individual (questionId, value) call (from child components directly)
-  // When a question is answered for the first time, auto-advance currentQuestion tracker
   const handleBlockAnswers = useCallback((answersOrId, value) => {
     if (typeof answersOrId === 'object' && answersOrId !== null) {
-      // Called with whole answers map { "1": "A", "2": "B" }
-      setUserAnswers((prev) => {
-        const updated = { ...prev, ...answersOrId };
-        // Find the highest newly-answered qNum and set it as current
-        const newlyAnswered = Object.entries(answersOrId)
-          .filter(([k, v]) => v !== undefined && v !== null && v.toString().trim() !== '' && !prev[k])
-          .map(([k]) => Number(k))
-          .filter(Boolean);
-        if (newlyAnswered.length > 0) {
-          const highest = Math.max(...newlyAnswered);
-          setCurrentQuestion(highest);
-        }
-        return updated;
-      });
+      setUserAnswers(prev => ({ ...prev, ...answersOrId }));
     } else {
-      // Called with individual questionId and value
-      const qNum = Number(answersOrId);
-      setUserAnswers((prev) => {
-        const isNew = !prev[answersOrId] || prev[answersOrId].toString().trim() === '';
-        const hasValue = value !== undefined && value !== null && value.toString().trim() !== '';
-        // Auto-advance: when answering a question for the first time, set it as current
-        if (isNew && hasValue && qNum) setCurrentQuestion(qNum);
-        return { ...prev, [answersOrId]: value };
-      });
+      setUserAnswers(prev => ({ ...prev, [answersOrId]: value }));
     }
   }, []);
 
-  const handleSubmit = () => { setSubmitted(true); setShowConfirm(false); };
-  const handleRetry = () => { setUserAnswers({}); setSubmitted(false); setActivePassage(0); };
-  const handleExit = () => router.push('/dashboard/reading');
-  const handleTimerExpire = () => setSubmitted(true);
+  const handleSubmit    = () => { setSubmitted(true); setShowConfirm(false); };
+  const handleRetry     = () => { setUserAnswers({}); setSubmitted(false); setActivePassage(0); };
+  const handleExit      = () => router.push('/dashboard/reading');
+  const handleTimerEnd  = () => setSubmitted(true);
 
   if (!rawData) {
     return (
       <div className="ielts-test-view fixed inset-0 z-50 bg-white flex flex-col items-center justify-center text-center">
         <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-xl font-bold mb-2" style={{ color: '#333' }}>Test not found</h2>
+        <h2 className="text-xl font-bold mb-2">Test not found</h2>
         <p className="text-gray-500 mb-4">Reading Test #{id} does not exist.</p>
-        <Button onClick={() => router.push('/dashboard/reading')}>Back to Tests</Button>
+        <Button onClick={handleExit}>Back to Tests</Button>
       </div>
     );
   }
@@ -167,97 +134,93 @@ export default function ReadingTestPage({ params }) {
         <div className="max-w-5xl mx-auto p-6 min-h-screen">
           <div className="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
             <h1 className="text-xl font-bold" style={{ color: '#333' }}>{rawData.title} — Results</h1>
-            <Button variant="outline" onClick={handleExit}>
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back
-            </Button>
+            <Button variant="outline" onClick={handleExit}><ArrowLeft className="w-4 h-4 mr-2" /> Back</Button>
           </div>
-          <AnswerSheet
-            userAnswers={userAnswers}
-            testData={allBlocks}
-            onRetry={handleRetry}
-            onExit={handleExit}
-            moduleType="reading"
-          />
+          <AnswerSheet userAnswers={userAnswers} testData={allBlocks} onRetry={handleRetry} onExit={handleExit} moduleType="reading" />
         </div>
       </div>
     );
   }
 
+  const wrapperStyle = getWrapperStyle();
   const currentPassage = passages[activePassage];
-  const currentBlocks = currentPassage?.questions || [];
-
+  const currentBlocks  = currentPassage?.questions || [];
   let blockOffset = 0;
-  for (let p = 0; p < activePassage; p++) {
-    blockOffset += (passages[p]?.questions?.length || 0);
-  }
-
+  for (let p = 0; p < activePassage; p++) blockOffset += (passages[p]?.questions?.length || 0);
   const activeRange = partQuestionRanges[activePassage];
-  const rangeText = activeRange ? `${activeRange.start}–${activeRange.end}` : '';
+  const rangeText   = activeRange ? `${activeRange.start}–${activeRange.end}` : '';
 
   return (
-    <div className="ielts-test-view fixed inset-0 z-50 bg-[#f5f5f5] flex flex-col overflow-hidden">
-
+    <div
+      className="ielts-test-view fixed inset-0 z-50 flex flex-col overflow-hidden"
+      style={{
+        ...wrapperStyle,
+        background: 'var(--test-bg)',
+        color: 'var(--test-fg)',
+      }}
+    >
       {/* ═══ HEADER ═══ */}
-      <div className="flex-none bg-[#1a1a1a] text-white px-4 py-2 z-20">
+      <div style={{ background: 'var(--test-header-bg)', color: 'var(--test-header-fg)', borderBottom: '1px solid var(--test-border)' }} className="flex-none px-4 py-4 z-20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <span className="bg-[#c00] text-white text-xs font-black px-2 py-0.5 tracking-wider">IELTS</span>
-            <span className="text-sm font-medium hidden sm:inline">{rawData.title}</span>
+            <span style={{ color: '#e22d2d', fontSize: 26, fontWeight: 900, letterSpacing: 1 }}>IELTS</span>
+            <span style={{ fontSize: 15, fontWeight: 500 }}>Test taker ID</span>
           </div>
-          <div className="flex items-center gap-3">
-            <Timer initialMinutes={timerMinutes} onExpire={handleTimerExpire} />
+          <div className="flex items-center gap-6">
+            <Timer initialMinutes={timerMinutes} onExpire={handleTimerEnd} />
+            {/* Wifi */}
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ opacity: 0.8 }}>
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
+            </svg>
+            {/* Bell */}
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ opacity: 0.8 }}>
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            {/* Menu / hamburger → opens options */}
             <button
-              onClick={() => router.push('/dashboard/reading')}
-              className="text-gray-400 hover:text-white transition-colors p-1"
+              onClick={() => setOptionsOpen(true)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--test-header-fg)', padding: '4px' }}
+              title="Options"
             >
-              <Menu className="w-5 h-5" />
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
             </button>
           </div>
         </div>
       </div>
 
       {/* ═══ PART INDICATOR ═══ */}
-      <div className="flex-none bg-[#f2f3f2] border border-gray-200 mx-6 mt-3 mb-2 px-5 py-2 rounded-sm">
-        <p className="font-bold text-black text-[13px]">Part {activePassage + 1}</p>
-        <p className="text-black text-[13px] mt-0.5">Read the text and answer questions {rangeText}.</p>
+      <div style={{ background: 'var(--test-strip-bg)', color: 'var(--test-strip-fg)', border: '1px solid var(--test-border)' }} className="flex-none mx-6 mt-3 mb-2 px-5 py-2 rounded-sm">
+        <p className="font-bold text-[13px]">Part {activePassage + 1}</p>
+        <p className="text-[13px] mt-0.5">Read the text and answer questions {rangeText}.</p>
       </div>
 
       {/* ═══ SPLIT SCREEN ═══ */}
-      <div className="flex-1 overflow-hidden min-h-0 mb-20 bg-white">
+      <div className="flex-1 overflow-hidden min-h-0 mb-20" style={{ background: 'var(--test-bg)' }}>
         <ResizableSplitPane
           left={
-            <div className="h-full overflow-y-auto bg-white">
-              <div className="border-b border-[#e0e0e0] px-6 py-4">
-                <h2 className="font-bold text-[#333] text-[25px]">{currentPassage?.title}</h2>
+            <div className="h-full overflow-y-auto" style={{ background: 'var(--test-panel-bg)', color: 'var(--test-fg)' }}>
+              <div style={{ borderBottom: '1px solid var(--test-border)' }} className="px-6 py-4">
+                <h2 className="font-bold text-[25px]" style={{ color: 'var(--test-fg)' }}>{currentPassage?.title}</h2>
               </div>
               <div className="px-6 pt-6 pb-32">
                 <HighlightableContent className="max-w-none leading-relaxed">
                   {(currentPassage?.text || currentPassage?.content || '').split('\n\n').map((paragraph, idx) => {
                     const matchHeadingsBlock = currentBlocks.find(b => b.type === 'match_headings');
-                    const paragraphLetter = String.fromCharCode(65 + idx);
-
+                    const paragraphLetter    = String.fromCharCode(65 + idx);
                     let headingQ = null;
-                    if (matchHeadingsBlock && matchHeadingsBlock.questions) {
-                      headingQ = matchHeadingsBlock.questions.find(
-                        (q) => q.text.toUpperCase().includes(`PARAGRAPH ${paragraphLetter}`)
-                      );
+                    if (matchHeadingsBlock?.questions) {
+                      headingQ = matchHeadingsBlock.questions.find(q => q.text.toUpperCase().includes(`PARAGRAPH ${paragraphLetter}`));
                     }
-
                     return (
-                      <div key={idx} className="mb-4 text-[#333]">
+                      <div key={idx} className="mb-4">
                         {headingQ && (
                           <div className="mb-2">
-                            <HeadingDropZone
-                              questionId={headingQ.id}
-                              globalNum={headingQ.id}
-                              onDrop={handleBlockAnswers}
-                              currentAnswer={userAnswers[headingQ.id]}
-                            />
+                            <HeadingDropZone questionId={headingQ.id} globalNum={headingQ.id} onDrop={handleBlockAnswers} currentAnswer={userAnswers[headingQ.id]} />
                           </div>
                         )}
-                        <p className="text-[16.5px] font-medium leading-[1.85]" style={{ fontFamily: 'Georgia, serif' }}>
-                          {paragraph}
-                        </p>
+                        <p className="text-[16.5px] font-medium leading-[1.85]" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)' }}>{paragraph}</p>
                       </div>
                     );
                   })}
@@ -266,42 +229,26 @@ export default function ReadingTestPage({ params }) {
             </div>
           }
           right={
-            <div className="h-full overflow-y-auto bg-white">
+            <div className="h-full overflow-y-auto" style={{ background: 'var(--test-panel-bg)', color: 'var(--test-fg)' }}>
               <div className="px-6 pt-6 pb-32">
                 <div className="mb-4">
-                  <h3 className="font-bold text-sm text-[#333]">Questions {rangeText}</h3>
+                  <h3 className="font-bold text-sm">Questions {rangeText}</h3>
                 </div>
-
                 <div className="space-y-6">
                   {currentBlocks.map((block, blockIndex) => {
                     const blockStartIndex = getStartIndex(blockOffset + blockIndex);
-
                     if (block.type === 'match_headings') {
                       return (
                         <div key={block.id} id={`question-${blockStartIndex}`}>
-                          {block.instruction && (
-                            <p className="text-[22px] font-bold text-[#555] mb-3">{block.instruction}</p>
-                          )}
-                          <MatchHeadings
-                            data={block}
-                            onAnswer={handleBlockAnswers}
-                            startIndex={blockStartIndex}
-                            userAnswers={userAnswers}
-                          />
+                          {block.instruction && <p className="text-[22px] font-bold mb-3">{block.instruction}</p>}
+                          <MatchHeadings data={block} onAnswer={handleBlockAnswers} startIndex={blockStartIndex} userAnswers={userAnswers} />
                         </div>
                       );
                     }
-
                     return (
                       <div key={block.id} id={`question-${blockStartIndex}`}>
-                        {block.instruction && (
-                          <p className="text-[22px] font-bold text-[#555] mb-3">{block.instruction}</p>
-                        )}
-                        <QuestionRenderer
-                          data={block}
-                          startIndex={blockStartIndex}
-                          onAnswersChange={handleBlockAnswers}
-                        />
+                        {block.instruction && <p className="text-[22px] font-bold mb-3">{block.instruction}</p>}
+                        <QuestionRenderer data={block} startIndex={blockStartIndex} onAnswersChange={handleBlockAnswers} />
                       </div>
                     );
                   })}
@@ -329,34 +276,42 @@ export default function ReadingTestPage({ params }) {
       {/* Submit Modal */}
       {showConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg p-6 max-w-md mx-4 shadow-xl border border-gray-200">
+          <div style={{ background: 'var(--opts-bg)', color: 'var(--opts-fg)', borderColor: 'var(--opts-border)' }} className="rounded-lg p-6 max-w-md mx-4 shadow-xl border">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-[#f0f0f0] flex items-center justify-center">
-                <Send className="w-5 h-5 text-[#333]" />
+              <div style={{ background: 'var(--test-strip-bg)' }} className="w-10 h-10 rounded-full flex items-center justify-center">
+                <Send className="w-5 h-5" style={{ color: 'var(--test-fg)' }} />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-[#333]">Submit Answers?</h3>
-                <p className="text-sm text-gray-500">{answeredCount} of {totalQuestions} answered.</p>
+                <h3 className="font-bold text-lg" style={{ color: 'var(--opts-fg)' }}>Submit Answers?</h3>
+                <p className="text-sm opacity-60">{answeredCount} of {totalQuestions} answered.</p>
               </div>
             </div>
             {answeredCount < totalQuestions && (
-              <div className="bg-amber-50 border border-amber-200 rounded p-3 mb-4">
-                <p className="text-sm text-amber-700 flex items-center gap-2">
+              <div 
+                className="border rounded p-3 mb-4" 
+                style={{ 
+                  backgroundColor: contrast === 'yellow-on-black' ? 'rgba(255, 255, 0, 0.1)' : 'rgba(251, 191, 36, 0.1)',
+                  borderColor: contrast === 'yellow-on-black' ? '#ffff00' : '#fbbf24'
+                }}
+              >
+                <p className="text-sm flex items-center gap-2" style={{ color: contrast === 'yellow-on-black' ? '#ffff00' : '#b45309' }}>
                   <AlertTriangle className="w-4 h-4" />
                   {totalQuestions - answeredCount} unanswered question(s).
                 </p>
               </div>
             )}
             <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 rounded border border-gray-300 text-sm font-medium text-[#333] hover:bg-gray-50"
+              <button 
+                onClick={() => setShowConfirm(false)} 
+                className="px-4 py-2 rounded border text-sm font-medium transition-colors"
+                style={{ borderColor: 'var(--opts-border)', backgroundColor: 'transparent', color: 'var(--opts-fg)' }}
               >
                 Cancel
               </button>
-              <button
-                onClick={handleSubmit}
-                className="px-4 py-2 rounded bg-[#333] text-white text-sm font-semibold hover:bg-[#222]"
+              <button 
+                onClick={handleSubmit} 
+                className="px-4 py-2 rounded text-sm font-semibold hover:opacity-90 transition-opacity"
+                style={{ backgroundColor: 'var(--test-header-bg)', color: 'var(--test-header-fg)', border: '1px solid var(--test-border)' }}
               >
                 Submit
               </button>
@@ -364,6 +319,18 @@ export default function ReadingTestPage({ params }) {
           </div>
         </div>
       )}
+
+      {/* Options Modal */}
+      <IELTSOptionsModal
+        isOpen={optionsOpen}
+        onClose={() => setOptionsOpen(false)}
+        onExit={handleExit}
+        onSubmit={() => setShowConfirm(true)}
+        contrast={contrast}
+        onContrastChange={setContrast}
+        textSize={textSize}
+        onTextSizeChange={setTextSize}
+      />
     </div>
   );
 }

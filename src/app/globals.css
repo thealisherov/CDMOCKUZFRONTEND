@@ -89,36 +89,21 @@
   --sidebar-ring: oklch(0.6 0.2 25);
 }
 
-/* ── IELTS Test View — theme-isolated, always light ── */
+/* ── IELTS Test View — theme-isolated ── */
 .ielts-test-view,
 .ielts-test-view *,
 .dark .ielts-test-view,
 .dark .ielts-test-view * {
   color-scheme: light !important;
-  --background: #ffffff !important;
-  --foreground: #333333 !important;
-  --primary: #333333 !important;
-  --primary-foreground: #ffffff !important;
-  --secondary: #f5f5f5 !important;
-  --secondary-foreground: #333333 !important;
-  --card: #ffffff !important;
-  --card-foreground: #333333 !important;
-  --popover: #ffffff !important;
-  --popover-foreground: #333333 !important;
-  --muted: #f0f0f0 !important;
-  --muted-foreground: #666666 !important;
-  --accent: #e8e8e8 !important;
-  --accent-foreground: #333333 !important;
-  --destructive: #cc0000 !important;
-  --destructive-foreground: #ffffff !important;
-  --border: #e0e0e0 !important;
-  --input: #e0e0e0 !important;
-  --ring: #333333 !important;
 }
 
 .ielts-test-view {
-  background-color: #f5f5f5 !important;
-  color: #333333 !important;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.ielts-test-view *:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
 }
 
 /* ── Scrollbar hide utility ── */
@@ -228,4 +213,66 @@ body {
   .container-custom {
     @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
   }
+}
+
+/* ── IELTS Test CSS variable defaults (overridden by useIELTSTheme) ── */
+.ielts-test-view {
+  --test-bg:        #ffffff;
+  --test-fg:        #333333;
+  --test-header-bg: #1a1a1a;
+  --test-header-fg: #ffffff;
+  --test-strip-bg:  #f2f3f2;
+  --test-strip-fg:  #000000;
+  --test-panel-bg:  #ffffff;
+  --test-border:    #e0e0e0;
+  --test-nav-bg:    #ffffff;
+  --test-nav-fg:    #333333;
+  --opts-bg:        #ffffff;
+  --opts-fg:        #111111;
+  --opts-border:    #e0e0e0;
+  --opts-highlight: #ebebeb;
+  --opts-muted:     #555555;
+}
+
+/* make all test text respect the size var */
+.ielts-test-view p,
+.ielts-test-view span,
+.ielts-test-view label,
+.ielts-test-view h1,
+.ielts-test-view h2,
+.ielts-test-view h3,
+.ielts-test-view div {
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Universal Input/Button theme support */
+.ielts-test-view input[type="text"],
+.ielts-test-view input[type="radio"],
+.ielts-test-view select,
+.ielts-test-view textarea {
+  background-color: var(--test-input-bg, #fff);
+  color: var(--test-fg, #333);
+  border-color: var(--test-border, #ccc);
+}
+
+.ielts-test-view input[type="text"]:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+/* Ensure GapFill inputs and other custom styles respect theme */
+.ielts-test-view input.text-blue-800,
+.ielts-test-view .text-blue-800 {
+  color: var(--test-fg) !important;
+}
+
+.ielts-test-view .bg-white {
+  background-color: var(--test-bg) !important;
+}
+
+.ielts-test-view .text-gray-800,
+.ielts-test-view .text-gray-900,
+.ielts-test-view .text-black {
+  color: var(--test-fg) !important;
 }

@@ -62,13 +62,20 @@ const DragDropSummary = ({ data, onAnswer, startIndex = 1 }) => {
   return (
     <div className="mb-8 font-sans">
       {data.instruction && (
-        <p className="text-black mb-4" style={{ fontSize: '1.1em' }}>
+        <p className="mb-4" style={{ fontSize: '1.1em', color: 'var(--test-fg)' }}>
           {data.instruction}
         </p>
       )}
 
       {/* Summary Box */}
-      <div className="p-6 bg-[#f7f8f9] border border-gray-200 rounded-md mb-6 text-black leading-loose text-[17px]">
+      <div 
+        className="p-6 border rounded-md mb-6 leading-loose text-[17px]"
+        style={{ 
+          backgroundColor: 'var(--test-strip-bg)', 
+          borderColor: 'var(--test-border)', 
+          color: 'var(--test-fg)' 
+        }}
+      >
         {parts.map((part, idx) => {
           const match = part.match(/^\{(\d+)\}$/);
           if (match) {
@@ -83,25 +90,26 @@ const DragDropSummary = ({ data, onAnswer, startIndex = 1 }) => {
                 onDragOver={handleDragOver}
                 onClick={() => selectedVal && handleRemove(gapId)}
                 title={selectedVal ? "Click to remove" : "Drag word here"}
-                className={`inline-flex items-center justify-center min-w-[100px] h-8 mx-1 px-3 align-middle cursor-pointer transition-colors select-none ${
-                  selectedVal
-                    ? 'border-2 border-solid border-blue-400 bg-white text-blue-800'
-                    : 'border-2 border-dashed border-gray-400 bg-white text-gray-400 hover:border-gray-500 hover:bg-gray-50'
-                } rounded`}
+                className={`inline-flex items-center justify-center min-w-[100px] h-8 mx-1 px-3 align-middle cursor-pointer transition-colors select-none rounded`}
+                style={{
+                  border: selectedVal ? '2px solid #2563eb' : '2px dashed var(--test-border)',
+                  backgroundColor: 'var(--test-bg)',
+                  color: selectedVal ? 'var(--test-fg)' : 'var(--test-fg)',
+                  opacity: selectedVal ? 1 : 0.6
+                }}
               >
                 {selectedVal ? (
                   <span className="font-semibold text-[15px]">
                      {selectedWordObj ? selectedWordObj.label : selectedVal}
                   </span>
                 ) : (
-                  <span className="text-[15px] font-medium">{gapId}</span>
+                  <span className="text-[15px] font-medium opacity-80">{gapId}</span>
                 )}
               </span>
             );
           }
 
           // Normal text
-          // replace double newlines with double breaks, single newlines with single spaces
           return (
             <span
               key={idx}
@@ -114,7 +122,10 @@ const DragDropSummary = ({ data, onAnswer, startIndex = 1 }) => {
       </div>
 
       {/* Draggable Words Box */}
-      <div className="p-5 border-2 border-dashed border-gray-300 rounded-md bg-white">
+      <div 
+        className="p-5 border-2 border-dashed rounded-md"
+        style={{ backgroundColor: 'var(--test-bg)', borderColor: 'var(--test-border)' }}
+      >
         <div className="flex flex-wrap gap-4">
           {wordOptions.map((item, idx) => (
             <div
@@ -122,7 +133,12 @@ const DragDropSummary = ({ data, onAnswer, startIndex = 1 }) => {
               draggable
               onDragStart={(e) => handleDragStart(e, item)}
               onDragEnd={() => setDraggedItem(null)}
-              className="px-4 py-2 border border-gray-300 bg-white rounded shadow-sm text-black cursor-grab active:cursor-grabbing hover:bg-gray-100 transition-colors text-[16px] select-none"
+              className="px-4 py-2 border rounded shadow-sm cursor-grab active:cursor-grabbing hover:opacity-80 transition-opacity text-[16px] select-none"
+              style={{ 
+                backgroundColor: 'var(--test-input-bg)', 
+                borderColor: 'var(--test-border)', 
+                color: 'var(--test-fg)' 
+              }}
             >
               {item.label}
             </div>

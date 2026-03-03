@@ -67,8 +67,13 @@ export default function TestNavigator({
 
       {/* ═══ Main Navigator Bar (h-14 = 56px) ═══ */}
       <div
-        className="fixed bottom-0 left-0 right-0 h-14 flex items-stretch bg-white border-t border-gray-300 select-none"
-        style={{ zIndex: 40 }}
+        className="fixed bottom-0 left-0 right-0 h-14 flex items-stretch select-none"
+        style={{
+          zIndex: 40,
+          background: 'var(--test-nav-bg)',
+          color: 'var(--test-nav-fg)',
+          borderTop: '1px solid var(--test-border)',
+        }}
       >
         {parts.map((label, idx) => {
           const stats = getPartStats(idx);
@@ -78,14 +83,15 @@ export default function TestNavigator({
             return (
               <div
                 key={idx}
-                className="flex-1 flex items-center gap-2 px-4 border-r border-gray-300 last:border-r-0 overflow-hidden"
+                className="flex-1 flex items-center gap-2 px-4 overflow-hidden"
+                style={{ borderRight: '1px solid var(--test-border)' }}
               >
                 {/* Part label */}
-                <span className="font-bold text-[13px] text-gray-900 whitespace-nowrap mr-3 shrink-0">
+                <span className="font-bold text-[13px] whitespace-nowrap mr-3 shrink-0" style={{ color: 'var(--test-nav-fg)' }}>
                   {label}
                 </span>
 
-                {/* Question number boxes — 50% bigger: 26→39px wide, 28→42px tall, 12→18px font */}
+                {/* Question number boxes */}
                 <div className="flex items-center gap-[5px] overflow-x-auto no-scrollbar">
                   {stats.questions.map((qNum) => {
                     const isAnswered = answeredSet.has(String(qNum));
@@ -96,14 +102,12 @@ export default function TestNavigator({
                         key={qNum}
                         onClick={() => scrollToQuestion(qNum)}
                         title={`Go to question ${qNum}`}
-                        className={`flex items-center justify-center min-w-[29px] h-[42px] text-[18px] font-semibold shrink-0 outline-none cursor-pointer transition-colors
-                          ${isCurrent
-                            ? 'border-2 border-blue-600 text-blue-700 bg-white'
-                            : isAnswered
-                            ? 'border border-gray-700 bg-gray-300 text-gray-900 hover:bg-gray-200'
-                            : 'border border-gray-400 bg-white text-gray-800 hover:border-gray-600 hover:bg-gray-50'
-                          }
-                        `}
+                        className={`flex items-center justify-center min-w-[29px] h-[42px] text-[18px] font-semibold shrink-0 outline-none cursor-pointer transition-colors`}
+                        style={{
+                          border: isCurrent ? '2px solid #2563eb' : `1px solid var(--test-border)`,
+                          background: isCurrent ? 'var(--test-bg)' : isAnswered ? 'var(--test-strip-bg)' : 'var(--test-bg)',
+                          color: isCurrent ? '#2563eb' : 'var(--test-fg)',
+                        }}
                       >
                         {qNum}
                       </button>
@@ -119,12 +123,17 @@ export default function TestNavigator({
             <button
               key={idx}
               onClick={() => onPartChange(idx)}
-              className="flex-1 flex items-center justify-center gap-2 border-r border-gray-300 last:border-r-0 bg-white hover:bg-gray-50 transition-colors outline-none cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-2 transition-colors outline-none cursor-pointer"
+              style={{
+                borderRight: '1px solid var(--test-border)',
+                background: 'var(--test-nav-bg)',
+                color: 'var(--test-nav-fg)',
+              }}
             >
-              <span className="font-bold text-[13px] text-gray-500 whitespace-nowrap">
+              <span className="font-bold text-[13px] opacity-60 whitespace-nowrap">
                 {label}
               </span>
-              <span className="text-[11px] text-gray-400 whitespace-nowrap">
+              <span className="text-[11px] opacity-40 whitespace-nowrap">
                 {stats.answered} of {stats.total}
               </span>
             </button>
@@ -133,13 +142,18 @@ export default function TestNavigator({
 
         {/* Submit — galochka, o'ng chetda */}
         {onSubmit && (
-          <div className="flex items-center px-4 border-l border-gray-300 shrink-0">
+          <div className="flex items-center px-4 shrink-0" style={{ borderLeft: '1px solid var(--test-border)' }}>
             <button
               onClick={onSubmit}
-              className="flex items-center justify-center w-9 h-9 border border-gray-300 bg-white hover:bg-gray-100 transition-colors outline-none"
+              className="flex items-center justify-center w-9 h-9 border transition-colors outline-none"
+              style={{
+                borderColor: 'var(--test-border)',
+                background: 'var(--test-nav-bg)',
+                color: 'var(--test-nav-fg)',
+              }}
               title="Submit test"
             >
-              <svg className="w-4 h-4 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
             </button>
