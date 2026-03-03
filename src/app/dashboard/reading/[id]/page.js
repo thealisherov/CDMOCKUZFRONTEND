@@ -6,6 +6,8 @@ import Timer from '@/components/Timer';
 import { Button } from '@/components/ui/button';
 import { QuestionRenderer } from '@/components/ielts-questions';
 import AnswerSheet from '@/components/ielts-questions/AnswerSheet';
+import HeadingDropZone from '@/components/ielts-questions/HeadingDropZone';
+import MatchHeadings from '@/components/ielts-questions/MatchHeadings';
 import TestNavigator from '@/components/TestNavigator';
 import { ArrowLeft, Send, AlertTriangle, Menu } from 'lucide-react';
 import ResizableSplitPane from '@/components/ResizableSplitPane';
@@ -34,7 +36,6 @@ export default function ReadingTestPage({ params }) {
   const timerMinutes = rawData?.timer || 60;
   const passages = rawData?.passages || [];
 
-  // Flatten all blocks
   const allBlocks = useMemo(() => {
     const blocks = [];
     passages.forEach(p => {
@@ -43,18 +44,23 @@ export default function ReadingTestPage({ params }) {
     return blocks;
   }, [passages]);
 
-  // Get question count for a block
   const getBlockQCount = (block) => {
-    if (block.type === 'gap_fill') {
-      const matches = block.content.match(/\{\d+\}/g);
+    if (!block) return 0;
+    if (block.type === 'gap_fill' || block.type === 'drag_drop_summary') {
+      // Count {N} placeholders in content
+      const matches = block.content?.match(/\{\d+\}/g);
       return matches ? matches.length : 0;
+    } else if (block.type === 'checkbox_multiple') {
+      // Each question in checkbox_multiple has a 'numbers' array
+      return (block.questions || []).reduce((sum, q) => {
+        return sum + (q.numbers ? q.numbers.length : 1);
+      }, 0);
     } else if (block.questions) {
       return block.questions.length;
     }
     return 0;
   };
 
-  // Global start index for a block by flat index
   const getStartIndex = useCallback((blockIndex) => {
     let start = 1;
     for (let i = 0; i < blockIndex; i++) {
@@ -68,12 +74,10 @@ export default function ReadingTestPage({ params }) {
     return allBlocks.reduce((s, b) => s + getBlockQCount(b), 0);
   }, [allBlocks]);
 
-  // Question numbers [1..40]
   const questionNumbers = useMemo(() => {
     return Array.from({ length: totalQuestions }, (_, i) => i + 1);
   }, [totalQuestions]);
 
-  // Part (passage) question ranges
   const partQuestionRanges = useMemo(() => {
     const ranges = [];
     let cursor = 1;
@@ -85,7 +89,6 @@ export default function ReadingTestPage({ params }) {
     return ranges;
   }, [passages]);
 
-  // Answered IDs
   const answeredIds = useMemo(() => {
     return Object.entries(userAnswers)
       .filter(([, v]) => v !== undefined && v !== null && v.toString().trim() !== '')
@@ -94,8 +97,32 @@ export default function ReadingTestPage({ params }) {
 
   const answeredCount = answeredIds.length;
 
-  const handleBlockAnswers = useCallback((answers) => {
-    setUserAnswers((prev) => ({ ...prev, ...answers }));
+  // Current question tracking for navigator highlight + next/prev
+  const [currentQuestion, setCurrentQuestion] = useState(1);
+
+  const handleNavigate = useCallback((qNum) => {
+    setCurrentQuestion(qNum);
+    const el = document.getElementById(`question-${qNum}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    for (let i = 0; i < partQuestionRanges.length; i++) {
+      const r = partQuestionRanges[i];
+      if (r && qNum >= r.start && qNum <= r.end) { setActivePassage(i); break; }
+    }
+  }, [partQuestionRanges]);
+
+  const handleNext = currentQuestion < totalQuestions ? () => handleNavigate(currentQuestion + 1) : null;
+  const handlePrev = currentQuestion > 1 ? () => handleNavigate(currentQuestion - 1) : null;
+
+  // handleBlockAnswers: accepts either a full answers object (from QuestionRenderer)
+  // or an individual (questionId, value) call (from child components directly)
+  const handleBlockAnswers = useCallback((answersOrId, value) => {
+    if (typeof answersOrId === 'object' && answersOrId !== null) {
+      // Called with whole answers map { "1": "A", "2": "B" }
+      setUserAnswers((prev) => ({ ...prev, ...answersOrId }));
+    } else {
+      // Called with individual questionId and value
+      setUserAnswers((prev) => ({ ...prev, [answersOrId]: value }));
+    }
   }, []);
 
   const handleSubmit = () => { setSubmitted(true); setShowConfirm(false); };
@@ -114,7 +141,6 @@ export default function ReadingTestPage({ params }) {
     );
   }
 
-  // ── RESULT VIEW ──
   if (submitted) {
     return (
       <div className="ielts-test-view fixed inset-0 z-50 bg-white overflow-y-auto">
@@ -140,21 +166,18 @@ export default function ReadingTestPage({ params }) {
   const currentPassage = passages[activePassage];
   const currentBlocks = currentPassage?.questions || [];
 
-  // Block offset for current passage
   let blockOffset = 0;
   for (let p = 0; p < activePassage; p++) {
     blockOffset += (passages[p]?.questions?.length || 0);
   }
 
-  // Get question range text for current passage (e.g., "1–13")
   const activeRange = partQuestionRanges[activePassage];
   const rangeText = activeRange ? `${activeRange.start}–${activeRange.end}` : '';
 
-  // ── TEST VIEW ──
   return (
     <div className="ielts-test-view fixed inset-0 z-50 bg-[#f5f5f5] flex flex-col overflow-hidden">
 
-      {/* ═══ IELTS HEADER — dark bar ═══ */}
+      {/* ═══ HEADER ═══ */}
       <div className="flex-none bg-[#1a1a1a] text-white px-4 py-2 z-20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -173,28 +196,24 @@ export default function ReadingTestPage({ params }) {
         </div>
       </div>
 
-      {/* ═══ PART INDICATOR — light gray strip ═══ */}
-      <div className="flex-none bg-[#e8e8e8] border-b border-[#ccc] px-5 py-3">
-        <p className="font-bold text-[#333] text-sm">Part {activePassage + 1}</p>
-        <p className="text-[#666] text-xs mt-0.5">Read the text and answer questions {rangeText}.</p>
+      {/* ═══ PART INDICATOR ═══ */}
+      <div className="flex-none bg-[#f2f3f2] border border-gray-200 mx-6 mt-3 mb-2 px-5 py-2 rounded-sm">
+        <p className="font-bold text-black text-[13px]">Part {activePassage + 1}</p>
+        <p className="text-black text-[13px] mt-0.5">Read the text and answer questions {rangeText}.</p>
       </div>
 
-      {/* ═══ SPLIT SCREEN — passage left | questions right ═══ */}
+      {/* ═══ SPLIT SCREEN ═══ */}
       <div className="flex-1 overflow-hidden min-h-0 mb-20 bg-white">
         <ResizableSplitPane
           left={
             <div className="h-full overflow-y-auto bg-white">
-              {/* Passage title */}
-              <div className="sticky top-0 z-10 bg-white border-b border-[#e0e0e0] px-6 py-3">
-                <h2 className="font-bold text-[#333] text-base">{currentPassage?.title}</h2>
+              <div className="border-b border-[#e0e0e0] px-6 py-4">
+                <h2 className="font-bold text-[#333] text-[25px]">{currentPassage?.title}</h2>
               </div>
               <div className="px-6 pt-6 pb-32">
                 <HighlightableContent className="max-w-none leading-relaxed">
                   {(currentPassage?.text || currentPassage?.content || '').split('\n\n').map((paragraph, idx) => {
-                    // Check if we have a match_headings block in the current passage
                     const matchHeadingsBlock = currentBlocks.find(b => b.type === 'match_headings');
-
-                    // Match paragraph based on letter A, B, C...
                     const paragraphLetter = String.fromCharCode(65 + idx);
 
                     let headingQ = null;
@@ -216,7 +235,7 @@ export default function ReadingTestPage({ params }) {
                             />
                           </div>
                         )}
-                        <p className="text-[0.95rem] leading-[1.85]" style={{ fontFamily: 'Georgia, serif' }}>
+                        <p className="text-[16.5px] font-medium leading-[1.85]" style={{ fontFamily: 'Georgia, serif' }}>
                           {paragraph}
                         </p>
                       </div>
@@ -229,21 +248,19 @@ export default function ReadingTestPage({ params }) {
           right={
             <div className="h-full overflow-y-auto bg-white">
               <div className="px-6 pt-6 pb-32">
-                {/* Questions header */}
                 <div className="mb-4">
                   <h3 className="font-bold text-sm text-[#333]">Questions {rangeText}</h3>
                 </div>
 
-                {/* ✅ FIXED: map() to'g'ri ishlatilgan */}
                 <div className="space-y-6">
                   {currentBlocks.map((block, blockIndex) => {
                     const blockStartIndex = getStartIndex(blockOffset + blockIndex);
 
                     if (block.type === 'match_headings') {
                       return (
-                        <div key={block.id}>
+                        <div key={block.id} id={`question-${blockStartIndex}`}>
                           {block.instruction && (
-                            <p className="text-sm text-[#555] mb-3">{block.instruction}</p>
+                            <p className="text-[22px] font-bold text-[#555] mb-3">{block.instruction}</p>
                           )}
                           <MatchHeadings
                             data={block}
@@ -256,9 +273,9 @@ export default function ReadingTestPage({ params }) {
                     }
 
                     return (
-                      <div key={block.id}>
+                      <div key={block.id} id={`question-${blockStartIndex}`}>
                         {block.instruction && (
-                          <p className="text-sm text-[#555] mb-3">{block.instruction}</p>
+                          <p className="text-[22px] font-bold text-[#555] mb-3">{block.instruction}</p>
                         )}
                         <QuestionRenderer
                           data={block}
@@ -269,14 +286,13 @@ export default function ReadingTestPage({ params }) {
                     );
                   })}
                 </div>
-
               </div>
             </div>
           }
         />
       </div>
 
-      {/* ═══ BOTTOM NAVIGATOR — IELTS style dark ═══ */}
+      {/* ═══ BOTTOM NAVIGATOR ═══ */}
       <TestNavigator
         parts={passages.map((_, i) => `Part ${i + 1}`)}
         activePart={activePassage}
@@ -285,6 +301,9 @@ export default function ReadingTestPage({ params }) {
         answeredIds={answeredIds}
         partQuestionRanges={partQuestionRanges}
         onSubmit={() => setShowConfirm(true)}
+        currentQuestion={currentQuestion}
+        onNext={handleNext}
+        onPrev={handlePrev}
       />
 
       {/* Submit Modal */}
@@ -325,7 +344,6 @@ export default function ReadingTestPage({ params }) {
           </div>
         </div>
       )}
-
     </div>
   );
 }

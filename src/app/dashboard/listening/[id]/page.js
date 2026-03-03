@@ -197,9 +197,9 @@ export default function ListeningTestPage({ params }) {
       </div>
 
       {/* ═══ PART INDICATOR STRIP — light gray ═══ */}
-      <div className="flex-none bg-[#f3f4f3] border border-gray-200 w-full lg:w-1/2 mx-6 mt-4 px-6 py-4 rounded-sm">
-        <p className="font-bold text-gray-900 text-[14px]">{currentPart?.label || 'Part 1'}</p>
-        <p className="text-gray-800 text-[13px] mt-1">
+      <div className="flex-none bg-[#f2f3f2] border border-gray-200 w-full lg:w-1/2 mx-6 mt-3 mb-2 px-5 py-2 rounded-sm">
+        <p className="font-bold text-black text-[13px]">{currentPart?.label || 'Part 1'}</p>
+        <p className="text-black text-[13px] mt-0.5">
           {visibleSections[0]?.instruction || 'Listen and answer the questions.'}
         </p>
       </div>
@@ -219,9 +219,9 @@ export default function ListeningTestPage({ params }) {
               {/* Section title */}
               {block.title && (
                 <div className="mb-4">
-                  <h3 className="font-bold text-[#333] text-[15px]">{block.title}</h3>
+                  <h3 className="font-bold text-[#333] text-[22px]">{block.title}</h3>
                   {block.instruction && (
-                    <p className="text-[13px] text-[#555] mt-1">{block.instruction}</p>
+                    <p className="text-[22px] font-bold text-[#555] mt-1">{block.instruction}</p>
                   )}
                 </div>
               )}

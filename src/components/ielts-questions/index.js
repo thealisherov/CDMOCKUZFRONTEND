@@ -5,3 +5,6 @@ export { default as HeadingDropZone } from './HeadingDropZone';
 export { default as MatchHeadings } from './MatchHeadings';
 export { default as TrueFalse } from './TrueFalse';
 export { default as AnswerSheet } from './AnswerSheet';
+export { default as MatchDropdown } from './MatchDropdown';
+export { default as DragDropSummary } from './DragDropSummary';
+export { default as CheckboxMultiple } from './CheckboxMultiple';

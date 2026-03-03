@@ -1,19 +1,15 @@
 'use client';
 
-import { Check } from 'lucide-react';
-
-/**
- * TestNavigator — IELTS CD bottom navigator.
- * Extracted design from test-taking BottomNavigator template using Tailwind CSS.
- */
 export default function TestNavigator({
   parts = [],
   activePart = 0,
+  currentQuestion = null, // active question number
   onPartChange,
-  questionNumbers = [],
   answeredIds = [],
   partQuestionRanges = [],
   onSubmit,
+  onNext,
+  onPrev,
 }) {
   if (!parts || parts.length === 0) return null;
 
@@ -22,50 +18,90 @@ export default function TestNavigator({
   const getPartStats = (partIndex) => {
     const range = partQuestionRanges[partIndex];
     if (!range) return { total: 0, answered: 0, questions: [] };
+
     const questions = [];
     for (let i = range.start; i <= range.end; i++) {
       questions.push(i);
     }
-    const answered = questions.filter((q) => answeredSet.has(String(q))).length;
+
+    const answered = questions.filter((q) =>
+      answeredSet.has(String(q))
+    ).length;
+
     return { total: questions.length, answered, questions };
   };
 
   const scrollToQuestion = (qNum) => {
-    const element = document.getElementById(`question-${qNum}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    const el = document.getElementById(`question-${qNum}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-20 z-40 flex items-center justify-between px-4 bg-white border-t border-gray-300 text-gray-900 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] select-none">
-      {/* ═══ Main Navigation Area ═══ */}
-      <div className="flex-1 flex items-center gap-8 overflow-x-auto py-2 no-scrollbar">
+    <>
+      {/* ── Prev / Next buttons — 15px above navigator, bottom-right ── */}
+      <div
+        className="fixed flex items-center gap-[1px]"
+        style={{ bottom: 'calc(56px + 15px)', right: '16px', zIndex: 41 }}
+      >
+        <button
+          onClick={onPrev}
+          disabled={!onPrev}
+          title="Previous question"
+          className="flex items-center justify-center w-[54px] h-[54px] bg-black hover:bg-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors outline-none border border-gray-700"
+        >
+          <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button
+          onClick={onNext}
+          disabled={!onNext}
+          title="Next question"
+          className="flex items-center justify-center w-[54px] h-[54px] bg-black hover:bg-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors outline-none border border-gray-700"
+        >
+          <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* ═══ Main Navigator Bar (h-14 = 56px) ═══ */}
+      <div
+        className="fixed bottom-0 left-0 right-0 h-14 flex items-stretch bg-white border-t border-gray-300 select-none"
+        style={{ zIndex: 40 }}
+      >
         {parts.map((label, idx) => {
           const stats = getPartStats(idx);
           const isActive = idx === activePart;
 
           if (isActive) {
-            /* ─── ACTIVE PART ─── */
             return (
-              <div key={idx} className="flex items-center gap-4 flex-shrink-0 animate-in fade-in duration-200">
+              <div
+                key={idx}
+                className="flex-1 flex items-center gap-2 px-4 border-r border-gray-300 last:border-r-0 overflow-hidden"
+              >
                 {/* Part label */}
-                <div className="font-bold text-sm uppercase whitespace-nowrap text-gray-900">
+                <span className="font-bold text-[13px] text-gray-900 whitespace-nowrap mr-3 shrink-0">
                   {label}
-                </div>
+                </span>
 
-                {/* Question number buttons */}
-                <div className="flex gap-2">
+                {/* Question number boxes — 50% bigger: 26→39px wide, 28→42px tall, 12→18px font */}
+                <div className="flex items-center gap-[5px] overflow-x-auto no-scrollbar">
                   {stats.questions.map((qNum) => {
                     const isAnswered = answeredSet.has(String(qNum));
+                    const isCurrent = currentQuestion === qNum;
+
                     return (
                       <button
                         key={qNum}
                         onClick={() => scrollToQuestion(qNum)}
-                        className={`w-9 h-9 flex items-center justify-center text-sm font-bold border rounded transition-all flex-shrink-0 outline-none
-                          ${isAnswered 
-                            ? 'bg-gray-100 border-gray-900 text-gray-900 underline decoration-2 underline-offset-2' 
-                            : 'bg-transparent border-gray-300 text-gray-900 hover:border-gray-900'
+                        title={`Go to question ${qNum}`}
+                        className={`flex items-center justify-center min-w-[29px] h-[42px] text-[18px] font-semibold shrink-0 outline-none cursor-pointer transition-colors
+                          ${isCurrent
+                            ? 'border-2 border-blue-600 text-blue-700 bg-white'
+                            : isAnswered
+                            ? 'border border-gray-700 bg-gray-300 text-gray-900 hover:bg-gray-200'
+                            : 'border border-gray-400 bg-white text-gray-800 hover:border-gray-600 hover:bg-gray-50'
                           }
                         `}
                       >
@@ -76,46 +112,40 @@ export default function TestNavigator({
                 </div>
               </div>
             );
-          } else {
-            /* ─── INACTIVE PART ─── */
-            return (
-              <button
-                key={idx}
-                onClick={() => onPartChange(idx)}
-                className="flex flex-col items-center justify-center px-4 py-1 rounded border-none bg-transparent cursor-pointer flex-shrink-0 outline-none transition-colors hover:bg-gray-100 group"
-              >
-                <span className="font-bold text-sm uppercase opacity-80 group-hover:opacity-100 text-gray-900 whitespace-nowrap">
-                  {label}
-                </span>
-                <span className="text-xs opacity-60 group-hover:opacity-80 text-gray-900">
-                  {stats.answered} / {stats.total}
-                </span>
-              </button>
-            );
           }
-        })}
-      </div>
 
-      {/* ═══ Right Side: Submit Button ═══ */}
-      {onSubmit && (
-        <div className="flex items-center ml-4">
-          <button
-            onClick={onSubmit}
-            className="flex items-center gap-2 px-6 py-2 border border-gray-300 rounded font-bold text-sm bg-white text-gray-900 cursor-pointer transition-colors shadow-sm outline-none hover:bg-gray-100"
-          >
-            {/* Checkmark Icon */}
-            <svg
-              className="w-5 h-5 opacity-80"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          // Inactive parts
+          return (
+            <button
+              key={idx}
+              onClick={() => onPartChange(idx)}
+              className="flex-1 flex items-center justify-center gap-2 border-r border-gray-300 last:border-r-0 bg-white hover:bg-gray-50 transition-colors outline-none cursor-pointer"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
-            <span>Submit</span>
-          </button>
-        </div>
-      )}
-    </div>
+              <span className="font-bold text-[13px] text-gray-500 whitespace-nowrap">
+                {label}
+              </span>
+              <span className="text-[11px] text-gray-400 whitespace-nowrap">
+                {stats.answered} of {stats.total}
+              </span>
+            </button>
+          );
+        })}
+
+        {/* Submit — galochka, o'ng chetda */}
+        {onSubmit && (
+          <div className="flex items-center px-4 border-l border-gray-300 shrink-0">
+            <button
+              onClick={onSubmit}
+              className="flex items-center justify-center w-9 h-9 border border-gray-300 bg-white hover:bg-gray-100 transition-colors outline-none"
+              title="Submit test"
+            >
+              <svg className="w-4 h-4 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

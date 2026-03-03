@@ -4,6 +4,9 @@ import React, { useState, useCallback, useEffect } from 'react';
 import GapFill from './GapFill';
 import RadioMatrix from './RadioMatrix';
 import TrueFalse from './TrueFalse';
+import MatchDropdown from './MatchDropdown';
+import DragDropSummary from './DragDropSummary';
+import CheckboxMultiple from './CheckboxMultiple';
 
 /**
  * QuestionRenderer — Main controller for the IELTS Question Engine.
@@ -48,12 +51,22 @@ const QuestionRenderer = ({ data, onAnswersChange, startIndex = 1 }) => {
         return <GapFill {...commonProps} />;
 
       case 'matrix_match':
+      case 'radio_matrix':
         return <RadioMatrix {...commonProps} />;
 
       case 'true_false':
       case 'yes_no':
       case 'multiple_choice':
         return <TrueFalse {...commonProps} />;
+
+      case 'match_dropdown':
+        return <MatchDropdown {...commonProps} />;
+
+      case 'drag_drop_summary':
+        return <DragDropSummary {...commonProps} />;
+
+      case 'checkbox_multiple':
+        return <CheckboxMultiple {...commonProps} />;
 
       default:
         return (

@@ -27,25 +27,26 @@ function mapGroupType(groupType) {
       return 'gap_fill';
 
     case 'summary_completion_with_options':
-      return 'multiple_choice'; // each question = select from word list
+      return 'drag_drop_summary'; // UI uses draggable boxes
 
     case 'yes_no_not_given':
       return 'true_false';
 
     case 'matching_sentence_endings':
-      return 'true_false'; // radio-select from options per question
+      return 'match_dropdown'; // Shows a list of options + inline dropdowns
 
     case 'matching_paragraphs':
-      return 'true_false'; // radio-select letter
+      return 'radio_matrix'; // Show a grid with questions as rows and paragraph letters as columns
 
     case 'multiple_choice_single':
       return 'true_false'; // radio-select from A/B/C/D
 
     case 'multiple_choice_multiple':
-      return 'true_false'; // radio-select from options
+      return 'checkbox_multiple'; // checkbox-select from options
 
+    case 'matching_features': // For things like "Match each sentence to a researcher"
     case 'matching_information':
-      return 'true_false';
+      return 'match_dropdown';
       
     case 'matching_headings':
       return 'match_headings'; // handled differently by ResizableSplitPane passages -> DropZones
@@ -80,7 +81,13 @@ function buildGapFillContent(questions) {
 function buildAnswersMap(questions) {
   const answers = {};
   questions.forEach((q) => {
-    answers[String(q.number)] = q.answer;
+    if (q.numbers && q.answers) {
+      q.numbers.forEach((num, idx) => {
+        answers[String(num)] = q.answers[idx];
+      });
+    } else if (q.number) {
+      answers[String(q.number)] = q.answer;
+    }
   });
   return answers;
 }
@@ -138,20 +145,16 @@ function convertQuestionGroup(group, passageContent) {
     }
 
     case 'summary_completion_with_options': {
-      // Render as TrueFalse with per-question options
-      // Each question selects from the same word list
+      block.content = buildGapFillContent(group.questions);
+
       const firstQ = group.questions[0];
-      const optionLetters = firstQ?.options
-        ? extractOptionLetters(firstQ.options)
-        : [];
+      // Keep full options like "A. popular", "B. artistic" to derive letters
+      block.options = firstQ?.options || [];
 
       block.questions = group.questions.map((q) => ({
         id: String(q.number),
         text: q.question,
       }));
-      block.options = optionLetters;
-      // Show the full word list above the questions
-      block.optionDescriptions = firstQ?.options || [];
       break;
     }
 
@@ -165,7 +168,7 @@ function convertQuestionGroup(group, passageContent) {
     }
 
     case 'matching_sentence_endings': {
-      // Each question has its own options list (same options shared)
+      // the options are provided in the first question
       const firstQ = group.questions[0];
       const optionLetters = firstQ?.options
         ? extractOptionLetters(firstQ.options)
@@ -177,7 +180,7 @@ function convertQuestionGroup(group, passageContent) {
       }));
       block.options = optionLetters;
 
-      // Also store the full option descriptions for display
+      // Store the full option descriptions to show at the top
       block.optionDescriptions = firstQ?.options || [];
       break;
     }
@@ -189,7 +192,8 @@ function convertQuestionGroup(group, passageContent) {
         id: String(q.number),
         text: q.question,
       }));
-      block.options = paragraphLetters;
+      block.options = paragraphLetters; // For legacy fallback
+      block.columnOptions = paragraphLetters; // For radio_matrix rendering
       break;
     }
 
@@ -220,23 +224,34 @@ function convertQuestionGroup(group, passageContent) {
         : [];
 
       block.questions = group.questions.map((q) => ({
-        id: String(q.number),
+        id: q.numbers ? q.numbers.join(',') : String(q.number),
         text: q.question,
         fullOptions: q.options || [],
+        numbers: q.numbers || [q.number] // explicit array of question numbers
       }));
       block.options = optionLetters;
       block.hasPerQuestionOptions = true;
       break;
     }
 
+    case 'matching_features':
     case 'matching_information': {
-      const paragraphLetters = extractParagraphLetters(passageContent);
-
+      // Sometimes options are provided in the question data (e.g. matching_features with people)
+      const firstQ = group.questions[0];
+      let optionLetters = group.options || (firstQ?.options ? extractOptionLetters(firstQ.options) : extractParagraphLetters(passageContent));
+      
       block.questions = group.questions.map((q) => ({
         id: String(q.number),
         text: q.question,
       }));
-      block.options = paragraphLetters;
+      block.options = optionLetters;
+      
+      // If we have full descriptions (e.g. "A James", "B Cooley"), store them
+      if (group.options) {
+        block.optionDescriptions = group.options;
+      } else if (firstQ?.options) {
+        block.optionDescriptions = firstQ.options;
+      }
       break;
     }
 
