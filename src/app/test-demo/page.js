@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { QuestionRenderer } from '@/components/ielts-questions';
+import { useDynamicFavicon } from '@/hooks/useDynamicFavicon';
 
 // ─────────────────────────────────────────────────────
 // Sample Reading Passage (left panel)
@@ -93,6 +94,9 @@ const SAMPLE_QUESTIONS = [
 // ─────────────────────────────────────────────────────
 export default function TestPage() {
   const [allAnswers, setAllAnswers] = useState({});
+
+  // Swap favicon while test is open
+  useDynamicFavicon('/favicon.png');
 
   // Compute global start index for each block
   const getStartIndex = (blockIndex) => {
