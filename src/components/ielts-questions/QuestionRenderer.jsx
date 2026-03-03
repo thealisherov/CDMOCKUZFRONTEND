@@ -22,7 +22,7 @@ import CheckboxMultiple from './CheckboxMultiple';
  *   "true_false"    → TrueFalse
  *   "multiple_choice" → TrueFalse (reused for radio-style options)
  */
-const QuestionRenderer = ({ data, onAnswersChange, startIndex = 1 }) => {
+const QuestionRenderer = ({ data, onAnswersChange, startIndex = 1, layout }) => {
   const [userAnswers, setUserAnswers] = useState({});
 
   // Bubble up answers whenever they change
@@ -43,6 +43,7 @@ const QuestionRenderer = ({ data, onAnswersChange, startIndex = 1 }) => {
     data,
     onAnswer: handleAnswerChange,
     startIndex,
+    layout,
   };
 
   const renderComponent = () => {

@@ -75,7 +75,7 @@
         {
             "partNumber": 2,
             "questionRange": "11-20",
-            "image": "/images/listening/mapTest1.webp",
+            "image": null,
             "questionGroups": [
                 {
                     "groupType": "multiple_choice",
@@ -125,7 +125,8 @@
                 },
                 {
                     "groupType": "map_labeling",
-                    "instruction": "Label the map below. Write the correct letter, A-I, next to questions 15-20.",
+                    "image": "/images/listening/mapTest1.webp",
+                    "instruction": "Label the map below. Write the correct letter, A-H, next to questions 15-20.",
                     "questions": [
                         {
                             "number": 15,

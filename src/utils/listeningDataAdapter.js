@@ -33,10 +33,10 @@ function mapGroupType(groupType) {
       return 'true_false'; // radio-style options per question
 
     case 'map_labeling':
-      return 'true_false'; // select letter A-I
+      return 'radio_matrix'; // select letter A-I in a grid
 
     case 'matching':
-      return 'true_false'; // select letter from options
+      return 'match_dropdown'; // select letter from options
 
     case 'plan_labeling':
       return 'true_false';
@@ -141,9 +141,9 @@ function convertQuestionGroup(group, partNumber, partTitle) {
 
       block.questions = group.questions.map((q) => ({
         id: String(q.number),
-        text: q.question,
+        text: q.text || q.question, // handle both keys for flexibility
       }));
-      block.options = letters;
+      block.columnOptions = letters;
       break;
     }
 
@@ -205,14 +205,21 @@ export function adaptListeningData(rawData) {
     groups.forEach((group, groupIdx) => {
       const block = convertQuestionGroup(group, part.partNumber, partTitle);
 
-      // For the first group in a part, include the part title
-      // For subsequent groups, create a sub-title
+      // Part title handling: only show title for the first group
       if (groupIdx > 0) {
-        block.title = partTitle;
+        block.title = null;
       }
+      
+      // Store part-level info for UI rendering
+      block.partLabel = partTitle;
+      block.questionRange = part.questionRange || '';
 
-      // Store part image on the block if available
-      if (part.image) {
+      // Group-level image has priority
+      if (group.image) {
+        block.image = group.image;
+      } else if (part.image && groupIdx === 0) {
+        // If part image exists, only attach it to the first group by default 
+        // unless specified otherwise in the JSON
         block.image = part.image;
       }
 

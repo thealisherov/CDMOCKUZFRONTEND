@@ -15,6 +15,8 @@ import HighlightableContent from '@/components/HighlightableContent';
 import { adaptReadingData } from '@/utils/readingDataAdapter';
 import IELTSOptionsModal from '@/components/ielts/IELTSOptionsModal';
 import { useIELTSTheme } from '@/hooks/useIELTSTheme';
+import { NotesProvider } from '@/components/NotesContext';
+import NotesSidebar from '@/components/ielts/NotesSidebar';
 
 function loadTestData(testId) {
   try {
@@ -142,7 +144,12 @@ export default function ReadingTestPage({ params }) {
     );
   }
 
-  const wrapperStyle = getWrapperStyle();
+  const baseStyle = getWrapperStyle();
+  const wrapperStyle = {
+    ...baseStyle,
+    fontSize: baseStyle.fontSize ? `calc(${baseStyle.fontSize} * 1.2)` : '19.2px'
+  };
+  
   const currentPassage = passages[activePassage];
   const currentBlocks  = currentPassage?.questions || [];
   let blockOffset = 0;
@@ -151,9 +158,10 @@ export default function ReadingTestPage({ params }) {
   const rangeText   = activeRange ? `${activeRange.start}–${activeRange.end}` : '';
 
   return (
-    <div
-      className="ielts-test-view fixed inset-0 z-50 flex flex-col overflow-hidden"
-      style={{
+    <NotesProvider testId={`reading_${id}`}>
+      <div
+        className="ielts-test-view fixed inset-0 z-50 flex flex-col overflow-hidden"
+        style={{
         ...wrapperStyle,
         background: 'var(--test-bg)',
         color: 'var(--test-fg)',
@@ -176,6 +184,14 @@ export default function ReadingTestPage({ params }) {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ opacity: 0.8 }}>
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
             </svg>
+            {/* Notes Toggle */}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('TOGGLE_NOTES_SIDEBAR'))}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--test-header-fg)', padding: '4px' }}
+              title="Notes"
+            >
+              <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+            </button>
             {/* Menu / hamburger → opens options */}
             <button
               onClick={() => setOptionsOpen(true)}
@@ -205,7 +221,7 @@ export default function ReadingTestPage({ params }) {
                 <h2 className="font-bold text-[25px]" style={{ color: 'var(--test-fg)' }}>{currentPassage?.title}</h2>
               </div>
               <div className="px-6 pt-6 pb-32">
-                <HighlightableContent className="max-w-none leading-relaxed">
+                <HighlightableContent className="max-w-none leading-relaxed" containerId="reading_passage">
                   {(currentPassage?.text || currentPassage?.content || '').split('\n\n').map((paragraph, idx) => {
                     const matchHeadingsBlock = currentBlocks.find(b => b.type === 'match_headings');
                     const paragraphLetter    = String.fromCharCode(65 + idx);
@@ -235,7 +251,8 @@ export default function ReadingTestPage({ params }) {
                   <h3 className="font-bold text-sm">Questions {rangeText}</h3>
                 </div>
                 <div className="space-y-6">
-                  {currentBlocks.map((block, blockIndex) => {
+                  <HighlightableContent containerId="reading_questions">
+                    {currentBlocks.map((block, blockIndex) => {
                     const blockStartIndex = getStartIndex(blockOffset + blockIndex);
                     if (block.type === 'match_headings') {
                       return (
@@ -248,10 +265,11 @@ export default function ReadingTestPage({ params }) {
                     return (
                       <div key={block.id} id={`question-${blockStartIndex}`}>
                         {block.instruction && <p className="text-[22px] font-bold mb-3">{block.instruction}</p>}
-                        <QuestionRenderer data={block} startIndex={blockStartIndex} onAnswersChange={handleBlockAnswers} />
+                        <QuestionRenderer data={block} startIndex={blockStartIndex} onAnswersChange={handleBlockAnswers} layout="stacked" />
                       </div>
                     );
                   })}
+                  </HighlightableContent>
                 </div>
               </div>
             </div>
@@ -331,6 +349,8 @@ export default function ReadingTestPage({ params }) {
         textSize={textSize}
         onTextSizeChange={setTextSize}
       />
-    </div>
+      <NotesSidebar />
+      </div>
+    </NotesProvider>
   );
 }

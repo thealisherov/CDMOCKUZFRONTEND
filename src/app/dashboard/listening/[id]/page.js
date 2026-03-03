@@ -13,6 +13,9 @@ import { adaptListeningData } from '@/utils/listeningDataAdapter';
 
 import IELTSOptionsModal from '@/components/ielts/IELTSOptionsModal';
 import { useIELTSTheme } from '@/hooks/useIELTSTheme';
+import { NotesProvider } from '@/components/NotesContext';
+import NotesSidebar from '@/components/ielts/NotesSidebar';
+import HighlightableContent from '@/components/HighlightableContent';
 
 function loadTestData(testId) {
   try {
@@ -197,14 +200,20 @@ export default function ListeningTestPage({ params }) {
   const currentPart = parts[activePartIndex];
   const visibleSections = currentPart ? currentPart.sections : [];
 
-  const wrapperStyle = getWrapperStyle();
+  const baseStyle = getWrapperStyle();
+  // Multiply by 1.25 to increase the default text size by 25%
+  const wrapperStyle = {
+    ...baseStyle,
+    fontSize: baseStyle.fontSize ? `calc(${baseStyle.fontSize} * 1.25)` : '20px'
+  };
 
   // ── TEST VIEW ──
   return (
-    <div
-      className="ielts-test-view fixed inset-0 z-50 flex flex-col"
-      style={{ ...wrapperStyle, background: 'var(--test-bg)', color: 'var(--test-fg)' }}
-    >
+    <NotesProvider testId={`listening_${id}`}>
+      <div
+        className="ielts-test-view fixed inset-0 z-50 flex flex-col"
+        style={{ ...wrapperStyle, background: 'var(--test-bg)', color: 'var(--test-fg)' }}
+      >
       {/* ═══ IELTS HEADER — white bar ═══ */}
       <div style={{ background: 'var(--test-header-bg)', color: 'var(--test-header-fg)', borderBottom: '1px solid var(--test-border)' }} className="flex-none px-6 py-4 z-20">
         <div className="flex items-center justify-between">
@@ -226,6 +235,14 @@ export default function ListeningTestPage({ params }) {
             <button className="hover:opacity-100 opacity-70 transition-colors" title="Notifications" style={{ color: 'var(--test-header-fg)' }}>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
             </button>
+            {/* Notes Toggle */}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('TOGGLE_NOTES_SIDEBAR'))}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--test-header-fg)', padding: '4px' }}
+              title="Notes"
+            >
+              <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+            </button>
             {/* Menu / hamburger → opens options */}
             <button
               onClick={() => setOptionsOpen(true)}
@@ -242,43 +259,64 @@ export default function ListeningTestPage({ params }) {
         </div>
       </div>
 
-      {/* ═══ PART INDICATOR STRIP — light gray ═══ */}
-      <div style={{ background: 'var(--test-strip-bg)', color: 'var(--test-strip-fg)', border: '1px solid var(--test-border)' }} className="flex-none w-full lg:w-1/2 mx-6 mt-3 mb-2 px-5 py-2 rounded-sm">
-        <p className="font-bold text-[13px]">{currentPart?.label || 'Part 1'}</p>
-        <p className="text-[13px] mt-0.5">
-          {visibleSections[0]?.instruction || 'Listen and answer the questions.'}
-        </p>
+      {/* ═══ PART INDICATOR STRIP & BACKGROUND MATCHER ═══ */}
+      <div className="flex-none px-6 lg:px-10 pt-6 pb-1" style={{ background: 'var(--test-panel-bg)', color: 'var(--test-fg)' }}>
+        <div 
+          style={{ background: 'var(--test-strip-bg)', borderColor: 'var(--test-border)' }} 
+          className="border rounded px-5 py-3"
+        >
+          <p className="font-bold text-[16px] leading-tight mb-1">{currentPart?.label || 'Part 1'}</p>
+          <p className="text-[15px] leading-tight">
+            {visibleSections[0]?.questionRange 
+              ? `Listen and answer questions ${visibleSections[0].questionRange}` 
+              : 'Listen and answer the questions.'}
+          </p>
+        </div>
       </div>
 
       {/* ═══ START OVERLAY ═══ */}
       {!isStarted && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-[2px]" 
-          style={{ backgroundColor: 'rgba(50, 50, 50, 0.7)' }}
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center font-sans"
+          style={{ backgroundColor: 'rgba(80, 80, 80, 0.6)' }}
         >
-          <div className="max-w-4xl px-8 text-center flex flex-col items-center">
-            {/* Headphones Icon */}
-            <div className="mb-6 text-white">
-              <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
-                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+          <div
+            className="flex flex-col items-center text-center"
+            style={{ maxWidth: 560, padding: '0 32px' }}
+          >
+            {/* Headphones icon — solid white fill, matching screenshot */}
+            <div style={{ marginBottom: 32 }}>
+              <svg width="108" height="108" viewBox="0 0 64 64" fill="white">
+                <path d="M32 4C17.64 4 6 15.64 6 30v18a6 6 0 0 0 6 6h4a6 6 0 0 0 6-6V36a6 6 0 0 0-6-6h-3.8C13.08 19.56 21.72 12 32 12s18.92 7.56 19.8 18H48a6 6 0 0 0-6 6v12a6 6 0 0 0 6 6h4a6 6 0 0 0 6-6V30C58 15.64 46.36 4 32 4z"/>
               </svg>
             </div>
 
-            <p className="text-[20px] font-bold leading-relaxed mb-8 text-white">
+            {/* Main instruction */}
+            <p style={{ color: '#ffffff', fontSize: 16, fontWeight: 400, lineHeight: 1.65, marginBottom: 18, maxWidth: 490 }}>
               You will be listening to an audio clip during this test. You will not be permitted to pause or rewind the audio while answering the questions.
             </p>
-            
-            <p className="text-[18px] mb-6 font-medium text-white">
+
+            {/* Sub-text */}
+            <p style={{ color: '#ffffff', fontSize: 15, fontWeight: 400, marginBottom: 30 }}>
               To continue, click Play.
             </p>
 
-            <button 
+            {/* Play button */}
+            <button
               onClick={() => setIsStarted(true)}
-              className="flex items-center gap-3 px-10 py-3 rounded text-[18px] font-bold shadow-2xl hover:bg-gray-800 transition-all active:scale-95 border border-gray-600"
-              style={{ backgroundColor: '#000', color: '#fff' }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                backgroundColor: '#0d0d0d', color: '#ffffff',
+                border: 'none', borderRadius: 5,
+                padding: '11px 30px', fontSize: 16, fontWeight: 600,
+                cursor: 'pointer', transition: 'background-color 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#2a2a2a'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = '#0d0d0d'}
             >
-              <Play className="w-6 h-6 fill-current" />
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                <polygon points="5,3 19,12 5,21" />
+              </svg>
               Play
             </button>
           </div>
@@ -288,14 +326,17 @@ export default function ListeningTestPage({ params }) {
       {/* ═══ AUDIO PLAYER (Hidden) ═══ */}
       <AudioPlayer src={rawData.audio || "/audio/sample.mp3"} playSignal={isStarted} />
 
-      {/* ═══ MAIN CONTENT — white background, left aligned ═══ */}
+      {/* ═══ MAIN CONTENT — full width aligned to left ═══ */}
       <div className="flex-1 overflow-y-auto pb-24" style={{ background: 'var(--test-panel-bg)', color: 'var(--test-fg)' }}>
-        <div className="w-full lg:w-1/2 px-8 py-4">
-          {visibleSections.map((block) => {
+        <div className="w-full px-6 lg:px-10 pt-4 py-8 max-w-[1600px]">
+          <HighlightableContent containerId="listening_content">
+            {visibleSections.map((block) => {
               const blockStart = getStartIndex(block.id);
+              const isSideBySide = block.image && (block.type === 'radio_matrix' || block.type === 'true_false');
+
               return (
-                <div key={block.id} className="mb-8">
-                  {/* Invisible anchor for each question in this block */}
+                <div key={block.id} className="mb-14">
+                  {/* Invisible anchor for each question */}
                   {Array.from({ length: (() => {
                     if (block.type === 'gap_fill') {
                       const m = (block.content || '').match(/\{\d+\}/g);
@@ -303,35 +344,43 @@ export default function ListeningTestPage({ params }) {
                     }
                     return (block.questions || []).length;
                   })() }, (_, i) => (
-                    <span key={i} id={`question-${blockStart + i}`} className="block h-0 -mt-4 mb-4" />
+                    <span key={i} id={`question-${blockStart + i}`} className="block h-0 -mt-4" />
                   ))}
 
-                  {/* Section title */}
-                  {block.title && (
-                    <div className="mb-4">
-                      <h3 className="font-bold text-[22px]">{block.title}</h3>
+                  {/* Section Header */}
+                  {(block.title || block.instruction) && (
+                    <div className="mb-8">
+                      {block.title && <h3 className="font-bold text-[26px] mb-1">{block.title}</h3>}
                       {block.instruction && (
-                        <p className="text-[22px] font-bold mt-1 opacity-80">{block.instruction}</p>
+                        <p className="text-[22px] font-bold opacity-80 leading-snug">{block.instruction}</p>
                       )}
                     </div>
                   )}
 
-                  {/* Image (map, plan, etc.) */}
-                  {block.image && (
-                    <div className="mb-4">
-                      <img src={block.image} alt="Question visual" className="max-w-full rounded border border-gray-200" />
-                    </div>
-                  )}
+                  {/* Layout: Side-by-Side (38% Image | 4% Gap | 38% Questions) */}
+                  <div className={isSideBySide ? "flex flex-col lg:flex-row justify-between items-start" : "flex flex-col"}>
+                    {block.image && (
+                      <div className={isSideBySide ? "lg:w-[47.5%] w-full flex-shrink-0" : "w-full mb-8"}>
+                        <img 
+                          src={block.image} 
+                          alt="Question visual" 
+                          className="w-full rounded border border-gray-200 shadow-lg"
+                        />
+                      </div>
+                    )}
 
-                  <QuestionRenderer
-                    data={block}
-                    startIndex={blockStart}
-                    onAnswersChange={handleBlockAnswers}
-                  />
+                    <div className={isSideBySide ? "lg:w-[47.5%] w-full min-w-0" : "w-full"}>
+                      <QuestionRenderer
+                        data={block}
+                        startIndex={blockStart}
+                        onAnswersChange={handleBlockAnswers}
+                      />
+                    </div>
+                  </div>
                 </div>
               );
             })}
-
+          </HighlightableContent>
         </div>
       </div>
 
@@ -409,6 +458,8 @@ export default function ListeningTestPage({ params }) {
         textSize={textSize}
         onTextSizeChange={setTextSize}
       />
-    </div>
+      <NotesSidebar />
+      </div>
+    </NotesProvider>
   );
 }
