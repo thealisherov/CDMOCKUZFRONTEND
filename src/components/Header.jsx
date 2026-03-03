@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle"; // Import ThemeToggle
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { useTranslation } from "@/components/LanguageContext";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -18,30 +21,32 @@ export default function Header() {
         </Link>
         <nav className="hidden md:flex gap-6 items-center text-sm font-medium">
           <Link href="#features" className="hover:text-primary transition-colors">
-            Why Choose Us
+            {t("nav.why")}
           </Link>
           <Link href="#about" className="hover:text-primary transition-colors">
-            About
+            {t("nav.about")}
           </Link>
           <Link href="#pricing" className="hover:text-primary transition-colors">
-            Pricing
+            {t("nav.pricing")}
           </Link>
           <Link href="/dashboard/reading" className="hover:text-primary transition-colors">
-            Dashboard
+            {t("nav.dashboard")}
           </Link>
           <ThemeToggle /> {/* Add ThemeToggle here */}
+          <LanguageSelector />
           <Link href="/login">
             <Button variant="ghost" size="sm">
-              Log in
+              {t("nav.login")}
             </Button>
           </Link>
           <Link href="/register">
-            <Button size="sm">Get Started</Button>
+            <Button size="sm">{t("nav.getStarted")}</Button>
           </Link>
         </nav>
         
         {/* Mobile Menu Toggle & ThemeToggle */}
         <div className="flex items-center gap-2 md:hidden">
+          <LanguageSelector />
           <ThemeToggle /> {/* Add ThemeToggle for mobile view outside menu */}
           <button
             className="p-2 text-muted-foreground hover:text-primary"
@@ -60,35 +65,35 @@ export default function Header() {
             className="text-sm font-medium hover:text-primary transition-colors"
             onClick={() => setIsOpen(false)}
           >
-            Why Choose Us
+            {t("nav.why")}
           </Link>
           <Link
             href="#about"
             className="text-sm font-medium hover:text-primary transition-colors"
             onClick={() => setIsOpen(false)}
           >
-            About
+            {t("nav.about")}
           </Link>
           <Link
             href="#pricing"
             className="text-sm font-medium hover:text-primary transition-colors"
             onClick={() => setIsOpen(false)}
           >
-            Pricing
+            {t("nav.pricing")}
           </Link>
           <Link
             href="/dashboard/reading"
             className="text-sm font-medium hover:text-primary transition-colors"
             onClick={() => setIsOpen(false)}
           >
-            Dashboard
+            {t("nav.dashboard")}
           </Link>
           <div className="flex flex-col gap-2 mt-2">
              <Link href="/login" onClick={() => setIsOpen(false)}>
-              <Button variant="outline" className="w-full justify-start">Log in</Button>
+              <Button variant="outline" className="w-full justify-start">{t("nav.login")}</Button>
             </Link>
             <Link href="/register" onClick={() => setIsOpen(false)}>
-              <Button className="w-full justify-start">Get Started</Button>
+              <Button className="w-full justify-start">{t("nav.getStarted")}</Button>
             </Link>
           </div>
         </div>

@@ -2,38 +2,41 @@
 
 import Image from "next/image";
 import { Zap, Award, Code2, Rss } from "lucide-react";
-
-const founders = [
-  {
-    name: "Mukhammadali Khayrulloyev",
-    role: "Band 8.0 IELTS Instructor",
-    bio: "Helping students crack IELTS with proven strategies, deep grammar knowledge, and real exam experience. Scored Band 8.0 and has coached hundreds of students to their dream scores.",
-    initials: "MK",
-    image: null,
-    gradient: "linear-gradient(160deg, #e22d2d 0%, #9b1a1a 100%)",
-    glow: "rgba(226,45,45,0.30)",
-    badges: [{ icon: Award, text: "Band 8.0 Certified" }],
-    accentColor: "#e22d2d",
-    bgPattern: "radial-gradient(ellipse at 30% 20%, rgba(226,45,45,0.18) 0%, transparent 60%)",
-  },
-  {
-    name: "Abdulaziz Alisherov",
-    role: "Full Stack Developer · Tech Blogger",
-    bio: "Built the entire Mega IELTS platform from scratch. Passionate about EdTech, sharing development insights through his tech blog, and making quality IELTS prep accessible to everyone.",
-    initials: "AA",
-    image: "/ProfileIMG.jpg",
-    gradient: "linear-gradient(160deg, oklch(0.55 0.22 270) 0%, oklch(0.35 0.2 260) 100%)",
-    glow: "oklch(0.55 0.22 270 / 0.30)",
-    badges: [
-      { icon: Code2, text: "Full Stack Dev" },
-      { icon: Rss,   text: "Tech Blogger" },
-    ],
-    accentColor: "oklch(0.48 0.22 270)",
-    bgPattern: "radial-gradient(ellipse at 70% 20%, oklch(0.68 0.22 270 / 0.18) 0%, transparent 60%)",
-  },
-];
+import { useTranslation } from "@/components/LanguageContext";
 
 export default function Founders() {
+  const { t } = useTranslation();
+
+  const founders = [
+    {
+      name: "Mukhammadali Khayrulloyev",
+      role: t("founders.mkRole"),
+      bio: t("founders.mkBio"),
+      initials: "MK",
+      image: null,
+      gradient: "linear-gradient(160deg, #e22d2d 0%, #9b1a1a 100%)",
+      glow: "rgba(226,45,45,0.30)",
+      badges: [{ icon: Award, text: t("founders.mkBadge") }],
+      accentColor: "#e22d2d",
+      bgPattern: "radial-gradient(ellipse at 30% 20%, rgba(226,45,45,0.18) 0%, transparent 60%)",
+    },
+    {
+      name: "Abdulaziz Alisherov",
+      role: t("founders.aaRole"),
+      bio: t("founders.aaBio"),
+      initials: "AA",
+      image: "/ProfileIMG.jpg",
+      gradient: "linear-gradient(160deg, oklch(0.55 0.22 270) 0%, oklch(0.35 0.2 260) 100%)",
+      glow: "oklch(0.55 0.22 270 / 0.30)",
+      badges: [
+        { icon: Code2, text: t("founders.aaBadge1") },
+        { icon: Rss,   text: t("founders.aaBadge2") },
+      ],
+      accentColor: "oklch(0.48 0.22 270)",
+      bgPattern: "radial-gradient(ellipse at 70% 20%, oklch(0.68 0.22 270 / 0.18) 0%, transparent 60%)",
+    },
+  ];
+
   return (
     <section id="founders" className="py-24" style={{ background: "var(--background)" }}>
       <div className="container mx-auto px-4 md:px-6">
@@ -49,13 +52,13 @@ export default function Founders() {
             }}
           >
             <Zap className="w-3.5 h-3.5" />
-            The team behind Mega IELTS
+            {t("founders.badge")}
           </div>
           <h2 className="text-3xl font-black tracking-tight sm:text-4xl" style={{ color: "var(--foreground)" }}>
-            Meet the Co-Founders
+            {t("founders.title")}
           </h2>
           <p className="mx-auto max-w-[600px] text-base" style={{ color: "var(--muted-foreground)" }}>
-            Built by a Band 8 instructor and a full-stack developer — for students who are serious about their IELTS goal.
+            {t("founders.desc")}
           </p>
         </div>
 

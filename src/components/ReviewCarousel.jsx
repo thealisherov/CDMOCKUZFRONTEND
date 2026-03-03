@@ -1,6 +1,7 @@
 "use client";
 
 import { Star, Quote } from "lucide-react";
+import { useTranslation } from "@/components/LanguageContext";
 
 const mockReviews = [
   {
@@ -111,6 +112,7 @@ function ReviewCard({ review }) {
 }
 
 export default function ReviewCarousel({ reviews = mockReviews }) {
+  const { t } = useTranslation();
   // Duplicate for seamless infinite loop
   const doubled = [...reviews, ...reviews];
 
@@ -127,13 +129,13 @@ export default function ReviewCarousel({ reviews = mockReviews }) {
           }}
         >
           <Star className="w-3.5 h-3.5 fill-current" />
-          Student Success Stories
+          {t("reviews.badge")}
         </div>
         <h2 className="text-3xl font-black tracking-tight" style={{ color: "var(--foreground)" }}>
-          What our students say
+          {t("reviews.title")}
         </h2>
         <p className="text-base max-w-[500px] mx-auto" style={{ color: "var(--muted-foreground)" }}>
-          Hundreds of students improved their band score with Mega IELTS.
+          {t("reviews.desc")}
         </p>
       </div>
 

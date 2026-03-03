@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/components/LanguageContext";
 
 export default function Hero() {
+  const { t } = useTranslation();
   return (
     <section className="relative w-full py-20 md:py-32 overflow-hidden bg-background">
       <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
@@ -13,21 +17,21 @@ export default function Hero() {
       
       <div className="container px-4 md:px-6 flex flex-col items-center justify-center text-center space-y-6">
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground">
-          Achieve Your <span className="text-primary">IELTS Goal</span>
-          <br className="hidden sm:inline" /> faster than ever.
+          {t("hero.title1")} <span className="text-primary">{t("hero.titleHighlight")}</span>
+          <br className="hidden sm:inline" /> {t("hero.title2")}
         </h1>
         <p className="max-w-[700px] text-lg sm:text-xl text-muted-foreground md:text-2xl">
-          Comprehensive practice tests, instant AI feedback (coming soon), and expert-curated materials to maximize your band score.
+          {t("hero.desc")}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <Link href="/register">
             <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all">
-              Start Practicing Free
+              {t("hero.btnPrimary")}
             </Button>
           </Link>
           <Link href="#features">
              <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-6 rounded-full">
-              Explore Features
+              {t("hero.btnSecondary")}
             </Button>
           </Link>
         </div>

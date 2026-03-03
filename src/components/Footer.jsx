@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
+import { useTranslation } from "@/components/LanguageContext";
 
 export default function Footer() {
+  const { t } = useTranslation();
   return (
     <footer className="w-full bg-secondary py-12 md:py-16">
       <div className="container px-4 md:px-6">
@@ -12,8 +16,7 @@ export default function Footer() {
               <span className="font-black text-[18px] tracking-tight" style={{ color: '#e22d2d' }}>IELTS</span>
             </Link>
             <p className="text-sm text-secondary-foreground/80">
-              Master the IELTS exam with our comprehensive preparation platform. 
-              Designed by experts, built for your success.
+              {t("footer.desc")}
             </p>
             <div className="flex gap-4">
               <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
@@ -31,7 +34,7 @@ export default function Footer() {
             </div>
           </div>
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Platform</h3>
+            <h3 className="font-semibold text-lg">{t("footer.platform")}</h3>
             <ul className="space-y-2 text-sm text-secondary-foreground/80">
               <li><Link href="/dashboard/reading" className="hover:text-primary transition-colors">Reading Tests</Link></li>
               <li><Link href="/dashboard/listening" className="hover:text-primary transition-colors">Listening Tests</Link></li>
@@ -40,7 +43,7 @@ export default function Footer() {
             </ul>
           </div>
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Company</h3>
+            <h3 className="font-semibold text-lg">{t("footer.company")}</h3>
             <ul className="space-y-2 text-sm text-secondary-foreground/80">
               <li><Link href="#about" className="hover:text-primary transition-colors">About Us</Link></li>
               <li><Link href="#founders" className="hover:text-primary transition-colors">Our Team</Link></li>
@@ -50,9 +53,9 @@ export default function Footer() {
             </ul>
           </div>
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Subscribe</h3>
+            <h3 className="font-semibold text-lg">{t("footer.subscribe")}</h3>
             <p className="text-sm text-secondary-foreground/80">
-              Get the latest tips and updates.
+              {t("footer.subDesc")}
             </p>
             <form className="flex gap-2">
               <input 
@@ -64,13 +67,13 @@ export default function Footer() {
                 type="submit" 
                 className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
               >
-                Join
+                {t("footer.join")}
               </button>
             </form>
           </div>
         </div>
         <div className="mt-12 border-t pt-8 text-center text-sm text-secondary-foreground/60">
-          © {new Date().getFullYear()} Mega IELTS. All rights reserved.
+          © {new Date().getFullYear()} {t("footer.rights")}
         </div>
       </div>
     </footer>
