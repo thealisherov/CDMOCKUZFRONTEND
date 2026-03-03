@@ -1,11 +1,11 @@
 "use client";
 
 import { useTimer } from "@/hooks/useTimer";
-import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
 
-export default function Timer({ initialMinutes = 60, onExpire }) {
+
+export default function Timer({ initialMinutes = 60, onExpire, className = "" }) {
   const { secondsLeft, formattedTime, start } = useTimer(initialMinutes * 60);
 
   useEffect(() => {
@@ -18,12 +18,13 @@ export default function Timer({ initialMinutes = 60, onExpire }) {
     }
   }, [secondsLeft, onExpire]);
 
-  const isLow = secondsLeft < 300; // 5 mins
+  const isLowTime = secondsLeft < 300; // Less than 5 minutes
 
   return (
-    <div className={cn("flex items-center gap-1.5 font-mono text-base font-bold px-2 py-0.5 rounded", isLow ? "text-red-400 animate-pulse" : "text-inherit")}>
-      <Clock className="w-4 h-4" />
-      {formattedTime}
+    <div className="text-center">
+      <p className={cn("font-bold text-lg", isLowTime ? "text-[#D31212]" : "", className)}>
+        {formattedTime} left
+      </p>
     </div>
   );
 }

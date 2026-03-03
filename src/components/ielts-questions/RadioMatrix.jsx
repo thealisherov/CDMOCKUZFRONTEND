@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 
 /**
  * RadioMatrix — "Matching Features" / "Map Labeling" component.
- * IELTS CD style: clean table with simple radio circles.
+ * Applies test-taking template design.
  */
 const RadioMatrix = ({ data, onAnswer, startIndex = 1 }) => {
   const [selectedAnswers, setSelectedAnswers] = useState({});
@@ -15,104 +15,64 @@ const RadioMatrix = ({ data, onAnswer, startIndex = 1 }) => {
   };
 
   return (
-    <div>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid #ccc' }}>
-              <th style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '600', color: '#333', minWidth: '200px' }}>
-                Question
-              </th>
-              {data.columnOptions.map((opt) => (
-                <th key={opt} style={{ padding: '8px', textAlign: 'center', fontWeight: '700', color: '#333', width: '40px' }}>
-                  {opt}
+    <div className="mb-8 font-sans">
+      <div className="flex flex-col gap-8">
+        <div className="overflow-x-auto border border-gray-400 bg-white shadow-sm">
+          <table className="w-full border-collapse min-w-[600px]">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-300">
+                <th className="p-3 text-left w-1/2 border-r border-gray-300">
+                  Question
                 </th>
-              ))}
-            </tr>
-          </thead>
+                {data.columnOptions.map((opt) => (
+                  <th key={opt} className="p-3 text-center w-16 font-bold text-gray-900 border-r border-gray-300 last:border-r-0">
+                    {opt}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {data.questions.map((q, qIdx) => {
+                const globalNum = startIndex + qIdx;
+                const questionId = String(globalNum);
 
-          <tbody>
-            {data.questions.map((q, qIdx) => {
-              const globalNum = startIndex + qIdx;
-              // Use global number as answer key
-              const questionId = String(globalNum);
+                return (
+                  <tr
+                    key={q.id || questionId}
+                    className="border-b border-gray-300 last:border-b-0 hover:bg-blue-50 transition-colors"
+                  >
+                    {/* Question text */}
+                    <td className="p-3 border-r border-gray-300">
+                      <div className="flex gap-3 items-start">
+                        <span className="font-bold text-gray-900 min-w-[20px]">{globalNum}</span>
+                        <span className="text-gray-800 leading-snug">{q.text}</span>
+                      </div>
+                    </td>
 
-              return (
-                <tr
-                  key={q.id || questionId}
-                  style={{
-                    borderBottom: '1px solid #e0e0e0',
-                    transition: 'background-color 0.15s',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f9f9f9'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-                >
-                  {/* Question text */}
-                  <td style={{ padding: '10px 12px', color: '#333' }}>
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: '24px',
-                      height: '24px',
-                      border: '1px solid #999',
-                      color: '#333',
-                      fontSize: '11px',
-                      fontWeight: '700',
-                      marginRight: '8px',
-                      flexShrink: 0,
-                      backgroundColor: '#fff',
-                    }}>
-                      {globalNum}
-                    </span>
-                    {q.text}
-                  </td>
-
-                  {/* Radio cells */}
-                  {data.columnOptions.map((opt) => {
-                    const isChecked = selectedAnswers[questionId] === opt;
-                    return (
-                      <td key={opt} style={{ padding: '8px', textAlign: 'center' }}>
-                        <label style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                          <input
-                            type="radio"
-                            name={`matrix_${data.id}_${questionId}`}
-                            value={opt}
-                            checked={isChecked}
-                            onChange={() => handleSelect(questionId, opt)}
-                            style={{ position: 'absolute', width: 0, height: 0, opacity: 0 }}
-                          />
-                          <span
-                            style={{
-                              width: '20px',
-                              height: '20px',
-                              borderRadius: '50%',
-                              border: `2px solid ${isChecked ? '#333' : '#999'}`,
-                              backgroundColor: '#fff',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'border-color 0.15s',
-                            }}
-                          >
-                            {isChecked && (
-                              <span style={{
-                                width: '10px',
-                                height: '10px',
-                                borderRadius: '50%',
-                                backgroundColor: '#333',
-                              }} />
-                            )}
-                          </span>
-                        </label>
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    {/* Radio cells */}
+                    {data.columnOptions.map((opt) => {
+                      const isChecked = selectedAnswers[questionId] === opt;
+                      return (
+                        <td key={opt} className={`p-0 border-r border-gray-300 last:border-r-0 text-center relative ${isChecked ? 'bg-blue-100' : ''}`}>
+                          <label className="absolute inset-0 flex items-center justify-center cursor-pointer w-full h-full">
+                            <input
+                              type="radio"
+                              name={`matrix_${data.id}_${questionId}`}
+                              value={opt}
+                              checked={isChecked}
+                              onChange={() => handleSelect(questionId, opt)}
+                              className="w-5 h-5 border-2 border-gray-400 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            />
+                          </label>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

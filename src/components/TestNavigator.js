@@ -4,12 +4,7 @@ import { Check } from 'lucide-react';
 
 /**
  * TestNavigator — IELTS CD bottom navigator.
- *
- * Dizayn berilgan BottomNavigator kodidan 100% ko'chirilgan:
- * - h-20 (80px), shadow yuqoriga
- * - Aktiv part: bold label + w-9 h-9 savol tugmalari
- * - Inaktiv part: label + answered/total count
- * - Submit: o'ng chekkada checkmark + "Submit" matni
+ * Extracted design from test-taking BottomNavigator template using Tailwind CSS.
  */
 export default function TestNavigator({
   parts = [],
@@ -43,38 +38,9 @@ export default function TestNavigator({
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '80px',
-        zIndex: 40,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 16px',
-        backgroundColor: '#fff',
-        borderTop: '1px solid #d1d5db',
-        color: '#111',
-        boxShadow: '0 -4px 6px -1px rgba(0,0,0,0.1)',
-        fontFamily: 'Arial, Helvetica, sans-serif',
-        userSelect: 'none',
-      }}
-    >
+    <div className="fixed bottom-0 left-0 right-0 h-20 z-40 flex items-center justify-between px-4 bg-white border-t border-gray-300 text-gray-900 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] select-none">
       {/* ═══ Main Navigation Area ═══ */}
-      <div
-        className="no-scrollbar"
-        style={{
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '32px',
-          overflowX: 'auto',
-          padding: '8px 0',
-        }}
-      >
+      <div className="flex-1 flex items-center gap-8 overflow-x-auto py-2 no-scrollbar">
         {parts.map((label, idx) => {
           const stats = getPartStats(idx);
           const isActive = idx === activePart;
@@ -82,57 +48,26 @@ export default function TestNavigator({
           if (isActive) {
             /* ─── ACTIVE PART ─── */
             return (
-              <div
-                key={idx}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '16px',
-                  flexShrink: 0,
-                  animation: 'fadeIn 0.2s ease',
-                }}
-              >
+              <div key={idx} className="flex items-center gap-4 flex-shrink-0 animate-in fade-in duration-200">
                 {/* Part label */}
-                <div
-                  style={{
-                    fontWeight: '700',
-                    fontSize: '14px',
-                    textTransform: 'uppercase',
-                    whiteSpace: 'nowrap',
-                    color: '#111',
-                  }}
-                >
+                <div className="font-bold text-sm uppercase whitespace-nowrap text-gray-900">
                   {label}
                 </div>
 
                 {/* Question number buttons */}
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div className="flex gap-2">
                   {stats.questions.map((qNum) => {
                     const isAnswered = answeredSet.has(String(qNum));
                     return (
                       <button
                         key={qNum}
                         onClick={() => scrollToQuestion(qNum)}
-                        style={{
-                          width: '36px',
-                          height: '36px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '14px',
-                          fontWeight: '700',
-                          border: isAnswered ? '2px solid #333' : '1px solid #d1d5db',
-                          borderRadius: '4px',
-                          backgroundColor: isAnswered ? '#f3f4f6' : 'transparent',
-                          color: '#111',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s',
-                          textDecoration: isAnswered ? 'underline' : 'none',
-                          textDecorationThickness: '2px',
-                          textUnderlineOffset: '2px',
-                          outline: 'none',
-                          flexShrink: 0,
-                        }}
+                        className={`w-9 h-9 flex items-center justify-center text-sm font-bold border rounded transition-all flex-shrink-0 outline-none
+                          ${isAnswered 
+                            ? 'bg-gray-100 border-gray-900 text-gray-900 underline decoration-2 underline-offset-2' 
+                            : 'bg-transparent border-gray-300 text-gray-900 hover:border-gray-900'
+                          }
+                        `}
                       >
                         {qNum}
                       </button>
@@ -147,42 +82,12 @@ export default function TestNavigator({
               <button
                 key={idx}
                 onClick={() => onPartChange(idx)}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '4px 16px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  backgroundColor: 'transparent',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  outline: 'none',
-                  transition: 'background-color 0.15s',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f3f4f6'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                className="flex flex-col items-center justify-center px-4 py-1 rounded border-none bg-transparent cursor-pointer flex-shrink-0 outline-none transition-colors hover:bg-gray-100 group"
               >
-                <span
-                  style={{
-                    fontWeight: '700',
-                    fontSize: '14px',
-                    textTransform: 'uppercase',
-                    opacity: 0.8,
-                    color: '#111',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+                <span className="font-bold text-sm uppercase opacity-80 group-hover:opacity-100 text-gray-900 whitespace-nowrap">
                   {label}
                 </span>
-                <span
-                  style={{
-                    fontSize: '12px',
-                    opacity: 0.6,
-                    color: '#111',
-                  }}
-                >
+                <span className="text-xs opacity-60 group-hover:opacity-80 text-gray-900">
                   {stats.answered} / {stats.total}
                 </span>
               </button>
@@ -193,31 +98,14 @@ export default function TestNavigator({
 
       {/* ═══ Right Side: Submit Button ═══ */}
       {onSubmit && (
-        <div style={{ display: 'flex', alignItems: 'center', marginLeft: '16px' }}>
+        <div className="flex items-center ml-4">
           <button
             onClick={onSubmit}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 24px',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              fontWeight: '700',
-              fontSize: '14px',
-              backgroundColor: '#fff',
-              color: '#111',
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-              outline: 'none',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f3f4f6'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#fff'; }}
+            className="flex items-center gap-2 px-6 py-2 border border-gray-300 rounded font-bold text-sm bg-white text-gray-900 cursor-pointer transition-colors shadow-sm outline-none hover:bg-gray-100"
           >
             {/* Checkmark Icon */}
             <svg
-              style={{ width: '20px', height: '20px', opacity: 0.8 }}
+              className="w-5 h-5 opacity-80"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

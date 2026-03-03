@@ -9,10 +9,12 @@ import { QuestionRenderer } from '@/components/ielts-questions';
 import AnswerSheet from '@/components/ielts-questions/AnswerSheet';
 import TestNavigator from '@/components/TestNavigator';
 import { ArrowLeft, Send, AlertTriangle, Volume2, Menu } from 'lucide-react';
+import { adaptListeningData } from '@/utils/listeningDataAdapter';
 
 function loadTestData(testId) {
   try {
-    return require(`@/data/listening/listening${testId}.json`);
+    const raw = require(`@/data/listening/listening${testId}.json`);
+    return adaptListeningData(raw);
   } catch {
     return null;
   }
@@ -32,7 +34,7 @@ export default function ListeningTestPage({ params }) {
 
   const allSections = useMemo(() => rawData?.sections || [], [rawData]);
 
-  // Group sections into logical parts
+  // Group sections into logical parts by their title (e.g. "Part 1", "Part 2")
   const parts = useMemo(() => {
     if (!allSections.length) return [];
     const grouped = [];
@@ -162,66 +164,72 @@ export default function ListeningTestPage({ params }) {
 
   // ── TEST VIEW ──
   return (
-    <div className="ielts-test-view fixed inset-0 z-50 bg-[#f5f5f5] flex flex-col">
-      {/* ═══ IELTS HEADER — dark bar ═══ */}
-      <div className="flex-none bg-[#1a1a1a] text-white px-4 py-2 z-20">
+    <div className="ielts-test-view fixed inset-0 z-50 bg-white flex flex-col">
+      {/* ═══ IELTS HEADER — white bar ═══ */}
+      <div className="flex-none bg-white text-gray-900 border-b border-gray-200 px-6 py-3 z-20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {/* IELTS Logo */}
-            <span className="bg-[#c00] text-white text-xs font-black px-2 py-0.5 tracking-wider">IELTS</span>
-            <span className="text-sm font-medium hidden sm:inline">{rawData.title}</span>
-            <span className="text-xs text-gray-400 hidden md:inline">
-              <Volume2 className="w-3 h-3 inline mr-1" />Audio is playing
-            </span>
+            <span className="text-[#e22d2d] text-2xl font-black tracking-wider mr-4">IELTS</span>
+            <div className="flex flex-col">
+              <span className="text-[13px] font-bold text-gray-900 leading-tight">Test taker ID</span>
+              <span className="text-[11px] text-gray-600 flex items-center mt-0.5">
+                <Volume2 className="w-3 h-3 mr-1" /> Audio is playing
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-6 text-gray-700">
             <Timer initialMinutes={timerMinutes} onExpire={handleTimerExpire} />
+            <button className="hover:text-black transition-colors" title="Settings/Network">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </button>
+            <button className="hover:text-black transition-colors" title="Notifications">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+            </button>
             <button
               onClick={() => router.push('/dashboard/listening')}
-              className="text-gray-400 hover:text-white transition-colors p-1"
+              className="hover:text-black transition-colors"
+              title="Menu"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-6 h-6" />
             </button>
           </div>
         </div>
       </div>
 
       {/* ═══ PART INDICATOR STRIP — light gray ═══ */}
-      <div className="flex-none bg-[#e8e8e8] border-b border-[#ccc] px-5 py-3">
-        <p className="font-bold text-[#333] text-sm">{currentPart?.label || 'Part 1'}</p>
-        <p className="text-[#666] text-xs mt-0.5">
+      <div className="flex-none bg-[#f3f4f3] border border-gray-200 w-full lg:w-1/2 mx-6 mt-4 px-6 py-4 rounded-sm">
+        <p className="font-bold text-gray-900 text-[14px]">{currentPart?.label || 'Part 1'}</p>
+        <p className="text-gray-800 text-[13px] mt-1">
           {visibleSections[0]?.instruction || 'Listen and answer the questions.'}
         </p>
       </div>
 
       {/* ═══ AUDIO PLAYER ═══ */}
-      <div className="flex-none bg-white border-b border-[#ddd] px-4 py-2">
-        <div className="max-w-3xl mx-auto">
+      <div className="flex-none bg-white px-6 py-2 hidden">
+        <div className="w-full lg:w-1/2">
           <AudioPlayer src="/audio/sample.mp3" />
         </div>
       </div>
 
-      {/* ═══ MAIN CONTENT — white background ═══ */}
-      <div className="flex-1 overflow-y-auto pb-24">
-        <div className="max-w-3xl mx-auto px-5 py-6">
+      {/* ═══ MAIN CONTENT — white background, left aligned ═══ */}
+      <div className="flex-1 overflow-y-auto pb-24 bg-white">
+        <div className="w-full lg:w-1/2 px-8 py-4">
           {visibleSections.map((block) => (
             <div key={block.id} className="mb-8">
               {/* Section title */}
               {block.title && (
                 <div className="mb-4">
-                  <h3 className="font-bold text-[#333] text-base">{block.title}</h3>
+                  <h3 className="font-bold text-[#333] text-[15px]">{block.title}</h3>
                   {block.instruction && (
-                    <p className="text-sm text-[#555] mt-1">{block.instruction}</p>
+                    <p className="text-[13px] text-[#555] mt-1">{block.instruction}</p>
                   )}
                 </div>
               )}
 
-              {/* Legend */}
-              {block.legend && block.legend.length > 0 && (
-                <div className="mb-4 p-3 bg-[#fafafa] border border-[#e0e0e0] rounded">
-                  {block.legend.map((item, i) => (
-                    <p key={i} className="text-sm text-[#444] leading-6">{item}</p>
-                  ))}
+              {/* Image (map, plan, etc.) */}
+              {block.image && (
+                <div className="mb-4">
+                  <img src={block.image} alt="Question visual" className="max-w-full rounded border border-gray-200" />
                 </div>
               )}
 

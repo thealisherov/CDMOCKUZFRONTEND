@@ -8,10 +8,14 @@ import { QuestionRenderer } from '@/components/ielts-questions';
 import AnswerSheet from '@/components/ielts-questions/AnswerSheet';
 import TestNavigator from '@/components/TestNavigator';
 import { ArrowLeft, Send, AlertTriangle, Menu } from 'lucide-react';
+import ResizableSplitPane from '@/components/ResizableSplitPane';
+import HighlightableContent from '@/components/HighlightableContent';
+import { adaptReadingData } from '@/utils/readingDataAdapter';
 
 function loadTestData(testId) {
   try {
-    return require(`@/data/reading/reading${testId}.json`);
+    const raw = require(`@/data/reading/reading${testId}.json`);
+    return adaptReadingData(raw);
   } catch {
     return null;
   }
@@ -33,9 +37,11 @@ export default function ReadingTestPage({ params }) {
   // Flatten all blocks
   const allBlocks = useMemo(() => {
     const blocks = [];
-    passages.forEach(p => { if (p.questions) p.questions.forEach(q => blocks.push(q)); });
+    passages.forEach(p => {
+      if (p.questions) p.questions.forEach(q => blocks.push(q));
+    });
     return blocks;
-  }, [rawData]);
+  }, [passages]);
 
   // Get question count for a block
   const getBlockQCount = (block) => {
@@ -85,7 +91,7 @@ export default function ReadingTestPage({ params }) {
       .filter(([, v]) => v !== undefined && v !== null && v.toString().trim() !== '')
       .map(([k]) => k);
   }, [userAnswers]);
-// 
+
   const answeredCount = answeredIds.length;
 
   const handleBlockAnswers = useCallback((answers) => {
@@ -96,7 +102,6 @@ export default function ReadingTestPage({ params }) {
   const handleRetry = () => { setUserAnswers({}); setSubmitted(false); setActivePassage(0); };
   const handleExit = () => router.push('/dashboard/reading');
   const handleTimerExpire = () => setSubmitted(true);
-
 
   if (!rawData) {
     return (
@@ -148,6 +153,7 @@ export default function ReadingTestPage({ params }) {
   // ── TEST VIEW ──
   return (
     <div className="ielts-test-view fixed inset-0 z-50 bg-[#f5f5f5] flex flex-col overflow-hidden">
+
       {/* ═══ IELTS HEADER — dark bar ═══ */}
       <div className="flex-none bg-[#1a1a1a] text-white px-4 py-2 z-20">
         <div className="flex items-center justify-between">
@@ -174,49 +180,100 @@ export default function ReadingTestPage({ params }) {
       </div>
 
       {/* ═══ SPLIT SCREEN — passage left | questions right ═══ */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 pb-17">
-        {/* Left — Passage */}
-        <div className="flex-1 md:w-1/2 overflow-y-auto bg-white border-r border-[#ddd]">
-          {/* Passage title */}
-          <div className="sticky top-0 z-10 bg-white border-b border-[#e0e0e0] px-6 py-3">
-            <h2 className="font-bold text-[#333] text-base">{currentPassage?.title}</h2>
-          </div>
-          <div className="px-6 py-5">
-            <div className="max-w-none leading-relaxed">
-              {currentPassage?.text?.split('\n\n').map((paragraph, idx) => (
-                <p key={idx} className="mb-4 text-[0.95rem] leading-[1.85] text-[#333]" style={{ fontFamily: 'Georgia, serif' }}>
-                  {paragraph}
-                </p>
-              ))}
-            </div>
-          </div>
-        </div>
+      <div className="flex-1 overflow-hidden min-h-0 mb-20 bg-white">
+        <ResizableSplitPane
+          left={
+            <div className="h-full overflow-y-auto bg-white">
+              {/* Passage title */}
+              <div className="sticky top-0 z-10 bg-white border-b border-[#e0e0e0] px-6 py-3">
+                <h2 className="font-bold text-[#333] text-base">{currentPassage?.title}</h2>
+              </div>
+              <div className="px-6 pt-6 pb-32">
+                <HighlightableContent className="max-w-none leading-relaxed">
+                  {(currentPassage?.text || currentPassage?.content || '').split('\n\n').map((paragraph, idx) => {
+                    // Check if we have a match_headings block in the current passage
+                    const matchHeadingsBlock = currentBlocks.find(b => b.type === 'match_headings');
 
-        {/* Right — Questions */}
-        <div className="flex-1 md:w-1/2 overflow-y-auto bg-white">
-          <div className="px-6 py-5">
-            {/* Questions header */}
-            <div className="mb-4">
-              <h3 className="font-bold text-sm text-[#333]">Questions {rangeText}</h3>
-            </div>
+                    // Match paragraph based on letter A, B, C...
+                    const paragraphLetter = String.fromCharCode(65 + idx);
 
-            <div className="space-y-6">
-              {currentBlocks.map((block, idx) => (
-                <div key={block.id}>
-                  {/* Block instruction */}
-                  {block.instruction && (
-                    <p className="text-sm text-[#555] mb-3">{block.instruction}</p>
-                  )}
-                  <QuestionRenderer
-                    data={block}
-                    startIndex={getStartIndex(blockOffset + idx)}
-                    onAnswersChange={handleBlockAnswers}
-                  />
+                    let headingQ = null;
+                    if (matchHeadingsBlock && matchHeadingsBlock.questions) {
+                      headingQ = matchHeadingsBlock.questions.find(
+                        (q) => q.text.toUpperCase().includes(`PARAGRAPH ${paragraphLetter}`)
+                      );
+                    }
+
+                    return (
+                      <div key={idx} className="mb-4 text-[#333]">
+                        {headingQ && (
+                          <div className="mb-2">
+                            <HeadingDropZone
+                              questionId={headingQ.id}
+                              globalNum={headingQ.id}
+                              onDrop={handleBlockAnswers}
+                              currentAnswer={userAnswers[headingQ.id]}
+                            />
+                          </div>
+                        )}
+                        <p className="text-[0.95rem] leading-[1.85]" style={{ fontFamily: 'Georgia, serif' }}>
+                          {paragraph}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </HighlightableContent>
+              </div>
+            </div>
+          }
+          right={
+            <div className="h-full overflow-y-auto bg-white">
+              <div className="px-6 pt-6 pb-32">
+                {/* Questions header */}
+                <div className="mb-4">
+                  <h3 className="font-bold text-sm text-[#333]">Questions {rangeText}</h3>
                 </div>
-              ))}
+
+                {/* ✅ FIXED: map() to'g'ri ishlatilgan */}
+                <div className="space-y-6">
+                  {currentBlocks.map((block, blockIndex) => {
+                    const blockStartIndex = getStartIndex(blockOffset + blockIndex);
+
+                    if (block.type === 'match_headings') {
+                      return (
+                        <div key={block.id}>
+                          {block.instruction && (
+                            <p className="text-sm text-[#555] mb-3">{block.instruction}</p>
+                          )}
+                          <MatchHeadings
+                            data={block}
+                            onAnswer={handleBlockAnswers}
+                            startIndex={blockStartIndex}
+                            userAnswers={userAnswers}
+                          />
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div key={block.id}>
+                        {block.instruction && (
+                          <p className="text-sm text-[#555] mb-3">{block.instruction}</p>
+                        )}
+                        <QuestionRenderer
+                          data={block}
+                          startIndex={blockStartIndex}
+                          onAnswersChange={handleBlockAnswers}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+
+              </div>
             </div>
-          </div>
-        </div>
+          }
+        />
       </div>
 
       {/* ═══ BOTTOM NAVIGATOR — IELTS style dark ═══ */}
@@ -252,12 +309,23 @@ export default function ReadingTestPage({ params }) {
               </div>
             )}
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setShowConfirm(false)} className="px-4 py-2 rounded border border-gray-300 text-sm font-medium text-[#333] hover:bg-gray-50">Cancel</button>
-              <button onClick={handleSubmit} className="px-4 py-2 rounded bg-[#333] text-white text-sm font-semibold hover:bg-[#222]">Submit</button>
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-4 py-2 rounded border border-gray-300 text-sm font-medium text-[#333] hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="px-4 py-2 rounded bg-[#333] text-white text-sm font-semibold hover:bg-[#222]"
+              >
+                Submit
+              </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }

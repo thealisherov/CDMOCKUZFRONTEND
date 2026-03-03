@@ -1,225 +1,175 @@
 {
-    "title": "Listening Test 1",
-    "testType": "full_test",
-    "level": "medium",
-    "timer": 40,
-    "totalQuestions": 40,
-    "sections": [
+  "id": "listening-1",
+  "title": "Listening Test 1",
+  "testFormat": "full_test",
+  "testType": "cambridge",
+  "level": "medium",
+  "timer": 40,
+  "totalQuestions": 40,
+  "testTution": "free",
+  "audio": "https://pub-359de657d62948868dbf1b069ed70702.r2.dev/Test1.mp3",
+  "parts": [
+    {
+      "partNumber": 1,
+      "questionRange": "1-10",
+      "image": null,
+      "questionGroups": [
         {
-            "id": "section1_notes",
-            "type": "gap_fill",
-            "title": "Section 1: Music Alive Agency",
-            "instruction": "Complete the notes below. Write ONE WORD AND/OR A NUMBER for each answer.",
-            "content": "Music Alive Agency\n\nExample Contact person: Jim Granley\n\n- Members' details are on a {1}\n- Type of music represented: modern music ({2} and jazz)\n- Newsletter comes out once a {3}\n- Cost of adult membership: £{4}\n- Current number of members: {5}\n- Facilities include: rehearsal rooms and a {6}\n- There is no charge for {7} advice\n\nTo become a member, send:\n- a letter with contact details\n- a recent {8}\n\nAddress: 707, {9} Street, Marbury\nContact email: music.{10}@bsu.co.uk",
-            "answers": {
-                "1": "database",
-                "2": "rock",
-                "3": "month",
-                "4": "45",
-                "5": "750",
-                "6": "studio",
-                "7": "legal",
-                "8": "recording",
-                "9": "Kippax",
-                "10": "talent"
-            }
-        },
-        {
-            "id": "section2_mcq",
-            "type": "true_false",
-            "title": "Section 2: Albany Fishing Competition",
-            "instruction": "Choose the correct letter A, B or C.",
-            "options": [
-                "A",
-                "B",
-                "C"
-            ],
-            "questions": [
-                {
-                    "id": "11",
-                    "text": "What do participants need to take to the registration desk?"
-                },
-                {
-                    "id": "12",
-                    "text": "What does the entrance fee to the competition include?"
-                },
-                {
-                    "id": "13",
-                    "text": "Participants without a fishing licence are recommended to apply for one"
-                },
-                {
-                    "id": "14",
-                    "text": "What will happen at 6pm on Sunday?"
-                }
-            ],
-            "answers": {
-                "11": "A",
-                "12": "B",
-                "13": "C",
-                "14": "B"
-            }
-        },
-        {
-            "id": "section2_map",
-            "type": "matrix_match",
-            "title": "Section 2: Map Labeling",
-            "instruction": "Label the map below. Choose the correct letter, A-I, next to Questions 15-20.",
-            "note": "Refer to the map image provided in the test materials.",
-            "columnOptions": [
-                "A",
-                "B",
-                "C",
-                "D",
-                "E",
-                "F",
-                "G",
-                "H",
-                "I"
-            ],
-            "questions": [
-                {
-                    "id": "15",
-                    "text": "Registration area"
-                },
-                {
-                    "id": "16",
-                    "text": "Shore fishing area"
-                },
-                {
-                    "id": "17",
-                    "text": "Boat launching area"
-                },
-                {
-                    "id": "18",
-                    "text": "Judging area"
-                },
-                {
-                    "id": "19",
-                    "text": "Dining area"
-                },
-                {
-                    "id": "20",
-                    "text": "Prize-giving area"
-                }
-            ],
-            "answers": {
-                "15": "G",
-                "16": "A",
-                "17": "C",
-                "18": "H",
-                "19": "D",
-                "20": "B"
-            }
-        },
-        {
-            "id": "section3_mcq",
-            "type": "true_false",
-            "title": "Section 3: Art Exhibition Preparation",
-            "instruction": "Choose the correct letter, A, B or C.",
-            "options": [
-                "A",
-                "B",
-                "C"
-            ],
-            "questions": [
-                {
-                    "id": "21",
-                    "text": "Max and Abby agree that in the art exhibition they are looking forward to"
-                },
-                {
-                    "id": "22",
-                    "text": "In last year's exhibition, both students were impressed by"
-                },
-                {
-                    "id": "23",
-                    "text": "What has Max decided to call his display?"
-                },
-                {
-                    "id": "24",
-                    "text": "What does Abby think will be difficult about preparing for their displays?"
-                },
-                {
-                    "id": "25",
-                    "text": "What does Abby say about the summary they have to write?"
-                },
-                {
-                    "id": "26",
-                    "text": "What aspect of the display will the students organise themselves?"
-                }
-            ],
-            "answers": {
-                "21": "A",
-                "22": "B",
-                "23": "A",
-                "24": "A",
-                "25": "B",
-                "26": "C"
-            }
-        },
-        {
-            "id": "section3_matching",
-            "type": "matrix_match",
-            "title": "Section 3: Exhibition Features",
-            "instruction": "Which feature do the speakers identify as particularly interesting for each of the following exhibitions?",
-            "legend": [
-                "A: the realistic colours",
-                "B: the sense of space",
-                "C: the unusual interpretation of the theme",
-                "D: the painting technique",
-                "E: the variety of materials used",
-                "F: the use of light and shade"
-            ],
-            "columnOptions": [
-                "A",
-                "B",
-                "C",
-                "D",
-                "E",
-                "F"
-            ],
-            "questions": [
-                {
-                    "id": "27",
-                    "text": "On the Water"
-                },
-                {
-                    "id": "28",
-                    "text": "City Life"
-                },
-                {
-                    "id": "29",
-                    "text": "Faces"
-                },
-                {
-                    "id": "30",
-                    "text": "Moods"
-                }
-            ],
-            "answers": {
-                "27": "D",
-                "28": "B",
-                "29": "C",
-                "30": "A"
-            }
-        },
-        {
-            "id": "section4_notes",
-            "type": "gap_fill",
-            "title": "Section 4: The Mangrove Regeneration Project",
-            "instruction": "Complete the notes below. Write NO MORE THAN TWO WORDS for each answer.",
-            "content": "Background:\nThe Mangrove Regeneration Project\n\nMangrove forests:\n- protect coastal areas from {31} by the sea\n- are an important habitat for wildlife\n\nProblems:\n- mangroves had been used by farmers as {32}\n- mangroves were poisoned by the use of {33}\n- local people used the mangroves as a place to put their {34}\n\nActions taken to protect the mangroves:\n- a barrier which was made of {35} was constructed - but it failed\n- new mangroves had to be grown from seed\n- the seeds of the {36} mangrove were used\n\nFirst set of seedlings:\n- kept in small pots in a {37}\n- Watered with {38} water\n- planted out on south side of a small island\n- at risk from the large {39} population\n\nSecond set of seedlings:\n- planted in the seabed near established mangrove roots\n- the young plants were destroyed in a {40}\n\nResults: The first set of seedlings was successful",
-            "answers": {
-                "31": "flooding",
-                "32": "firewood",
-                "33": "fertilizer",
-                "34": "trash",
-                "35": "sand",
-                "36": "grey",
-                "37": "hot house",
-                "38": "salty",
-                "39": "rabbit",
-                "40": "storm"
-            }
+          "groupType": "note_completion",
+          "instruction": "Complete the notes below. Write ONE WORD or A NUMBER for each answer.",
+          "questions": [
+            { "number": 1, "question": "Members' details are on a ______", "answer": "Database" },
+            { "number": 2, "question": "Type of music represented: modem music (______ and jazz)", "answer": "Rock" },
+            { "number": 3, "question": "Newsletter comes out once a ______", "answer": "Month" },
+            { "number": 4, "question": "Cost of adult membership: £ ______", "answer": "45" },
+            { "number": 5, "question": "Current number of members: ______", "answer": "750" },
+            { "number": 6, "question": "Facilities include: rehearsal rooms and a ______", "answer": "Studio" },
+            { "number": 7, "question": "There is no charge for ______ advice", "answer": "Legal" },
+            { "number": 8, "question": "To become a member, send a recent ______", "answer": "Recording" },
+            { "number": 9, "question": "Address: 707, ______ Street, Marbury", "answer": "Kippax" },
+            { "number": 10, "question": "Contact email: music. ______ @bsu.co.uk", "answer": "Talent" }
+          ]
         }
-    ]
+      ]
+    },
+    {
+      "partNumber": 2,
+      "questionRange": "11-20",
+      "image": "/images/listening/map1.png",
+      "questionGroups": [
+        {
+          "groupType": "multiple_choice",
+          "instruction": "Choose the correct letter A, B or C.",
+          "questions": [
+            {
+              "number": 11,
+              "question": "What do participants need to take to the registration desk?",
+              "options": ["A a form of identification", "B a competitor number", "C cash for the entrance fee"],
+              "answer": "A"
+            },
+            {
+              "number": 12,
+              "question": "What does the entrance fee to the competition include?",
+              "options": ["A equipment for fishing", "B all food for both days", "C fuel for the fishing"],
+              "answer": "B"
+            },
+            {
+              "number": 13,
+              "question": "Participants without a fishing licence are recommended to apply for one",
+              "options": ["A at the registration desk.", "B over the phone.", "C on the internet."],
+              "answer": "C"
+            },
+            {
+              "number": 14,
+              "question": "What will happen at 6pm on Sunday?",
+              "options": ["A The time allocated for fishing will end.", "B The fish caught will be judged.", "C The prizes will be awarded to the winners."],
+              "answer": "B"
+            }
+          ]
+        },
+        {
+          "groupType": "map_labeling",
+          "instruction": "Label the map below. Write the correct letter, A-I, next to questions 15-20.",
+          "questions": [
+            { "number": 15, "question": "Registration area", "answer": "G" },
+            { "number": 16, "question": "Shore fishing area", "answer": "A" },
+            { "number": 17, "question": "Boat launching area", "answer": "C" },
+            { "number": 18, "question": "Judging area", "answer": "H" },
+            { "number": 19, "question": "Dining area", "answer": "D" },
+            { "number": 20, "question": "Prize-giving area", "answer": "B" }
+          ]
+        }
+      ]
+    },
+    {
+      "partNumber": 3,
+      "questionRange": "21-30",
+      "image": null,
+      "questionGroups": [
+        {
+          "groupType": "multiple_choice",
+          "instruction": "Choose the correct letter, A, B or C.",
+          "questions": [
+            {
+              "number": 21,
+              "question": "Max and Abby agree that in the art exhibition they are looking forward to",
+              "options": ["A showing people their work.", "B getting feedback from their tutor.", "C talking to other students about their displays."],
+              "answer": "A"
+            },
+            {
+              "number": 22,
+              "question": "In last year’s exhibition, both students were impressed by",
+              "options": ["A a set of metal sculptures.", "B a series of wooden models.", "C a collection of textile designs."],
+              "answer": "B"
+            },
+            {
+              "number": 23,
+              "question": "What has Max decided to call his display?",
+              "options": ["A Mother Nature", "B Views of Farmland", "C Seasons"],
+              "answer": "A"
+            },
+            {
+              "number": 24,
+              "question": "What does Abby think will be difficult about preparing for their displays?",
+              "options": ["A having enough time to set it up", "B choosing which pieces to show", "C filling up all the available space"],
+              "answer": "A"
+            },
+            {
+              "number": 25,
+              "question": "What does Abby say about the summary they have to write?",
+              "options": ["A She isn't sure whether people will read it.", "B It will be difficult to keep it short enough.", "C It will be hard to clarify the reasons for her work."],
+              "answer": "B"
+            },
+            {
+              "number": 26,
+              "question": "What aspect of the display will the students organise themselves?",
+              "options": ["A arranging the lighting", "B inviting local journalists", "C providing comment forms"],
+              "answer": "C"
+            }
+          ]
+        },
+        {
+          "groupType": "matching",
+          "instruction": "Which feature do the speakers identify as particularly interesting for each of the following exhibitions they saw? Choose FOUR answers from the box and write the correct letter, A-F.",
+          "options": [
+            "A the realistic colours",
+            "B the sense of space",
+            "C the unusual interpretation of the theme",
+            "D the painting technique",
+            "E the variety of materials use",
+            "F the use of light and shade"
+          ],
+          "questions": [
+            { "number": 27, "question": "On the Water", "answer": "D" },
+            { "number": 28, "question": "City Life", "answer": "B" },
+            { "number": 29, "question": "Faces", "answer": "C" },
+            { "number": 30, "question": "Moods", "answer": "A" }
+          ]
+        }
+      ]
+    },
+    {
+      "partNumber": 4,
+      "questionRange": "31-40",
+      "image": null,
+      "questionGroups": [
+        {
+          "groupType": "note_completion",
+          "instruction": "Complete the notes below. Write NO MORE THAN TWO WORDS for each answer.",
+          "questions": [
+            { "number": 31, "question": "Mangrove forests: protect coastal areas from ______ by the sea", "answer": "Flooding" },
+            { "number": 32, "question": "Mangroves had been used by farmers as ______", "answer": "Firewood" },
+            { "number": 33, "question": "Mangroves were poisoned by the use of ______", "answer": "Fertilizer" },
+            { "number": 34, "question": "Local people used the mangroves as a place to put their ______", "answer": "Trash" },
+            { "number": 35, "question": "A barrier which was made of ______ was constructed - but it failed", "answer": "Sand" },
+            { "number": 36, "question": "The seeds of the ______ mangrove were used", "answer": "Grey" },
+            { "number": 37, "question": "First set of seedlings: kept in small pots in a ______", "answer": "Hot house" },
+            { "number": 38, "question": "Watered with ______ rain water", "answer": "Salty" },
+            { "number": 39, "question": "At risk from the large ______ population", "answer": "Rabbit" },
+            { "number": 40, "question": "The young plants were destroyed in a ______", "answer": "Storm" }
+          ]
+        }
+      ]
+    }
+  ]
 }

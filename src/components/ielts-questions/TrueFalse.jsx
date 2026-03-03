@@ -5,6 +5,13 @@ import React, { useState } from 'react';
 /**
  * TrueFalse — IELTS CD style radio buttons.
  * Handles: true_false, yes_no, multiple_choice question types.
+ *
+ * Supports two option modes:
+ *  1. Block-level options: data.options = ['A', 'B', 'C'] — same for all questions
+ *  2. Per-question options: data.hasPerQuestionOptions = true, q.fullOptions = ['A. text', 'B. text']
+ *
+ * Also supports showing option descriptions (e.g. matching_sentence_endings):
+ *  data.optionDescriptions = ['A optimists have...', 'B long life is...']
  */
 const TrueFalse = ({ data, onAnswer, startIndex = 1 }) => {
   const [selectedAnswers, setSelectedAnswers] = useState({});
@@ -14,95 +21,75 @@ const TrueFalse = ({ data, onAnswer, startIndex = 1 }) => {
     onAnswer(questionId, value);
   };
 
+  /**
+   * Extract the letter from an option string like "A. something" or "A something"
+   */
+  const extractLetter = (optStr) => {
+    const match = optStr.match(/^([A-Z])[.\s:)]/);
+    return match ? match[1] : optStr;
+  };
+
   return (
-    <div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div className="mb-8 font-sans">
+      {/* Show option descriptions if available (e.g. matching_sentence_endings) */}
+      {data.optionDescriptions && data.optionDescriptions.length > 0 && (
+        <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+          <div className="space-y-1.5">
+            {data.optionDescriptions.map((desc, idx) => (
+              <p key={idx} className="text-sm text-gray-700 leading-relaxed">
+                {desc}
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-8">
         {data.questions.map((q, qIdx) => {
           const globalNum = startIndex + qIdx;
-          // Use global number as answer key for consistent tracking
           const questionId = String(globalNum);
           const selected = selectedAnswers[questionId];
+
+          // Determine which options to show for this question
+          const usePerQuestionOptions = data.hasPerQuestionOptions && q.fullOptions;
+          const displayOptions = usePerQuestionOptions
+            ? q.fullOptions
+            : (data.options || []);
 
           return (
             <div key={q.id || questionId}>
               {/* Question text */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '6px' }}>
-                <span style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minWidth: '24px',
-                  height: '24px',
-                  border: '1px solid #999',
-                  color: '#333',
-                  fontSize: '11px',
-                  fontWeight: '700',
-                  marginRight: '8px',
-                  marginTop: '2px',
-                  flexShrink: 0,
-                  backgroundColor: '#fff',
-                }}>
-                  {globalNum}
-                </span>
-                <p style={{ color: '#333', fontSize: '0.92rem', lineHeight: '1.6', margin: 0 }}>
+              <div className="flex gap-4 mb-3">
+                <div className="flex-shrink-0">
+                  <span className="inline-flex items-center justify-center w-[2em] h-[2em] border border-gray-800 text-gray-900 font-bold bg-white select-none" style={{ fontSize: '1.1em' }}>
+                    {globalNum}
+                  </span>
+                </div>
+                
+                <div className="flex-1 pt-1.5 font-medium text-gray-900 leading-normal" style={{ fontSize: '1.1em' }}>
                   {q.text}
-                </p>
+                </div>
               </div>
 
-              {/* Options — simple radio circles */}
-              <div style={{ marginLeft: '32px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {data.options.map((opt) => {
-                  const isSelected = selected === opt;
+              {/* Options */}
+              <div className="ml-[3.5em] space-y-3">
+                {displayOptions.map((opt) => {
+                  // For per-question full options, the value sent is just the letter
+                  const value = usePerQuestionOptions ? extractLetter(opt) : opt;
+                  const displayText = opt;
+
                   return (
-                    <label
-                      key={opt}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        cursor: 'pointer',
-                        userSelect: 'none',
-                        padding: '2px 0',
-                      }}
-                    >
+                    <label key={opt} className="flex items-center gap-3 cursor-pointer group w-fit">
                       <input
                         type="radio"
                         name={`tf_${data.id}_${questionId}`}
-                        value={opt}
-                        checked={isSelected}
-                        onChange={() => handleSelect(questionId, opt)}
-                        style={{ position: 'absolute', width: 0, height: 0, opacity: 0 }}
+                        value={value}
+                        checked={selected === value}
+                        onChange={() => handleSelect(questionId, value)}
+                        className="w-[1.2em] h-[1.2em] border-2 border-gray-400 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       />
-                      {/* Radio circle */}
-                      <span
-                        style={{
-                          width: '16px',
-                          height: '16px',
-                          borderRadius: '50%',
-                          border: `2px solid ${isSelected ? '#333' : '#999'}`,
-                          backgroundColor: '#fff',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          transition: 'border-color 0.15s',
-                        }}
-                      >
-                        {isSelected && (
-                          <span style={{
-                            width: '8px',
-                            height: '8px',
-                            borderRadius: '50%',
-                            backgroundColor: '#333',
-                          }} />
-                        )}
-                      </span>
-                      <span style={{
-                        fontSize: '13px',
-                        color: isSelected ? '#333' : '#555',
-                        fontWeight: isSelected ? '500' : '400',
-                      }}>
-                        {opt}
+                      <span className="text-gray-800 group-hover:text-gray-900 font-medium" style={{ fontSize: '1.1em' }}>
+                        {displayText}
                       </span>
                     </label>
                   );
