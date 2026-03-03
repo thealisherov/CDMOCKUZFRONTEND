@@ -1,20 +1,29 @@
 "use client";
 
 import { use } from "react";
+import { useRouter } from "next/navigation";
 import Timer from "@/components/Timer";
 import WritingEditor from "@/components/WritingEditor";
 import { Button } from "@/components/ui/button";
+import { useDynamicFavicon } from "@/hooks/useDynamicFavicon";
 
 export default function WritingTestPage({ params }) {
   const { id } = use(params);
+  const router = useRouter();
+  const timerKey = `timer_writing_${id}`;
+
+  // Swap favicon while test is open
+  useDynamicFavicon('/favicon.png');
+
+  const handleExit = () => { localStorage.removeItem(timerKey); router.push('/dashboard/writing'); };
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
       <div className="flex items-center justify-between mb-4 border-b pb-4">
         <h1 className="text-xl font-bold">Writing Task #{id}</h1>
          <div className="flex items-center gap-4">
-           <Timer initialMinutes={40} />
-           <Button variant="destructive">Exit</Button>
+           <Timer initialMinutes={40} storageKey={timerKey} />
+           <Button variant="destructive" onClick={handleExit}>Exit</Button>
          </div>
       </div>
       

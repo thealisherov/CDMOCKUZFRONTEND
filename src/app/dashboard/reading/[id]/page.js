@@ -1,6 +1,7 @@
 'use client';
 
 import { use, useState, useCallback, useMemo } from 'react';
+import { useDynamicFavicon } from '@/hooks/useDynamicFavicon';
 import { useRouter } from 'next/navigation';
 import Timer from '@/components/Timer';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,9 @@ export default function ReadingTestPage({ params }) {
   const { id } = use(params);
   const router  = useRouter();
   const rawData = loadTestData(id);
+
+  // Swap favicon while test is open
+  useDynamicFavicon('/favicon.png');
 
   const { contrast, setContrast, textSize, setTextSize, getWrapperStyle } = useIELTSTheme();
 
@@ -114,10 +118,18 @@ export default function ReadingTestPage({ params }) {
     }
   }, []);
 
+  const timerKey = `timer_reading_${id}`;
+  const notesKey = `notes_reading_${id}`;
+
+  const clearTestData = () => {
+    localStorage.removeItem(timerKey);
+    localStorage.removeItem(notesKey);
+  };
+
   const handleSubmit    = () => { setSubmitted(true); setShowConfirm(false); };
-  const handleRetry     = () => { setUserAnswers({}); setSubmitted(false); setActivePassage(0); };
-  const handleExit      = () => router.push('/dashboard/reading');
-  const handleTimerEnd  = () => setSubmitted(true);
+  const handleRetry     = () => { setUserAnswers({}); setSubmitted(false); setActivePassage(0); clearTestData(); };
+  const handleExit      = () => { clearTestData(); router.push('/dashboard/reading'); };
+  const handleTimerEnd  = () => { clearTestData(); setSubmitted(true); };
 
   if (!rawData) {
     return (
@@ -175,7 +187,7 @@ export default function ReadingTestPage({ params }) {
             <span style={{ fontSize: 15, fontWeight: 500 }}>Test taker ID</span>
           </div>
           <div className="flex items-center gap-6">
-            <Timer initialMinutes={timerMinutes} onExpire={handleTimerEnd} />
+            <Timer initialMinutes={timerMinutes} onExpire={handleTimerEnd} storageKey={timerKey} />
             {/* Wifi */}
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ opacity: 0.8 }}>
               <path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
@@ -192,7 +204,7 @@ export default function ReadingTestPage({ params }) {
             >
               <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8 }}><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
             </button>
-            {/* Menu / hamburger → opens options */}
+            {/* Menu */}
             <button
               onClick={() => setOptionsOpen(true)}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--test-header-fg)', padding: '4px' }}
@@ -223,12 +235,20 @@ export default function ReadingTestPage({ params }) {
               <div className="px-6 pt-6 pb-32">
                 <HighlightableContent className="max-w-none leading-relaxed" containerId="reading_passage">
                   {(currentPassage?.text || currentPassage?.content || '').split('\n\n').map((paragraph, idx) => {
+                    const trimmed = paragraph.trim();
                     const matchHeadingsBlock = currentBlocks.find(b => b.type === 'match_headings');
                     const paragraphLetter    = String.fromCharCode(65 + idx);
                     let headingQ = null;
                     if (matchHeadingsBlock?.questions) {
                       headingQ = matchHeadingsBlock.questions.find(q => q.text.toUpperCase().includes(`PARAGRAPH ${paragraphLetter}`));
                     }
+
+                    // Auto-detect "A Text..." or "A. Text..." pattern at paragraph start
+                    const letterMatch = trimmed.match(/^([A-Z])(\.|:)?\s+(.+)$/s);
+                    const hasBoldLetter = letterMatch !== null;
+                    const boldLetter    = hasBoldLetter ? letterMatch[1] : null;
+                    const restText      = hasBoldLetter ? letterMatch[3] : trimmed;
+
                     return (
                       <div key={idx} className="mb-4">
                         {headingQ && (
@@ -236,7 +256,12 @@ export default function ReadingTestPage({ params }) {
                             <HeadingDropZone questionId={headingQ.id} globalNum={headingQ.id} onDrop={handleBlockAnswers} currentAnswer={userAnswers[headingQ.id]} />
                           </div>
                         )}
-                        <p className="text-[16.5px] font-medium leading-[1.85]" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)' }}>{paragraph}</p>
+                        <p className="text-[16.5px] font-medium leading-[1.85]" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)' }}>
+                          {hasBoldLetter
+                            ? <><strong style={{ fontWeight: 900, marginRight: '6px' }}>{boldLetter}</strong>{restText}</>
+                            : trimmed
+                          }
+                        </p>
                       </div>
                     );
                   })}

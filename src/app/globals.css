@@ -2,94 +2,125 @@
 
 @custom-variant dark (&:is(.dark, .dark *));
 
+/* ══════════════════════════════════════════════════════════
+   MEGA IELTS — Design System
+   Premium color palette, Inter font, advanced tokens
+   ══════════════════════════════════════════════════════════ */
+
 /* ── Light palette ─────────────────────────────── */
 :root {
   color-scheme: light;
 
-  --background: oklch(1 0 0);            /* #ffffff */
-  --foreground: oklch(0.145 0 0);        /* #171717 */
+  /* Base */
+  --background: oklch(0.985 0.002 240);
+  --foreground: oklch(0.13 0.015 240);
 
-  /* Primary Red for IELTS branding */
-  --primary: oklch(0.5 0.18 25);         /* ~ #d32f2f */
-  --primary-foreground: oklch(1 0 0);    /* #ffffff */
+  /* Brand — deep indigo-violet gradient anchor */
+  --primary: oklch(0.48 0.22 270);          /* #5B21B6 indigo-700 */
+  --primary-foreground: oklch(1 0 0);
 
-  --secondary: oklch(0.97 0 0);          /* #f5f5f5 */
-  --secondary-foreground: oklch(0.145 0 0);
+  /* Secondary — soft slate */
+  --secondary: oklch(0.95 0.005 240);
+  --secondary-foreground: oklch(0.25 0.015 240);
 
+  /* Card */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.13 0.015 240);
 
+  /* Popover */
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.13 0.015 240);
 
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);  /* #737373 */
+  /* Muted */
+  --muted: oklch(0.945 0.005 240);
+  --muted-foreground: oklch(0.52 0.01 240);
 
-  --accent: oklch(0.97 0.02 25);         /* ~ #fff0f0 */
-  --accent-foreground: oklch(0.5 0.18 25);
+  /* Accent — electric violet tint */
+  --accent: oklch(0.94 0.025 280);
+  --accent-foreground: oklch(0.48 0.22 270);
 
-  --destructive: oklch(0.577 0.245 27.33);
+  /* Destructive */
+  --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(0.922 0 0);            /* #e5e5e5 */
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.5 0.18 25);
+  /* Borders & Inputs */
+  --border: oklch(0.875 0.008 240);
+  --input: oklch(0.92 0.005 240);
+  --ring: oklch(0.48 0.22 270);
 
-  --radius: 0.5rem;
+  /* Success / Warning */
+  --success: oklch(0.52 0.16 145);
+  --warning: oklch(0.72 0.17 80);
 
-  --sidebar-background: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.5 0.18 25);
+  --radius: 0.6rem;
+
+  /* Sidebar — light mode: clean white */
+  --sidebar-background: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.2 0.015 250);
+  --sidebar-primary: oklch(0.48 0.22 270);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.97 0.02 25);
-  --sidebar-accent-foreground: oklch(0.5 0.18 25);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.5 0.18 25);
+  --sidebar-accent: oklch(0.94 0.025 280);
+  --sidebar-accent-foreground: oklch(0.48 0.22 270);
+  --sidebar-border: oklch(0.9 0.008 240);
+  --sidebar-ring: oklch(0.48 0.22 270);
+
+  /* Dashboard glow helpers */
+  --glow-primary: oklch(0.48 0.22 270 / 0.15);
+  --glow-accent:  oklch(0.72 0.18 200 / 0.12);
 }
 
 /* ── Dark palette ──────────────────────────────── */
 .dark {
   color-scheme: dark;
 
-  --background: oklch(0.1 0 0);           /* #0a0a0a */
-  --foreground: oklch(0.95 0 0);           /* #ededed */
+  --background: oklch(0.1 0.015 250);
+  --foreground: oklch(0.93 0.008 250);
 
-  --primary: oklch(0.6 0.2 25);            /* ~ #ef5350 */
-  --primary-foreground: oklch(1 0 0);
+  --primary: oklch(0.68 0.22 270);
+  --primary-foreground: oklch(0.08 0.02 270);
 
-  --secondary: oklch(0.18 0 0);            /* #1f1f1f */
-  --secondary-foreground: oklch(0.95 0 0);
+  --secondary: oklch(0.17 0.02 260);
+  --secondary-foreground: oklch(0.88 0.01 260);
 
-  --card: oklch(0.14 0 0);                 /* #141414 */
-  --card-foreground: oklch(0.95 0 0);
+  --card: oklch(0.14 0.018 255);
+  --card-foreground: oklch(0.93 0.008 250);
 
-  --popover: oklch(0.14 0 0);
-  --popover-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.14 0.018 255);
+  --popover-foreground: oklch(0.93 0.008 250);
 
-  --muted: oklch(0.22 0 0);                /* #262626 */
-  --muted-foreground: oklch(0.7 0 0);      /* #a3a3a3 */
+  --muted: oklch(0.2 0.018 255);
+  --muted-foreground: oklch(0.62 0.01 255);
 
-  --accent: oklch(0.2 0.04 25);            /* dark red-ish */
-  --accent-foreground: oklch(0.6 0.2 25);
+  --accent: oklch(0.22 0.05 275);
+  --accent-foreground: oklch(0.78 0.18 270);
 
-  --destructive: oklch(0.577 0.245 27.33);
+  --destructive: oklch(0.58 0.24 25);
   --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(0.22 0 0);
-  --input: oklch(0.22 0 0);
-  --ring: oklch(0.6 0.2 25);
+  --border: oklch(0.22 0.02 255);
+  --input: oklch(0.2 0.02 255);
+  --ring: oklch(0.68 0.22 270);
 
-  --sidebar-background: oklch(0.12 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.6 0.2 25);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.2 0.04 25);
-  --sidebar-accent-foreground: oklch(0.6 0.2 25);
-  --sidebar-border: oklch(0.22 0 0);
-  --sidebar-ring: oklch(0.6 0.2 25);
+  --success: oklch(0.58 0.16 145);
+  --warning: oklch(0.75 0.17 80);
+
+  /* Sidebar stays dark-but-distinct */
+  --sidebar-background: oklch(0.07 0.025 270);
+  --sidebar-foreground: oklch(0.87 0.012 265);
+  --sidebar-primary: oklch(0.72 0.2 270);
+  --sidebar-primary-foreground: oklch(0.08 0.02 270);
+  --sidebar-accent: oklch(0.14 0.04 270);
+  --sidebar-accent-foreground: oklch(0.87 0.012 265);
+  --sidebar-border: oklch(0.14 0.035 270);
+  --sidebar-ring: oklch(0.72 0.2 270);
+
+  --glow-primary: oklch(0.68 0.22 270 / 0.18);
+  --glow-accent:  oklch(0.68 0.22 200 / 0.14);
 }
 
-/* ── IELTS Test View — theme-isolated ── */
+/* ══════════════════════════════════════════════════
+   IELTS Test View — theme-isolated (stays light)
+   ══════════════════════════════════════════════════ */
 .ielts-test-view,
 .ielts-test-view *,
 .dark .ielts-test-view,
@@ -102,131 +133,22 @@
 }
 
 .ielts-test-view *:focus {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #5B21B6;
   outline-offset: 2px;
 }
 
-/* ── Scrollbar hide utility ── */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* ── Theme tokens (Tailwind v4 picks these up) ── */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-sidebar-background: var(--sidebar-background);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
-
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-/* ── Interactive elements ────────────────────────── */
-button,
-[role="button"],
-a,
-select,
-summary,
-input[type="button"],
-input[type="submit"],
-input[type="reset"],
-label[for] {
-  cursor: pointer;
-}
-
-/* ── Base styles ─────────────────────────────────── */
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Smooth transitions for all theme-aware elements */
-*,
-*::before,
-*::after {
-  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
-  transition-duration: 0.2s;
-  transition-timing-function: ease;
-}
-
-/* Disable transition on page load to prevent flash */
-.no-transition *,
-.no-transition *::before,
-.no-transition *::after {
-  transition: none !important;
-}
-
-/* ── Custom Scrollbar ──────────────────────────── */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--muted-foreground);
-  border-radius: 99px;
-  border: 2px solid var(--background);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--foreground);
-}
-
-@layer utilities {
-  .container-custom {
-    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
-  }
-}
-
-/* ── IELTS Test CSS variable defaults (overridden by useIELTSTheme) ── */
+/* ── IELTS Test CSS variable defaults ── */
 .ielts-test-view {
   --test-bg:        #ffffff;
-  --test-fg:        #333333;
-  --test-header-bg: #1a1a1a;
-  --test-header-fg: #ffffff;
-  --test-strip-bg:  #f2f3f2;
-  --test-strip-fg:  #000000;
+  --test-fg:        #1e1e2e;
+  --test-header-bg: #12111e;
+  --test-header-fg: #f4f3ff;
+  --test-strip-bg:  #f0efff;
+  --test-strip-fg:  #1e1e2e;
   --test-panel-bg:  #ffffff;
-  --test-border:    #e0e0e0;
+  --test-border:    #e2e1f0;
   --test-nav-bg:    #ffffff;
-  --test-nav-fg:    #333333;
+  --test-nav-fg:    #1e1e2e;
   --opts-bg:        #ffffff;
   --opts-fg:        #111111;
   --opts-border:    #e0e0e0;
@@ -246,22 +168,20 @@ body {
   color: inherit;
 }
 
-/* Universal Input/Button theme support */
 .ielts-test-view input[type="text"],
 .ielts-test-view input[type="radio"],
 .ielts-test-view select,
 .ielts-test-view textarea {
   background-color: var(--test-input-bg, #fff);
-  color: var(--test-fg, #333);
+  color: var(--test-fg, #1e1e2e);
   border-color: var(--test-border, #ccc);
 }
 
 .ielts-test-view input[type="text"]:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 1px #2563eb;
+  border-color: #5B21B6;
+  box-shadow: 0 0 0 1px #5B21B6;
 }
 
-/* Ensure GapFill inputs and other custom styles respect theme */
 .ielts-test-view input.text-blue-800,
 .ielts-test-view .text-blue-800 {
   color: var(--test-fg) !important;
@@ -275,4 +195,179 @@ body {
 .ielts-test-view .text-gray-900,
 .ielts-test-view .text-black {
   color: var(--test-fg) !important;
+}
+
+/* ══════════════════════════════════════════════════
+   Theme Tokens (Tailwind v4)
+   ══════════════════════════════════════════════════ */
+@theme inline {
+  --color-background:               var(--background);
+  --color-foreground:               var(--foreground);
+  --color-primary:                  var(--primary);
+  --color-primary-foreground:       var(--primary-foreground);
+  --color-secondary:                var(--secondary);
+  --color-secondary-foreground:     var(--secondary-foreground);
+  --color-card:                     var(--card);
+  --color-card-foreground:          var(--card-foreground);
+  --color-popover:                  var(--popover);
+  --color-popover-foreground:       var(--popover-foreground);
+  --color-muted:                    var(--muted);
+  --color-muted-foreground:         var(--muted-foreground);
+  --color-accent:                   var(--accent);
+  --color-accent-foreground:        var(--accent-foreground);
+  --color-destructive:              var(--destructive);
+  --color-destructive-foreground:   var(--destructive-foreground);
+  --color-border:                   var(--border);
+  --color-input:                    var(--input);
+  --color-ring:                     var(--ring);
+  --color-sidebar-background:       var(--sidebar-background);
+  --color-sidebar-foreground:       var(--sidebar-foreground);
+  --color-sidebar-primary:          var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent:           var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border:           var(--sidebar-border);
+  --color-sidebar-ring:             var(--sidebar-ring);
+  --radius-lg:                      var(--radius);
+  --radius-md:                      calc(var(--radius) - 2px);
+  --radius-sm:                      calc(var(--radius) - 4px);
+  --font-sans:                      var(--font-inter);
+  --font-mono:                      var(--font-fira-code);
+}
+
+/* ══════════════════════════════════════════════════
+   Base Styles
+   ══════════════════════════════════════════════════ */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, opacity;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+
+.no-transition *,
+.no-transition *::before,
+.no-transition *::after {
+  transition: none !important;
+}
+
+/* ══════════════════════════════════════════════════
+   Scrollbar
+   ══════════════════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.65 0.05 255 / 0.5);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.55 0.12 270 / 0.8);
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ══════════════════════════════════════════════════
+   Sidebar — Premium Dark Indigo
+   ══════════════════════════════════════════════════ */
+.sidebar-root {
+  background: var(--sidebar-background);
+  border-right: 1px solid var(--sidebar-border);
+}
+
+/* Nav item hover glow */
+.sidebar-nav-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-nav-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, oklch(0.72 0.2 270 / 0.12), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+  border-radius: 8px;
+}
+
+.sidebar-nav-item:hover::before {
+  opacity: 1;
+}
+
+/* Active indicator bar */
+.sidebar-nav-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--sidebar-primary);
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 10px var(--sidebar-primary);
+}
+
+/* ══════════════════════════════════════════════════
+   Dashboard Card Glow Effects
+   ══════════════════════════════════════════════════ */
+.card-glow:hover {
+  box-shadow: 0 0 0 1px oklch(0.48 0.22 270 / 0.3),
+              0 8px 32px oklch(0.48 0.22 270 / 0.12);
+}
+
+.dark .card-glow:hover {
+  box-shadow: 0 0 0 1px oklch(0.68 0.22 270 / 0.4),
+              0 8px 32px oklch(0.68 0.22 270 / 0.18);
+}
+
+/* ══════════════════════════════════════════════════
+   Interactive Elements
+   ══════════════════════════════════════════════════ */
+button,
+[role="button"],
+a,
+select,
+summary,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+label[for] {
+  cursor: pointer;
+}
+
+/* ══════════════════════════════════════════════════
+   Gradient Text Utility
+   ══════════════════════════════════════════════════ */
+.gradient-text {
+  background: linear-gradient(135deg, oklch(0.68 0.22 270), oklch(0.72 0.2 200));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@layer utilities {
+  .container-custom {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
 }

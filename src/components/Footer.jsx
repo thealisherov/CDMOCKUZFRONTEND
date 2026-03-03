@@ -7,8 +7,9 @@ export default function Footer() {
       <div className="container px-4 md:px-6">
         <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4">
           <div className="space-y-4">
-            <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary">
-               <span className="text-2xl">IELTS</span> PREP
+            <Link href="/" className="flex items-center gap-1 select-none">
+              <span className="font-black text-[18px] tracking-tight" style={{ color: 'var(--foreground)' }}>Mega</span>
+              <span className="font-black text-[18px] tracking-tight" style={{ color: '#e22d2d' }}>IELTS</span>
             </Link>
             <p className="text-sm text-secondary-foreground/80">
               Master the IELTS exam with our comprehensive preparation platform. 
@@ -69,7 +70,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-12 border-t pt-8 text-center text-sm text-secondary-foreground/60">
-          © {new Date().getFullYear()} IELTS Prep Platform. All rights reserved.
+          © {new Date().getFullYear()} Mega IELTS. All rights reserved.
         </div>
       </div>
     </footer>

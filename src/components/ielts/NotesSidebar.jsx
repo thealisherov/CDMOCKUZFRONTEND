@@ -11,7 +11,13 @@ export default function NotesSidebar() {
   const onlyNotes = notes.filter(n => n.type === 'note');
 
   return (
-    <div className="w-[340px] bg-gray-50 border-l border-gray-200 h-full flex flex-col shadow-2xl z-[110] absolute right-0 top-0 font-sans transition-transform">
+    <>
+      {/* Transparent backdrop — click outside to close */}
+      <div
+        className="fixed inset-0 z-[109]"
+        onClick={() => setIsSidebarOpen(false)}
+      />
+      <div className="w-[340px] bg-gray-50 border-l border-gray-200 h-full flex flex-col shadow-2xl z-[110] absolute right-0 top-0 font-sans transition-transform">
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
         <h2 className="font-bold text-[18px] text-gray-800">Notes</h2>
         <button onClick={() => setIsSidebarOpen(false)} className="text-gray-500 hover:text-black">
@@ -49,6 +55,7 @@ export default function NotesSidebar() {
           ))
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

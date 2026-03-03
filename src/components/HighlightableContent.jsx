@@ -41,15 +41,25 @@ function restoreRange(container, start, end) {
   return range;
 }
 
-const InlineToolbar = ({ position, onAction }) => {
+/** Returns all mark[data-id] elements that overlap the current selection */
+function getMarksInSelection(container) {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return [];
+  const range = selection.getRangeAt(0);
+  const marks = Array.from(container.querySelectorAll('mark[data-id]'));
+  return marks.filter(mark => range.intersectsNode(mark));
+}
+
+const InlineToolbar = ({ position, onAction, showEraser }) => {
   if (!position) return null;
 
   return (
-    <div 
+    <div
       className="fixed z-50 flex items-center bg-white rounded-lg shadow-[0_4px_16px_rgba(0,0,0,0.15)] border border-gray-200 overflow-hidden font-sans"
       style={{ left: position.left, top: position.top, transform: 'translate(-50%, -10px)' }}
       onMouseDown={(e) => e.preventDefault()}
     >
+      {/* Note */}
       <button
         onClick={() => onAction('note')}
         className="flex flex-col items-center justify-center py-2 px-3 hover:bg-gray-50 text-gray-800 transition-colors border-r border-gray-100 min-w-[65px]"
@@ -58,20 +68,36 @@ const InlineToolbar = ({ position, onAction }) => {
         <span className="text-[12px] font-medium tracking-tight">Note</span>
       </button>
 
+      {/* Highlight */}
       <button
         onClick={() => onAction('highlight')}
-        className="flex flex-col items-center justify-center py-2 px-3 hover:bg-gray-50 text-gray-800 transition-colors min-w-[65px]"
+        className={`flex flex-col items-center justify-center py-2 px-3 hover:bg-gray-50 text-gray-800 transition-colors min-w-[65px] ${showEraser ? 'border-r border-gray-100' : ''}`}
       >
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mb-1">
            <path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>
         </svg>
         <span className="text-[12px] font-medium tracking-tight">Highlight</span>
       </button>
+
+      {/* Eraser — only shown when selection overlaps an existing highlight/note */}
+      {showEraser && (
+        <button
+          onClick={() => onAction('erase')}
+          className="flex flex-col items-center justify-center py-2 px-3 hover:bg-red-50 text-red-500 transition-colors min-w-[65px]"
+        >
+          {/* Eraser icon */}
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mb-1">
+            <path d="M20 20H7L3 16l10-10 7 7-2.5 2.5"/>
+            <path d="M6.0001 10.0001L14 18"/>
+          </svg>
+          <span className="text-[12px] font-medium tracking-tight">Erase</span>
+        </button>
+      )}
     </div>
   );
 };
 
-const HighlightableContent = memo(function HighlightableContent({ 
+const HighlightableContent = memo(function HighlightableContent({
   children,
   className = '',
   enabled = true,
@@ -79,17 +105,30 @@ const HighlightableContent = memo(function HighlightableContent({
 }) {
   const [toolbarPos, setToolbarPos] = useState(null);
   const [currentRangeOffsets, setCurrentRangeOffsets] = useState(null);
+  const [marksInSelection, setMarksInSelection] = useState([]);
   const contentRef = useRef(null);
-  
+
   const notesContext = useNotes();
-  // Safe extraction just in case it's used without Provider
   const notes = notesContext?.notes || [];
   const addNote = notesContext?.addNote || (() => {});
+  const deleteNote = notesContext?.deleteNote || (() => {});
   const setIsSidebarOpen = notesContext?.setIsSidebarOpen || (() => {});
 
   const applyHighlights = useCallback(() => {
-    if (!contentRef.current || !notes.length) return;
-    
+    if (!contentRef.current || !notes.length) {
+      // Still need to un-wrap if notes was cleared
+      if (contentRef.current) {
+        const marks = contentRef.current.querySelectorAll('mark[data-id]');
+        marks.forEach(mark => {
+          const parent = mark.parentNode;
+          while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+          parent.removeChild(mark);
+        });
+        contentRef.current.normalize();
+      }
+      return;
+    }
+
     // Un-wrap old marks
     const marks = contentRef.current.querySelectorAll('mark[data-id]');
     marks.forEach(mark => {
@@ -99,8 +138,8 @@ const HighlightableContent = memo(function HighlightableContent({
     });
     contentRef.current.normalize();
 
-    // Group notes by length (shortest first) or start index - applying backwards prevents early offsets from getting skewed
-    const sortedNotes = [...notes].sort((a,b) => b.start - a.start);
+    // Apply backwards to avoid offset skew
+    const sortedNotes = [...notes].sort((a, b) => b.start - a.start);
 
     sortedNotes.forEach(note => {
       if (note.containerId !== containerId) return;
@@ -111,25 +150,25 @@ const HighlightableContent = memo(function HighlightableContent({
           mark.setAttribute('data-id', note.id);
           mark.style.backgroundColor = note.type === 'note' ? '#bfd4f2' : '#ffee58';
           mark.style.color = 'inherit';
-          
+
           if (note.type === 'note') {
-             mark.className = 'cursor-pointer px-[2px] rounded-[3px] select-text';
-             mark.onclick = (e) => {
-               if (window.getSelection().isCollapsed) setIsSidebarOpen(true);
-             };
+            mark.className = 'cursor-pointer px-[2px] rounded-[3px] select-text';
+            mark.onclick = () => {
+              if (window.getSelection().isCollapsed) setIsSidebarOpen(true);
+            };
           } else {
-             mark.className = 'px-[2px] rounded-[3px] select-text';
+            mark.className = 'px-[2px] rounded-[3px] select-text';
           }
-          
+
           try {
-             range.surroundContents(mark);
-          } catch (e) {
-             const fragment = range.extractContents();
-             mark.appendChild(fragment);
-             range.insertNode(mark);
+            range.surroundContents(mark);
+          } catch {
+            const fragment = range.extractContents();
+            mark.appendChild(fragment);
+            range.insertNode(mark);
           }
         }
-      } catch (e) {
+      } catch {
         // Ignore dom wrapping failures silently
       }
     });
@@ -137,7 +176,7 @@ const HighlightableContent = memo(function HighlightableContent({
 
   useEffect(() => {
     applyHighlights();
-  }, [applyHighlights, children]); // Re-apply when DOM changes
+  }, [applyHighlights, children]);
 
   useEffect(() => {
     const handleUpdate = () => applyHighlights();
@@ -145,52 +184,70 @@ const HighlightableContent = memo(function HighlightableContent({
     return () => window.removeEventListener('NOTES_UPDATED', handleUpdate);
   }, [applyHighlights]);
 
-  // Handle Selection
   const handleSelectionChange = () => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
       setToolbarPos(null);
+      setMarksInSelection([]);
       return;
     }
 
     if (selection.anchorNode) {
-       const el = selection.anchorNode.nodeType === 3 ? selection.anchorNode.parentElement : selection.anchorNode;
-       if (['INPUT', 'TEXTAREA', 'BUTTON', 'SELECT'].includes(el.tagName)) {
-         return;
-       }
+      const el = selection.anchorNode.nodeType === 3
+        ? selection.anchorNode.parentElement
+        : selection.anchorNode;
+      if (['INPUT', 'TEXTAREA', 'BUTTON', 'SELECT'].includes(el?.tagName)) return;
     }
 
     const range = selection.getRangeAt(0);
     if (!contentRef.current || !contentRef.current.contains(range.commonAncestorContainer)) {
       setToolbarPos(null);
+      setMarksInSelection([]);
       return;
     }
 
     const rect = range.getBoundingClientRect();
-    if (rect.width === 0 && rect.height === 0) return; // edge case
+    if (rect.width === 0 && rect.height === 0) return;
+
+    // Check if selection overlaps any existing marks
+    const overlapping = getMarksInSelection(contentRef.current);
+    setMarksInSelection(overlapping);
 
     setToolbarPos({
       top: rect.top - 10,
-      left: rect.left + (rect.width / 2)
+      left: rect.left + rect.width / 2,
     });
-    
+
     setCurrentRangeOffsets(getSelectionOffsets(contentRef.current, range));
   };
-  
+
   const handleAction = (type) => {
+    if (type === 'erase') {
+      // Delete all marks that overlap the selection
+      marksInSelection.forEach(mark => {
+        const id = mark.getAttribute('data-id');
+        if (id) deleteNote(id);
+      });
+      window.getSelection().removeAllRanges();
+      setToolbarPos(null);
+      setMarksInSelection([]);
+      return;
+    }
+
     if (currentRangeOffsets) {
-       const newNote = {
-         id: 'note_' + Date.now() + Math.random().toString(36).substr(2, 5),
-         containerId,
-         type,
-         start: currentRangeOffsets.start,
-         end: currentRangeOffsets.end,
-         text: currentRangeOffsets.text,
-         note: ''
-       };
-       addNote(newNote);
-       window.getSelection().removeAllRanges();
-       setToolbarPos(null);
+      const newNote = {
+        id: 'note_' + Date.now() + Math.random().toString(36).substr(2, 5),
+        containerId,
+        type,
+        start: currentRangeOffsets.start,
+        end: currentRangeOffsets.end,
+        text: currentRangeOffsets.text,
+        note: '',
+      };
+      addNote(newNote);
+      window.getSelection().removeAllRanges();
+      setToolbarPos(null);
+      setMarksInSelection([]);
     }
   };
 
@@ -204,9 +261,13 @@ const HighlightableContent = memo(function HighlightableContent({
 
   return (
     <>
-      <InlineToolbar position={toolbarPos} onAction={handleAction} />
-      <div 
-        ref={contentRef} 
+      <InlineToolbar
+        position={toolbarPos}
+        onAction={handleAction}
+        showEraser={marksInSelection.length > 0}
+      />
+      <div
+        ref={contentRef}
         className={`select-text ${className}`}
         onMouseUp={handleSelectionChange}
         onKeyUp={handleSelectionChange}
