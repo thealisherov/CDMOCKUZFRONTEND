@@ -5,8 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { ShieldCheck, Users, TrendingUp, Settings as SettingsIcon } from "lucide-react";
 import UsersList from "./UsersList";
-// import StatsPanel from "./StatsPanel";
-// import PricingEditor from "./PricingEditor";
+import StatsPanel from "./StatsPanel";
+import PricingEditor from "./PricingEditor";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -41,21 +41,23 @@ export default function AdminPage() {
           <Users className="w-4 h-4" /> Users
         </button>
         <button
-          // onClick={() => setActiveTab("stats")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm opacity-50 cursor-not-allowed`}
+          onClick={() => setActiveTab("stats")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${activeTab === "stats" ? "bg-indigo-50 text-indigo-700" : "text-muted-foreground hover:bg-muted"}`}
         >
-          <TrendingUp className="w-4 h-4" /> Statistics (Soon)
+          <TrendingUp className="w-4 h-4" /> Statistics
         </button>
         <button
-          // onClick={() => setActiveTab("pricing")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm opacity-50 cursor-not-allowed`}
+          onClick={() => setActiveTab("pricing")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${activeTab === "pricing" ? "bg-indigo-50 text-indigo-700" : "text-muted-foreground hover:bg-muted"}`}
         >
-          <SettingsIcon className="w-4 h-4" /> Pricing (Soon)
+          <SettingsIcon className="w-4 h-4" /> Pricing
         </button>
       </div>
 
       <div className="flex-1">
         {activeTab === "users" && <UsersList />}
+        {activeTab === "stats" && <StatsPanel />}
+        {activeTab === "pricing" && <PricingEditor />}
       </div>
     </div>
   );

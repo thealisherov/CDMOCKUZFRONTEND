@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen, Headphones, PenTool, Mic,
   MessageCircle, LogOut, PanelLeftClose, PanelLeftOpen,
-  Zap, Star, Settings, ShieldCheck
+  Zap, Star, Settings, ShieldCheck, Trophy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -40,6 +40,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     { name: t("sidebar.writing"),   href: "/dashboard/writing",   icon: PenTool,       locked: false },
     { name: t("sidebar.speaking"),  href: "#",                    icon: Mic,           locked: true, badge: t("sidebar.soon") },
     { name: t("sidebar.comments"),  href: "/dashboard/comments",  icon: MessageCircle, locked: false },
+    { name: t("sidebar.leaderboard") || "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy, locked: false },
     { name: t("sidebar.premium"),   href: "/dashboard/premium",   icon: Star,          locked: false, badge: t("sidebar.upgrade") },
   ];
 
@@ -261,7 +262,7 @@ export default function Sidebar({ collapsed, onToggle }) {
             <>
             {/* User block */}
             <div
-              onClick={() => setShowProfile(true)}
+              onClick={() => router.push('/dashboard/profile')}
               className="group flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 cursor-pointer transition-all hover:bg-[oklch(0.72_0.2_270/_0.12)]"
               style={{
                 background: 'oklch(0.72 0.2 270 / 0.08)',

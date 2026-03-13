@@ -1,17 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, X, Zap, Star, Crown, Sparkles, Globe } from "lucide-react";
 import { useTranslation } from "@/components/LanguageContext";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 
 export default function Pricing() {
   const { t } = useTranslation();
   const router = useRouter();
   const [isUSD, setIsUSD] = useState(false);
+  const [dbPlans, setDbPlans] = useState([]);
+  const supabase = createClient();
+
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  const fetchPlans = async () => {
+    try {
+      const { data, error } = await supabase.from('pricing_plans').select('*').order('created_at');
+      if (error) throw error;
+      if (data && data.length > 0) {
+        setDbPlans(data);
+      }
+    } catch (err) {
+      console.error("Error fetching dynamic pricing:", err);
+    }
+  };
+
+  const getTierData = (id, fallback) => {
+    const dbPlan = dbPlans.find(p => p.id === id);
+    if (!dbPlan) return fallback;
+
+    return {
+      ...fallback,
+      name: dbPlan.name_en || fallback.name,
+      price: isUSD ? dbPlan.price_usd?.toString() : dbPlan.price_uzs?.toLocaleString(),
+      features: dbPlan.features || fallback.features,
+      notIncluded: dbPlan.not_included || fallback.notIncluded,
+      popular: dbPlan.is_popular !== undefined ? dbPlan.is_popular : fallback.popular
+    };
+  };
 
   const tiers = [
-    {
+    getTierData("free", {
       id: "free",
       name: t("pricing.freeName"),
       badge: null,
@@ -28,8 +61,8 @@ export default function Pricing() {
       notIncluded: t("pricing.freeNotIncluded") || [],
       buttonText: t("pricing.freeBtn"),
       buttonStyle: "outline",
-    },
-    {
+    }),
+    getTierData("monthly", {
       id: "monthly",
       name: t("pricing.premiumName"),
       badge: t("pricing.premiumBadge"),
@@ -46,8 +79,8 @@ export default function Pricing() {
       notIncluded: [],
       buttonText: t("pricing.premiumBtn"),
       buttonStyle: "primary",
-    },
-    {
+    }),
+    getTierData("quarterly", {
       id: "quarterly",
       name: t("pricing.quartName"),
       badge: t("pricing.quartBadge"),
@@ -65,8 +98,8 @@ export default function Pricing() {
       notIncluded: [],
       buttonText: t("pricing.quartBtn"),
       buttonStyle: "red",
-    },
-    {
+    }),
+    getTierData("custom", {
       id: "custom",
       name: t("pricing.customName"),
       badge: t("pricing.customBadge"),
@@ -83,7 +116,7 @@ export default function Pricing() {
       notIncluded: [],
       buttonText: t("pricing.customBtn"),
       buttonStyle: "outline",
-    },
+    }),
   ];
 
   return (
