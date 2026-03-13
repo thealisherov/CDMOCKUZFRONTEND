@@ -13,11 +13,8 @@ import React, { useState } from 'react';
  * Also supports showing option descriptions (e.g. matching_sentence_endings):
  *  data.optionDescriptions = ['A optimists have...', 'B long life is...']
  */
-const TrueFalse = ({ data, onAnswer, startIndex = 1 }) => {
-  const [selectedAnswers, setSelectedAnswers] = useState({});
-
+const TrueFalse = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => {
   const handleSelect = (questionId, value) => {
-    setSelectedAnswers((prev) => ({ ...prev, [questionId]: value }));
     onAnswer(questionId, value);
   };
 
@@ -48,7 +45,7 @@ const TrueFalse = ({ data, onAnswer, startIndex = 1 }) => {
         {data.questions.map((q, qIdx) => {
           const globalNum = startIndex + qIdx;
           const questionId = String(globalNum);
-          const selected = selectedAnswers[questionId];
+          const selected = userAnswers[questionId];
 
           // Determine which options to show for this question
           const usePerQuestionOptions = data.hasPerQuestionOptions && q.fullOptions;
@@ -66,9 +63,11 @@ const TrueFalse = ({ data, onAnswer, startIndex = 1 }) => {
                   </span>
                 </div>
                 
-                <div className="flex-1 pt-1.5 font-medium text-gray-900 leading-normal" style={{ fontSize: '1.1em' }}>
-                  {q.text}
-                </div>
+                <div 
+                  className="flex-1 pt-1.5 font-medium text-gray-900 leading-normal [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:my-2" 
+                  style={{ fontSize: '1.1em' }}
+                  dangerouslySetInnerHTML={{ __html: q.text }}
+                />
               </div>
 
               {/* Options */}

@@ -1,58 +1,9 @@
 "use client";
 
-import { Star, Quote } from "lucide-react";
+import { Star, Quote, MessageCircle } from "lucide-react";
 import { useTranslation } from "@/components/LanguageContext";
-
-const mockReviews = [
-  {
-    id: 1,
-    name: "Sardor Rakhimov",
-    score: 8.0,
-    text: "This platform changed my prep entirely. The Reading interface is exactly like the real computer-delivered test!",
-    avatar: "SR",
-    color: "oklch(0.55 0.22 270)",
-  },
-  {
-    id: 2,
-    name: "Malika Ismoilova",
-    score: 7.5,
-    text: "Listening practice with different accents really helped me. Highly recommended for serious candidates.",
-    avatar: "MI",
-    color: "#e22d2d",
-  },
-  {
-    id: 3,
-    name: "Javohir Tursunov",
-    score: 7.0,
-    text: "The Writing feedback was brutally honest but improved my score from 6.0 to 7.0 in just 3 weeks.",
-    avatar: "JT",
-    color: "oklch(0.52 0.2 170)",
-  },
-  {
-    id: 4,
-    name: "Alisher Umarov",
-    score: 8.5,
-    text: "Perfect simulation. The timer, the layout, everything feels professional and close to the real exam.",
-    avatar: "AU",
-    color: "oklch(0.6 0.2 60)",
-  },
-  {
-    id: 5,
-    name: "Dilnoza Yusupova",
-    score: 7.0,
-    text: "I tried many platforms but Mega IELTS stands out with its clean UI and realistic test environment.",
-    avatar: "DY",
-    color: "oklch(0.55 0.22 310)",
-  },
-  {
-    id: 6,
-    name: "Bobur Nazarov",
-    score: 8.0,
-    text: "The highlight and notes feature during reading is a game-changer. It's exactly what you get in the real exam.",
-    avatar: "BN",
-    color: "oklch(0.52 0.18 230)",
-  },
-];
+import { useState, useEffect } from "react";
+import AllCommentsModal from "@/components/AllCommentsModal";
 
 function ReviewCard({ review }) {
   return (
@@ -77,8 +28,8 @@ function ReviewCard({ review }) {
             key={i}
             className="w-3.5 h-3.5"
             style={{
-              color: i < Math.round(review.score) ? "#f59e0b" : "var(--border)",
-              fill: i < Math.round(review.score) ? "#f59e0b" : "transparent",
+              color: i < Math.round(review.rating || 5) ? "#f59e0b" : "var(--border)",
+              fill: i < Math.round(review.rating || 5) ? "#f59e0b" : "transparent",
             }}
           />
         ))}
@@ -103,7 +54,9 @@ function ReviewCard({ review }) {
           </p>
           <div className="flex items-center gap-1">
             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-            <span className="text-xs font-bold text-amber-500">Band {review.score}</span>
+            <span className="text-xs font-bold text-amber-500">
+              {review.band ? `Band ${review.band}` : `Star ${review.rating}`}
+            </span>
           </div>
         </div>
       </div>
@@ -111,10 +64,21 @@ function ReviewCard({ review }) {
   );
 }
 
-export default function ReviewCarousel({ reviews = mockReviews }) {
+export default function ReviewCarousel() {
   const { t } = useTranslation();
-  // Duplicate for seamless infinite loop
+  const [reviews, setReviews] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/comments')
+      .then(res => res.json())
+      .then(data => setReviews(data))
+      .catch(err => console.error("Error fetching comments:", err));
+  }, []);
+
   const doubled = [...reviews, ...reviews];
+
+  if (reviews.length === 0) return null;
 
   return (
     <div className="w-full overflow-hidden py-4">
@@ -174,6 +138,28 @@ export default function ReviewCarousel({ reviews = mockReviews }) {
           100% { transform: translateX(-50%); }
         }
       `}</style>
+      
+      {/* View All Button */}
+      <div className="flex justify-center mt-12 px-4 relative z-20">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-300"
+          style={{
+            background: "oklch(0.52 0.18 230 / 0.1)",
+            border: "1px solid oklch(0.52 0.18 230 / 0.3)",
+            color: "oklch(0.48 0.16 230)"
+          }}
+        >
+          <MessageCircle className="w-4 h-4" />
+          {t("reviews.viewAll", "Barcha sharhlarni o'qish (Read all reviews)")}
+        </button>
+      </div>
+
+      <AllCommentsModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        comments={reviews}
+      />
     </div>
   );
 }

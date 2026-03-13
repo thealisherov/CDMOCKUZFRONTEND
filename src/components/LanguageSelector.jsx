@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "@/components/LanguageContext";
 import { Globe, ChevronDown, Check } from "lucide-react";
 
-export function LanguageSelector() {
+export function LanguageSelector({ position = "bottom" }) {
   const { lang, setLang } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -48,7 +48,7 @@ export function LanguageSelector() {
       {/* Dropdown Menu */}
       {isOpen && (
         <div 
-          className="absolute right-0 top-[calc(100%+8px)] w-[160px] rounded-xl border border-border bg-background/95 backdrop-blur-xl shadow-[0_12px_40px_-12px_rgba(0,0,0,0.15)] p-1.5 z-50 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200 transform origin-top-right"
+          className={`absolute ${position === 'top' ? 'bottom-[calc(100%+8px)] origin-bottom-right slide-in-from-bottom-2' : 'top-[calc(100%+8px)] origin-top-right slide-in-from-top-2'} right-0 w-[160px] rounded-xl border border-border bg-background/95 backdrop-blur-xl shadow-[0_12px_40px_-12px_rgba(0,0,0,0.15)] p-1.5 z-50 animate-in fade-in-0 zoom-in-95 duration-200 transform`}
         >
           <div className="flex flex-col gap-0.5">
             {languages.map((l) => {

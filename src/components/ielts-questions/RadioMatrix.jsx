@@ -1,16 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 
 /**
- * RadioMatrix — "Matching Features" / "Map Labeling" component.
- * Applies test-taking template design.
+ * RadioMatrix — Controlled component.
+ * Selected values driven by userAnswers prop from the parent page.
  */
-const RadioMatrix = ({ data, onAnswer, startIndex = 1 }) => {
-  const [selectedAnswers, setSelectedAnswers] = useState({});
-
+const RadioMatrix = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => {
   const handleSelect = (questionId, option) => {
-    setSelectedAnswers((prev) => ({ ...prev, [questionId]: option }));
     onAnswer(questionId, option);
   };
 
@@ -35,6 +32,7 @@ const RadioMatrix = ({ data, onAnswer, startIndex = 1 }) => {
               {data.questions.map((q, qIdx) => {
                 const globalNum = startIndex + qIdx;
                 const questionId = String(globalNum);
+                const selected = userAnswers[questionId] || '';
 
                 return (
                   <tr
@@ -42,7 +40,6 @@ const RadioMatrix = ({ data, onAnswer, startIndex = 1 }) => {
                     className="border-b last:border-b-0 hover:bg-black/5 transition-colors"
                     style={{ borderColor: 'var(--test-border)' }}
                   >
-                    {/* Question text */}
                     <td className="p-3 border-r" style={{ borderColor: 'var(--test-border)' }}>
                       <div className="flex gap-3 items-start">
                         <span className="font-bold min-w-[20px]" style={{ color: 'var(--test-fg)' }}>{globalNum}</span>
@@ -50,11 +47,10 @@ const RadioMatrix = ({ data, onAnswer, startIndex = 1 }) => {
                       </div>
                     </td>
 
-                    {/* Radio cells */}
                     {data.columnOptions.map((opt) => {
-                      const isChecked = selectedAnswers[questionId] === opt;
+                      const isChecked = selected === opt;
                       return (
-                        <td key={opt} className={`p-0 border-r last:border-r-0 text-center relative`} style={{ borderColor: 'var(--test-border)', backgroundColor: isChecked ? 'rgba(37, 99, 235, 0.1)' : 'transparent' }}>
+                        <td key={opt} className="p-0 border-r last:border-r-0 text-center relative" style={{ borderColor: 'var(--test-border)', backgroundColor: isChecked ? 'rgba(37, 99, 235, 0.1)' : 'transparent' }}>
                           <label className="absolute inset-0 flex items-center justify-center cursor-pointer w-full h-full">
                             <input
                               type="radio"
@@ -63,7 +59,7 @@ const RadioMatrix = ({ data, onAnswer, startIndex = 1 }) => {
                               checked={isChecked}
                               onChange={() => handleSelect(questionId, opt)}
                               className="w-5 h-5 cursor-pointer accent-blue-600"
-                              style={{ 
+                              style={{
                                 backgroundColor: 'var(--test-input-bg)',
                                 borderColor: 'var(--test-border)',
                                 color: '#2563eb'

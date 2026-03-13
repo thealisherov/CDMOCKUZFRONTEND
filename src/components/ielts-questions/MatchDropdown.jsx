@@ -6,8 +6,7 @@ import React, { useState, useEffect, useRef } from 'react';
  * MatchDropdown - Custom dropdown component matching IELTS mock design.
  * Used for "Match each sentence with correct person" or "Match Sentence Endings".
  */
-const MatchDropdown = ({ data, onAnswer, startIndex = 1, layout }) => {
-  const [selectedAnswers, setSelectedAnswers] = useState({});
+const MatchDropdown = ({ data, onAnswer, startIndex = 1, layout, userAnswers = {} }) => {
   const [openDropdown, setOpenDropdown] = useState(null); // stores questionId of the open dropdown
   const dropdownRef = useRef(null);
 
@@ -25,7 +24,6 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1, layout }) => {
   }, []);
 
   const handleSelect = (questionId, value) => {
-    setSelectedAnswers((prev) => ({ ...prev, [questionId]: value }));
     setOpenDropdown(null);
     onAnswer(questionId, value);
   };
@@ -85,7 +83,7 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1, layout }) => {
           {data.questions.map((q, qIdx) => {
             const globalNum = startIndex + qIdx;
             const questionId = String(globalNum);
-            const selected = selectedAnswers[questionId];
+            const selected = userAnswers[questionId];
             const isOpen = openDropdown === questionId;
 
             return (
@@ -98,9 +96,11 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1, layout }) => {
                 </div>
                 
                 {/* Question Text */}
-                <div className="flex-1 font-medium leading-normal" style={{ fontSize: '1.05em', color: 'var(--test-fg)' }}>
-                  {q.text}
-                </div>
+                <div 
+                  className="flex-1 font-medium leading-normal [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:my-2" 
+                  style={{ fontSize: '1.05em', color: 'var(--test-fg)' }}
+                  dangerouslySetInnerHTML={{ __html: q.text }}
+                />
 
                 {/* Custom Dropdown */}
                 <div className="relative flex-shrink-0">

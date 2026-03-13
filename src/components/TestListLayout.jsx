@@ -4,17 +4,12 @@ import { useState, useMemo } from "react";
 import {
   Search, ChevronDown, BookOpen, Headphones, PenTool,
   Clock, FileText, Play, RotateCcw, Star, Lock, Gift,
-  Zap, TrendingUp, Filter
+  Zap, TrendingUp, Filter, BarChart3
 } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
-
-const LEVEL_OPTIONS = ["All Levels", "Easy", "Medium", "Hard"];
-const TYPE_OPTIONS  = ["All Types", "Full Test", "Section", "Part"];
-const TAB_OPTIONS   = [
-  { key: "all",     label: "All Tests" },
-  { key: "free",    label: "Free" },
-  { key: "premium", label: "Premium" },
-];
+import { useTranslation } from "@/components/LanguageContext";
+import { useAuth } from "@/hooks/useAuth";
 
 const MODULE_META = {
   reading:   { icon: BookOpen,   color: "oklch(0.55 0.2 240)",  glow: "oklch(0.55 0.2 240 / 0.2)",  bg: "oklch(0.55 0.2 240 / 0.07)",  label: "Reading" },
@@ -35,7 +30,7 @@ const TEST_TYPE_LABEL = {
   part_1: "Part 1", part_2: "Part 2", part_3: "Part 3",
 };
 
-function FilterDropdown({ options, value, onChange }) {
+function FilterDropdown({ options, value, onChange, t }) {
   return (
     <div className="relative">
       <select
@@ -49,7 +44,7 @@ function FilterDropdown({ options, value, onChange }) {
           focusRingColor: 'var(--primary)',
         }}
       >
-        {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+        {options.map((opt) => <option key={opt.val} value={opt.val}>{opt.label}</option>)}
       </select>
       <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 pointer-events-none"
         style={{ color: 'var(--muted-foreground)' }} />
@@ -58,6 +53,29 @@ function FilterDropdown({ options, value, onChange }) {
 }
 
 export default function TestListLayout({ title, description, tests = [], moduleType = "reading", renderTestItem }) {
+  const { t } = useTranslation();
+  const { user } = useAuth();
+
+  const LEVEL_OPTIONS = [
+    { val: "All Levels", label: t("testList.allLevels") },
+    { val: "Easy", label: t("testList.easy") },
+    { val: "Medium", label: t("testList.medium") },
+    { val: "Hard", label: t("testList.hard") }
+  ];
+
+  const TYPE_OPTIONS = [
+    { val: "All Types", label: t("testList.allTypes") },
+    { val: "Full Test", label: t("testList.fullTest") },
+    { val: "Section", label: t("testList.section") },
+    { val: "Part", label: t("testList.part") }
+  ];
+
+  const TAB_OPTIONS = [
+    { key: "all", label: t("testList.allTests") },
+    { key: "free", label: t("testList.free") },
+    { key: "premium", label: t("testList.premium") },
+  ];
+
   const [activeTab,    setActiveTab]    = useState("all");
   const [searchQuery,  setSearchQuery]  = useState("");
   const [levelFilter,  setLevelFilter]  = useState("All Levels");
@@ -89,7 +107,7 @@ export default function TestListLayout({ title, description, tests = [], moduleT
   const premiumCount = tests.filter(t => t.access === "premium").length;
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 w-full">
 
       {/* ── Page Header ── */}
       <div className="flex items-start justify-between">
@@ -115,13 +133,23 @@ export default function TestListLayout({ title, description, tests = [], moduleT
           </div>
         </div>
 
-        {/* Stats pill */}
-        <div
-          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium"
-          style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
-        >
-          <TrendingUp className="w-4 h-4" style={{ color: meta.color }} />
-          <span style={{ color: 'var(--foreground)' }}>{tests.length} Tests Available</span>
+        {/* Stats and extra options */}
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/dashboard/${moduleType}/attempts`}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+            style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
+          >
+            <BarChart3 className="w-4 h-4" style={{ color: meta.color }} />
+            {t("testList.yourAttempts")}
+          </Link>
+          <div
+            className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium"
+            style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+          >
+            <TrendingUp className="w-4 h-4" style={{ color: meta.color }} />
+            <span style={{ color: 'var(--foreground)' }}>{tests.length} {t("testList.testsAvailable")}</span>
+          </div>
         </div>
       </div>
 
@@ -175,7 +203,7 @@ export default function TestListLayout({ title, description, tests = [], moduleT
           />
           <input
             type="text"
-            placeholder="Search tests..."
+            placeholder={t("testList.search")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none focus:ring-2"
@@ -190,8 +218,8 @@ export default function TestListLayout({ title, description, tests = [], moduleT
         {/* Filter icon */}
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 shrink-0" style={{ color: 'var(--muted-foreground)' }} />
-          <FilterDropdown options={LEVEL_OPTIONS} value={levelFilter} onChange={setLevelFilter} />
-          <FilterDropdown options={TYPE_OPTIONS}  value={typeFilter}  onChange={setTypeFilter}  />
+          <FilterDropdown options={LEVEL_OPTIONS} value={levelFilter} onChange={setLevelFilter} t={t} />
+          <FilterDropdown options={TYPE_OPTIONS}  value={typeFilter}  onChange={setTypeFilter}  t={t} />
         </div>
       </div>
 
@@ -199,8 +227,8 @@ export default function TestListLayout({ title, description, tests = [], moduleT
       <div className="flex items-center gap-2">
         <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
           {filteredTests.length === tests.length
-            ? `All ${tests.length} tests`
-            : `${filteredTests.length} of ${tests.length} tests`}
+            ? t("testList.allTestsCount", { count: tests.length })
+            : t("testList.filteredTestsCount", { filtered: filteredTests.length, total: tests.length })}
         </h2>
         {(searchQuery || levelFilter !== "All Levels" || typeFilter !== "All Types") && (
           <button
@@ -208,7 +236,7 @@ export default function TestListLayout({ title, description, tests = [], moduleT
             className="text-xs px-2 py-0.5 rounded-full font-medium transition-colors"
             style={{ color: meta.color, background: meta.bg }}
           >
-            Clear filters
+            {t("testList.clearFilters")}
           </button>
         )}
       </div>
@@ -226,9 +254,11 @@ export default function TestListLayout({ title, description, tests = [], moduleT
             >
               <Icon className="w-7 h-7" style={{ color: meta.color }} />
             </div>
-            <p className="font-semibold text-base" style={{ color: 'var(--foreground)' }}>No tests found</p>
+            <h3 className="font-semibold text-base" style={{ color: 'var(--foreground)' }}>
+              {t("testList.noResults")}
+            </h3>
             <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)' }}>
-              Try adjusting your filters or search query.
+              {t("testList.noResultsDesc")}
             </p>
           </div>
         ) : (
@@ -239,7 +269,7 @@ export default function TestListLayout({ title, description, tests = [], moduleT
             >
               {renderTestItem
                 ? renderTestItem(test)
-                : <DefaultTestItem test={test} moduleType={moduleType} meta={meta} />
+                : <DefaultTestItem test={test} moduleType={moduleType} meta={meta} t={t} user={user} />
               }
             </div>
           ))
@@ -249,9 +279,11 @@ export default function TestListLayout({ title, description, tests = [], moduleT
   );
 }
 
-function DefaultTestItem({ test, moduleType, meta }) {
+function DefaultTestItem({ test, moduleType, meta, t, user }) {
   const levelKey   = (test.level || test.difficulty || '').toLowerCase();
   const levelStyle = LEVEL_STYLE[levelKey] || {};
+  
+  const isLocked = test.access === "premium" && !user?.isPremium;
 
   return (
     <div
@@ -289,21 +321,21 @@ function DefaultTestItem({ test, moduleType, meta }) {
             {test.access === "free" && (
               <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: 'oklch(0.52 0.16 145 / 0.1)', color: 'oklch(0.42 0.14 145)', border: '1px solid oklch(0.52 0.16 145 / 0.25)' }}>
-                <Gift className="w-2.5 h-2.5" /> Free
+                <Gift className="w-2.5 h-2.5" /> {t("testList.free")}
               </span>
             )}
 
             {test.access === "premium" && (
               <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: 'oklch(0.72 0.17 80 / 0.1)', color: 'oklch(0.55 0.15 80)', border: '1px solid oklch(0.72 0.17 80 / 0.25)' }}>
-                <Star className="w-2.5 h-2.5" /> Premium
+                <Star className="w-2.5 h-2.5" /> {t("testList.premium")}
               </span>
             )}
 
             {test.completed && (
               <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: 'oklch(0.52 0.16 145 / 0.1)', color: 'oklch(0.42 0.14 145)', border: '1px solid oklch(0.52 0.16 145 / 0.25)' }}>
-                ✓ Done
+                ✓ {t("testList.done")}
               </span>
             )}
           </div>
@@ -325,11 +357,11 @@ function DefaultTestItem({ test, moduleType, meta }) {
               </span>
             )}
             <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3" /> {test.duration} min
+              <Clock className="w-3 h-3" /> {test.duration} {t("testList.min")}
             </span>
             {test.questions && (
               <span className="flex items-center gap-1">
-                <FileText className="w-3 h-3" /> {test.questions} Qs
+                <FileText className="w-3 h-3" /> {test.questions} {moduleType === "writing" ? t("testList.tasks", { defaultValue: "Tasks" }) : t("testList.qs", { defaultValue: "Qs" })}
               </span>
             )}
           </div>
@@ -338,19 +370,18 @@ function DefaultTestItem({ test, moduleType, meta }) {
 
       {/* Right — CTA */}
       <div className="ml-5 shrink-0">
-        {test.access === "premium" ? (
-          <button
-            disabled
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+        {isLocked ? (
+          <Link
+            href="/dashboard/payment"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
             style={{
               background: 'oklch(0.72 0.17 80 / 0.08)',
               color: 'oklch(0.55 0.15 80)',
               border: '1px solid oklch(0.72 0.17 80 / 0.3)',
-              cursor: 'not-allowed',
             }}
           >
-            <Lock className="w-3.5 h-3.5" /> Unlock
-          </button>
+            <Lock className="w-3.5 h-3.5" /> {t("testList.locked")}
+          </Link>
         ) : (
           <a
             href={`/dashboard/${moduleType}/${test.id}`}
@@ -372,8 +403,8 @@ function DefaultTestItem({ test, moduleType, meta }) {
             }}
           >
             {test.completed
-              ? <><RotateCcw className="w-3.5 h-3.5" /> Re-take</>
-              : <><Play className="w-3.5 h-3.5 fill-white" /> Start</>
+              ? <><RotateCcw className="w-3.5 h-3.5" /> {t("testList.retake")}</>
+              : <><Play className="w-3.5 h-3.5 fill-white" /> {t("testList.startTest")}</>
             }
           </a>
         )}

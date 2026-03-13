@@ -32,6 +32,9 @@ function mapGroupType(groupType) {
     case 'multiple_choice':
       return 'true_false'; // radio-style options per question
 
+    case 'multiple_choice_multiple':
+      return 'checkbox_multiple'; // checkbox-style options for multiple answers
+
     case 'map_labeling':
       return 'radio_matrix'; // select letter A-I in a grid
 
@@ -67,7 +70,17 @@ function buildGapFillContent(questions) {
 function buildAnswersMap(questions) {
   const answers = {};
   questions.forEach((q) => {
-    answers[String(q.number)] = q.answer;
+    if (q.numbers && q.answers) {
+      q.numbers.forEach((num) => {
+        answers[String(num)] = q.answers; // Store full array for each number
+      });
+    } else if (q.number) {
+      if (q.alternativeAnswers && q.alternativeAnswers.length > 0) {
+        answers[String(q.number)] = [q.answer, ...q.alternativeAnswers];
+      } else {
+        answers[String(q.number)] = q.answer;
+      }
+    }
   });
   return answers;
 }
@@ -120,6 +133,23 @@ function convertQuestionGroup(group, partNumber, partTitle) {
         id: String(q.number),
         text: q.question,
         fullOptions: q.options || [],
+      }));
+      block.options = optionLetters;
+      block.hasPerQuestionOptions = true;
+      break;
+    }
+
+    case 'multiple_choice_multiple': {
+      const firstQ = group.questions[0];
+      const optionLetters = firstQ?.options
+        ? extractOptionLetters(firstQ.options)
+        : [];
+
+      block.questions = group.questions.map((q) => ({
+        id: q.numbers ? q.numbers.join(',') : String(q.number),
+        text: q.question,
+        fullOptions: q.options || [],
+        numbers: q.numbers || [q.number] // explicit array of question numbers
       }));
       block.options = optionLetters;
       block.hasPerQuestionOptions = true;
@@ -217,10 +247,17 @@ export function adaptListeningData(rawData) {
       // Group-level image has priority
       if (group.image) {
         block.image = group.image;
-      } else if (part.image && groupIdx === 0) {
-        // If part image exists, only attach it to the first group by default 
-        // unless specified otherwise in the JSON
-        block.image = part.image;
+      } else if (part.image) {
+        // If part image exists, and we have a map or plan group, attach it there 
+        // to render side-by-side. Otherwise default to the first group.
+        const hasMapGroup = groups.some(g => ['map_labeling', 'plan_labeling'].includes(g.groupType));
+        if (hasMapGroup) {
+          if (['map_labeling', 'plan_labeling'].includes(group.groupType)) {
+            block.image = part.image;
+          }
+        } else if (groupIdx === 0) {
+          block.image = part.image;
+        }
       }
 
       allSections.push(block);

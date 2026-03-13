@@ -23,7 +23,7 @@ export function LanguageProvider({ children }) {
     localStorage.setItem("mega_ielts_lang", newLang);
   };
 
-  const t = (key) => {
+  const t = (key, params = {}) => {
     const keys = key.split(".");
     let value = translations[lang];
     for (const k of keys) {
@@ -33,6 +33,14 @@ export function LanguageProvider({ children }) {
         return key; // Fallback to key if missing
       }
     }
+    
+    // Support interpolation: ex. t("key", { count: 5 })
+    if (typeof value === "string") {
+      Object.keys(params).forEach((paramKey) => {
+        value = value.replace(new RegExp(paramKey, "g"), params[paramKey]);
+      });
+    }
+    
     return value;
   };
 

@@ -82,11 +82,15 @@ function buildAnswersMap(questions) {
   const answers = {};
   questions.forEach((q) => {
     if (q.numbers && q.answers) {
-      q.numbers.forEach((num, idx) => {
-        answers[String(num)] = q.answers[idx];
+      q.numbers.forEach((num) => {
+        answers[String(num)] = q.answers; // Store full array for each number
       });
     } else if (q.number) {
-      answers[String(q.number)] = q.answer;
+      if (q.alternativeAnswers && q.alternativeAnswers.length > 0) {
+        answers[String(q.number)] = [q.answer, ...q.alternativeAnswers];
+      } else {
+        answers[String(q.number)] = q.answer;
+      }
     }
   });
   return answers;

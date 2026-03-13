@@ -2,269 +2,377 @@
 import React, { memo, useState, useRef, useEffect, useCallback } from 'react';
 import { useNotes } from '@/components/NotesContext';
 
+/* ─── Helpers: offset-based range tracking ─── */
 function getSelectionOffsets(container, range) {
-  const preSelectionRange = range.cloneRange();
-  preSelectionRange.selectNodeContents(container);
-  preSelectionRange.setEnd(range.startContainer, range.startOffset);
-  const start = preSelectionRange.toString().length;
+  const pre = range.cloneRange();
+  pre.selectNodeContents(container);
+  pre.setEnd(range.startContainer, range.startOffset);
+  const start = pre.toString().length;
   const text = range.toString();
   return { start, end: start + text.length, text };
 }
 
 function restoreRange(container, start, end) {
-  let charIndex = 0;
+  let idx = 0;
   const range = document.createRange();
-  let foundStart = false;
-  let stop = false;
+  let foundStart = false, stop = false;
 
-  function traverseNodes(node) {
+  (function walk(node) {
     if (stop) return;
     if (node.nodeType === Node.TEXT_NODE) {
-      const nextCharIndex = charIndex + node.length;
-      if (!foundStart && start >= charIndex && start <= nextCharIndex) {
-        range.setStart(node, start - charIndex);
+      const next = idx + node.length;
+      if (!foundStart && start >= idx && start <= next) {
+        range.setStart(node, start - idx);
         foundStart = true;
       }
-      if (foundStart && end >= charIndex && end <= nextCharIndex) {
-        range.setEnd(node, end - charIndex);
+      if (foundStart && end >= idx && end <= next) {
+        range.setEnd(node, end - idx);
         stop = true;
       }
-      charIndex = nextCharIndex;
+      idx = next;
     } else {
-      for (let i = 0; i < node.childNodes.length; i++) {
-        traverseNodes(node.childNodes[i]);
-      }
+      for (let i = 0; i < node.childNodes.length; i++) walk(node.childNodes[i]);
     }
-  }
-  traverseNodes(container);
-  if (!foundStart || !stop) return null;
-  return range;
+  })(container);
+
+  return foundStart && stop ? range : null;
 }
 
-/** Returns all mark[data-id] elements that overlap the current selection */
-function getMarksInSelection(container) {
-  const selection = window.getSelection();
-  if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return [];
-  const range = selection.getRangeAt(0);
-  const marks = Array.from(container.querySelectorAll('mark[data-id]'));
-  return marks.filter(mark => range.intersectsNode(mark));
-}
-
-const InlineToolbar = ({ position, onAction, showEraser }) => {
+/* ─── Inline "Add Note / Highlight / Erase" Toolbar ─── */
+const NoteToolbar = memo(function NoteToolbar({ position, onAddNote, onHighlight, onEraser }) {
   if (!position) return null;
 
   return (
     <div
-      className="fixed z-50 flex items-center bg-white rounded-lg shadow-[0_4px_16px_rgba(0,0,0,0.15)] border border-gray-200 overflow-hidden font-sans"
-      style={{ left: position.left, top: position.top, transform: 'translate(-50%, -10px)' }}
+      className="fixed z-[200] flex items-center overflow-hidden rounded-lg shadow-[0_6px_24px_rgba(0,0,0,0.18)] border font-sans animate-in fade-in zoom-in-95 duration-150"
+      style={{
+        left: position.left,
+        top: position.top,
+        transform: 'translate(-50%, -8px)',
+        background: '#ffffff',
+        borderColor: '#e2e2e2',
+      }}
       onMouseDown={(e) => e.preventDefault()}
     >
-      {/* Note */}
       <button
-        onClick={() => onAction('note')}
-        className="flex flex-col items-center justify-center py-2 px-3 hover:bg-gray-50 text-gray-800 transition-colors border-r border-gray-100 min-w-[65px]"
+        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onAddNote(); }}
+        className="flex items-center gap-2 py-2 px-3 text-[13px] font-semibold transition-colors border-r"
+        style={{ color: '#1a1a1a', borderColor: '#e2e2e2' }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mb-1"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
-        <span className="text-[12px] font-medium tracking-tight">Note</span>
-      </button>
-
-      {/* Highlight */}
-      <button
-        onClick={() => onAction('highlight')}
-        className={`flex flex-col items-center justify-center py-2 px-3 hover:bg-gray-50 text-gray-800 transition-colors min-w-[65px] ${showEraser ? 'border-r border-gray-100' : ''}`}
-      >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mb-1">
-           <path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/>
+        {/* Sticky note icon */}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M15.5 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V8.5L15.5 3z" />
+          <polyline points="14,3 14,8 21,8" />
+          <line x1="9" y1="13" x2="15" y2="13" />
+          <line x1="9" y1="17" x2="13" y2="17" />
         </svg>
-        <span className="text-[12px] font-medium tracking-tight">Highlight</span>
+        Note
       </button>
 
-      {/* Eraser — only shown when selection overlaps an existing highlight/note */}
-      {showEraser && (
-        <button
-          onClick={() => onAction('erase')}
-          className="flex flex-col items-center justify-center py-2 px-3 hover:bg-red-50 text-red-500 transition-colors min-w-[65px]"
-        >
-          {/* Eraser icon */}
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mb-1">
-            <path d="M20 20H7L3 16l10-10 7 7-2.5 2.5"/>
-            <path d="M6.0001 10.0001L14 18"/>
-          </svg>
-          <span className="text-[12px] font-medium tracking-tight">Erase</span>
-        </button>
-      )}
+      <button
+        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onHighlight(); }}
+        className="flex flex-col items-center justify-center py-1.5 px-3 transition-colors border-r"
+        style={{ color: '#1a1a1a', borderColor: '#e2e2e2' }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        title="Highlight"
+      >
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          <path d="M3 21h18" strokeWidth={2} strokeLinecap="round"/>
+        </svg>
+        <div className="h-1 w-full bg-[#ddff00] mt-0.5 rounded-full"></div>
+      </button>
+
+      <button
+        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onEraser(); }}
+        className="flex items-center gap-2 py-2 px-3 text-[13px] font-semibold transition-colors text-red-600"
+        onMouseEnter={(e) => { e.currentTarget.style.background = '#fef2f2'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        title="Eraser"
+      >
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      </button>
     </div>
   );
-};
+});
 
+/**
+ * HighlightableContent — wraps content to enable Highlighting, Erasing, and Note creation.
+ */
 const HighlightableContent = memo(function HighlightableContent({
   children,
   className = '',
   enabled = true,
-  containerId = 'main'
+  containerId = 'main',
 }) {
   const [toolbarPos, setToolbarPos] = useState(null);
-  const [currentRangeOffsets, setCurrentRangeOffsets] = useState(null);
-  const [marksInSelection, setMarksInSelection] = useState([]);
+  const [rangeOffsets, setRangeOffsets] = useState(null);
   const contentRef = useRef(null);
 
-  const notesContext = useNotes();
-  const notes = notesContext?.notes || [];
-  const addNote = notesContext?.addNote || (() => {});
-  const deleteNote = notesContext?.deleteNote || (() => {});
-  const setIsSidebarOpen = notesContext?.setIsSidebarOpen || (() => {});
+  const notesCtx = useNotes();
+  const notes = notesCtx?.notes || [];
+  const addNote = notesCtx?.addNote || (() => {});
+  const setIsSidebarOpen = notesCtx?.setIsSidebarOpen || (() => {});
 
-  const applyHighlights = useCallback(() => {
-    if (!contentRef.current || !notes.length) {
-      // Still need to un-wrap if notes was cleared
-      if (contentRef.current) {
-        const marks = contentRef.current.querySelectorAll('mark[data-id]');
-        marks.forEach(mark => {
-          const parent = mark.parentNode;
-          while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
-          parent.removeChild(mark);
-        });
-        contentRef.current.normalize();
-      }
-      return;
-    }
+  /* ── Apply / re-apply note marks whenever `notes` changes ── */
+  const applyNoteMarks = useCallback(() => {
+    const el = contentRef.current;
+    if (!el) return;
 
-    // Un-wrap old marks
-    const marks = contentRef.current.querySelectorAll('mark[data-id]');
-    marks.forEach(mark => {
+    // 1. Remove existing note marks
+    el.querySelectorAll('mark[data-note-id]').forEach((mark) => {
       const parent = mark.parentNode;
       while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
       parent.removeChild(mark);
     });
-    contentRef.current.normalize();
+    el.normalize();
 
-    // Apply backwards to avoid offset skew
-    const sortedNotes = [...notes].sort((a, b) => b.start - a.start);
+    // 2. Filter notes for this container, sort descending to avoid offset shift
+    const relevant = notes
+      .filter((n) => n.containerId === containerId && n.type === 'note')
+      .sort((a, b) => b.start - a.start);
 
-    sortedNotes.forEach(note => {
-      if (note.containerId !== containerId) return;
+    relevant.forEach((note) => {
       try {
-        const range = restoreRange(contentRef.current, note.start, note.end);
-        if (range) {
-          const mark = document.createElement('mark');
-          mark.setAttribute('data-id', note.id);
-          mark.style.backgroundColor = note.type === 'note' ? '#bfd4f2' : '#ffee58';
-          mark.style.color = 'inherit';
+        const range = restoreRange(el, note.start, note.end);
+        if (!range) return;
 
-          if (note.type === 'note') {
-            mark.className = 'cursor-pointer px-[2px] rounded-[3px] select-text';
-            mark.onclick = () => {
-              if (window.getSelection().isCollapsed) setIsSidebarOpen(true);
-            };
-          } else {
-            mark.className = 'px-[2px] rounded-[3px] select-text';
-          }
+        const mark = document.createElement('mark');
+        mark.setAttribute('data-note-id', note.id);
+        mark.style.cssText =
+          'background:var(--test-note-bg,#dbeafe);color:inherit;border-bottom:2px solid var(--test-note-accent,#3b82f6);padding:0 1px;border-radius:2px;cursor:pointer;user-select:text;-webkit-user-select:text;';
 
-          try {
-            range.surroundContents(mark);
-          } catch {
-            const fragment = range.extractContents();
-            mark.appendChild(fragment);
-            range.insertNode(mark);
-          }
+        mark.addEventListener('click', () => {
+          if (window.getSelection()?.isCollapsed) setIsSidebarOpen(true);
+        });
+
+        try {
+          range.surroundContents(mark);
+        } catch {
+          const frag = range.extractContents();
+          mark.appendChild(frag);
+          range.insertNode(mark);
         }
       } catch {
-        // Ignore dom wrapping failures silently
+        /* silently skip */
       }
     });
   }, [notes, containerId, setIsSidebarOpen]);
 
-  useEffect(() => {
-    applyHighlights();
-  }, [applyHighlights, children]);
+  useEffect(() => { applyNoteMarks(); }, [applyNoteMarks, children]);
 
   useEffect(() => {
-    const handleUpdate = () => applyHighlights();
-    window.addEventListener('NOTES_UPDATED', handleUpdate);
-    return () => window.removeEventListener('NOTES_UPDATED', handleUpdate);
-  }, [applyHighlights]);
+    const h = () => applyNoteMarks();
+    window.addEventListener('NOTES_UPDATED', h);
+    return () => window.removeEventListener('NOTES_UPDATED', h);
+  }, [applyNoteMarks]);
 
-  const handleSelectionChange = () => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+  /* ── Selection handler ── */
+  const handleSelectionChange = useCallback(() => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
       setToolbarPos(null);
-      setMarksInSelection([]);
+      setRangeOffsets(null);
       return;
     }
 
-    if (selection.anchorNode) {
-      const el = selection.anchorNode.nodeType === 3
-        ? selection.anchorNode.parentElement
-        : selection.anchorNode;
+    // Skip if selection is inside form elements
+    if (sel.anchorNode) {
+      const el =
+        sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode;
       if (['INPUT', 'TEXTAREA', 'BUTTON', 'SELECT'].includes(el?.tagName)) return;
     }
 
-    const range = selection.getRangeAt(0);
-    if (!contentRef.current || !contentRef.current.contains(range.commonAncestorContainer)) {
+    const range = sel.getRangeAt(0);
+    if (
+      !contentRef.current ||
+      !contentRef.current.contains(range.commonAncestorContainer)
+    ) {
       setToolbarPos(null);
-      setMarksInSelection([]);
+      setRangeOffsets(null);
       return;
     }
 
     const rect = range.getBoundingClientRect();
     if (rect.width === 0 && rect.height === 0) return;
 
-    // Check if selection overlaps any existing marks
-    const overlapping = getMarksInSelection(contentRef.current);
-    setMarksInSelection(overlapping);
+    setToolbarPos({ top: rect.top - 8, left: rect.left + rect.width / 2 });
+    setRangeOffsets(getSelectionOffsets(contentRef.current, range));
+  }, []);
 
-    setToolbarPos({
-      top: rect.top - 10,
-      left: rect.left + rect.width / 2,
+  /* ── Add note action ── */
+  const handleAddNote = useCallback(() => {
+    if (!rangeOffsets || !rangeOffsets.text.trim()) return;
+
+    addNote({
+      id: 'note_' + Date.now() + Math.random().toString(36).substr(2, 5),
+      containerId,
+      type: 'note',
+      start: rangeOffsets.start,
+      end: rangeOffsets.end,
+      text: rangeOffsets.text,
+      note: '',
     });
 
-    setCurrentRangeOffsets(getSelectionOffsets(contentRef.current, range));
-  };
+    window.getSelection()?.removeAllRanges();
+    setToolbarPos(null);
+    setRangeOffsets(null);
+    setIsSidebarOpen(true);
+  }, [rangeOffsets, addNote, containerId, setIsSidebarOpen]);
 
-  const handleAction = (type) => {
-    if (type === 'erase') {
-      // Delete all marks that overlap the selection
-      marksInSelection.forEach(mark => {
-        const id = mark.getAttribute('data-id');
-        if (id) deleteNote(id);
+  /* ── Highlight Logic ── */
+  const handleHighlight = useCallback(() => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+
+    const range = selection.getRangeAt(0);
+    
+    // If selected text is within a single node
+    if (range.startContainer === range.endContainer && range.startContainer.nodeType === Node.TEXT_NODE) {
+      if (!range.startContainer.nodeValue.substring(range.startOffset, range.endOffset).trim()) {
+         selection.removeAllRanges();
+         setToolbarPos(null);
+         return;
+      }
+      const mark = document.createElement('mark');
+      mark.className = 'highlight'; // Must have .highlight class in CSS
+      try {
+        range.surroundContents(mark);
+      } catch (e) {
+        console.error('Highlight failed:', e);
+      }
+    } else {
+      // Cross-boundary selection
+      const treeWalker = document.createTreeWalker(
+        range.commonAncestorContainer,
+        NodeFilter.SHOW_TEXT,
+        {
+          acceptNode: function(node) {
+            if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+            if (node.parentNode && node.parentNode.nodeName === 'MARK') return NodeFilter.FILTER_REJECT;
+            if (range.intersectsNode(node)) return NodeFilter.FILTER_ACCEPT;
+            return NodeFilter.FILTER_REJECT;
+          }
+        }
+      );
+
+      const nodesToWrap = [];
+      while (treeWalker.nextNode()) {
+        nodesToWrap.push(treeWalker.currentNode);
+      }
+
+      nodesToWrap.forEach((node) => {
+        const isStart = node === range.startContainer;
+        const isEnd = node === range.endContainer;
+        
+        let textToWrap = node;
+        
+        try {
+          if (isStart && isEnd) {
+             const split2 = node.splitText(range.endOffset);
+             const split1 = node.splitText(range.startOffset);
+             textToWrap = split1;
+          } else if (isStart) {
+             const split1 = node.splitText(range.startOffset);
+             textToWrap = split1;
+          } else if (isEnd) {
+             node.splitText(range.endOffset);
+          }
+          
+          if (textToWrap.nodeValue.trim()) {
+            const mark = document.createElement('mark');
+            mark.className = 'highlight';
+            textToWrap.parentNode.insertBefore(mark, textToWrap);
+            mark.appendChild(textToWrap);
+          }
+        } catch (err) {
+          console.warn('Skipped a node wrap', err);
+        }
       });
-      window.getSelection().removeAllRanges();
-      setToolbarPos(null);
-      setMarksInSelection([]);
-      return;
     }
 
-    if (currentRangeOffsets) {
-      const newNote = {
-        id: 'note_' + Date.now() + Math.random().toString(36).substr(2, 5),
-        containerId,
-        type,
-        start: currentRangeOffsets.start,
-        end: currentRangeOffsets.end,
-        text: currentRangeOffsets.text,
-        note: '',
-      };
-      addNote(newNote);
-      window.getSelection().removeAllRanges();
-      setToolbarPos(null);
-      setMarksInSelection([]);
-    }
-  };
+    selection.removeAllRanges();
+    setToolbarPos(null);
+  }, []);
 
+  /* ── Eraser Logic ── */
+  const handleEraser = useCallback(() => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return;
+
+    const range = selection.getRangeAt(0);
+
+    if (contentRef.current) {
+      const highlights = contentRef.current.querySelectorAll('mark.highlight');
+      let removed = false;
+      
+      const marksToRemove = [];
+      highlights.forEach(mark => {
+        try {
+          if (range.intersectsNode(mark)) {
+            marksToRemove.push(mark);
+          }
+        } catch {
+          // ignore
+        }
+      });
+      
+      marksToRemove.forEach(mark => {
+        const parent = mark.parentNode;
+        if (parent) {
+          const fragment = document.createDocumentFragment();
+          while (mark.firstChild) {
+            fragment.appendChild(mark.firstChild);
+          }
+          parent.insertBefore(fragment, mark);
+          parent.removeChild(mark);
+          removed = true;
+        }
+      });
+      
+      if (removed) {
+        contentRef.current.normalize();
+      }
+    }
+
+    selection.removeAllRanges();
+    setToolbarPos(null);
+  }, []);
+
+  /* ── Close toolbar on scroll ── */
   useEffect(() => {
-    const handleScroll = () => { if (toolbarPos) setToolbarPos(null); };
-    window.addEventListener('scroll', handleScroll, true);
-    return () => window.removeEventListener('scroll', handleScroll, true);
+    const h = () => { if (toolbarPos) setToolbarPos(null); };
+    window.addEventListener('scroll', h, true);
+    return () => window.removeEventListener('scroll', h, true);
+  }, [toolbarPos]);
+
+  /* ── Close toolbar on click outside ── */
+  useEffect(() => {
+    const h = (e) => {
+      // Close toolbar if click is completely outside contentRef
+      if (toolbarPos && contentRef.current && !contentRef.current.contains(e.target)) {
+        // Direct state update since toolbar buttons stop propagation now
+        setToolbarPos(null);
+      }
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
   }, [toolbarPos]);
 
   if (!enabled) return <div className={className}>{children}</div>;
 
   return (
     <>
-      <InlineToolbar
-        position={toolbarPos}
-        onAction={handleAction}
-        showEraser={marksInSelection.length > 0}
+      <NoteToolbar 
+        position={toolbarPos} 
+        onAddNote={handleAddNote} 
+        onHighlight={handleHighlight}
+        onEraser={handleEraser}
       />
       <div
         ref={contentRef}

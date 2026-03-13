@@ -221,6 +221,7 @@ export default function TestPage() {
                 onAnswersChange={(answers) =>
                   handleBlockAnswers(block.id, answers)
                 }
+                userAnswers={allAnswers}
               />
             ))}
 

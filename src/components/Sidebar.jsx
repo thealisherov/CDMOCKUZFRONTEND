@@ -1,26 +1,51 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen, Headphones, PenTool, Mic,
   MessageCircle, LogOut, PanelLeftClose, PanelLeftOpen,
-  Zap
+  Zap, Star, Settings, ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
-
-const navigation = [
-  { name: "Reading",   href: "/dashboard/reading",   icon: BookOpen,      locked: false },
-  { name: "Listening", href: "/dashboard/listening", icon: Headphones,    locked: false },
-  { name: "Writing",   href: "/dashboard/writing",   icon: PenTool,       locked: false },
-  { name: "Speaking",  href: "#",                    icon: Mic,           locked: true, badge: "Soon" },
-  { name: "Comments",  href: "/dashboard/comments",  icon: MessageCircle, locked: false },
-];
+import { LanguageSelector } from "@/components/LanguageSelector";
+import ProfileModal from "@/components/ProfileModal";
+import { useTranslation } from "@/components/LanguageContext";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Sidebar({ collapsed, onToggle }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, logout } = useAuth();
+  const { t } = useTranslation();
+  const [showSettings, setShowSettings] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const settingsRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
+        setShowSettings(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const navigation = [
+    { name: t("sidebar.reading"),   href: "/dashboard/reading",   icon: BookOpen,      locked: false },
+    { name: t("sidebar.listening"), href: "/dashboard/listening", icon: Headphones,    locked: false },
+    { name: t("sidebar.writing"),   href: "/dashboard/writing",   icon: PenTool,       locked: false },
+    { name: t("sidebar.speaking"),  href: "#",                    icon: Mic,           locked: true, badge: t("sidebar.soon") },
+    { name: t("sidebar.comments"),  href: "/dashboard/comments",  icon: MessageCircle, locked: false },
+    { name: t("sidebar.premium"),   href: "/dashboard/premium",   icon: Star,          locked: false, badge: t("sidebar.upgrade") },
+  ];
+
+  if (user?.user_metadata?.role === "admin") {
+    navigation.push({ name: "Admin", href: "/dashboard/admin", icon: ShieldCheck, locked: false });
+  }
 
   const handleNavClick = (e, item) => {
     if (item.locked) e.preventDefault();
@@ -204,24 +229,40 @@ export default function Sidebar({ collapsed, onToggle }) {
       <div className="mx-3 h-px" style={{ background: 'var(--sidebar-border)' }} />
 
       {/* ── Bottom actions ── */}
-      <div className={cn("py-4 shrink-0", collapsed ? "px-2 space-y-2" : "px-3 space-y-1")}>
+      <div ref={settingsRef} className={cn("py-4 pb-8 shrink-0", collapsed ? "px-2 space-y-2" : "px-3 space-y-1")}>
         {collapsed ? (
-          <div className="flex flex-col items-center gap-2">
-            <ThemeToggle />
+          <div className="flex flex-col items-center gap-2 relative">
+            {showSettings && (
+              <div className="flex flex-col items-center gap-2 mb-2 p-2 rounded-xl border animate-in fade-in slide-in-from-bottom-2 duration-200 shadow-sm" style={{ background: 'oklch(0.5 0.0 0 / 0.03)', borderColor: 'var(--sidebar-border)' }}>
+                <LanguageSelector position="top" />
+                <ThemeToggle />
+              </div>
+            )}
             <button
-              onClick={() => router.push("/")}
-              title="Sign Out"
-              className="flex items-center justify-center h-9 w-9 rounded-xl transition-all hover:bg-[oklch(0.72_0.2_270/_0.12)]"
-              style={{ color: 'var(--sidebar-foreground)', opacity: 0.6 }}
+              onClick={() => setShowSettings(!showSettings)}
+              title={t("sidebar.settings", { defaultValue: "Settings" })}
+              className={cn(
+                "flex items-center justify-center h-9 w-9 rounded-xl transition-all",
+                showSettings ? "bg-primary/10 text-primary" : "hover:bg-[oklch(0.72_0.2_270/_0.12)]"
+              )}
+              style={!showSettings ? { color: 'var(--sidebar-foreground)', opacity: 0.6 } : {}}
             >
-              <LogOut className="h-4 w-4" />
+              <Settings className="h-4 w-4 pointer-events-none" />
+            </button>
+            <button
+              onClick={logout}
+              title={t("sidebar.signOut", { defaultValue: "Sign Out" })}
+              className="flex items-center justify-center h-9 w-9 rounded-xl transition-all hover:bg-red-500/10 text-red-500"
+            >
+              <LogOut className="h-4 w-4 pointer-events-none" />
             </button>
           </div>
         ) : (
-          <>
+            <>
             {/* User block */}
             <div
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1"
+              onClick={() => setShowProfile(true)}
+              className="group flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 cursor-pointer transition-all hover:bg-[oklch(0.72_0.2_270/_0.12)]"
               style={{
                 background: 'oklch(0.72 0.2 270 / 0.08)',
                 border: '1px solid var(--sidebar-border)',
@@ -231,32 +272,64 @@ export default function Sidebar({ collapsed, onToggle }) {
                 className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold text-xs text-white"
                 style={{ background: 'linear-gradient(135deg, #e22d2d, oklch(0.68 0.22 270))' }}
               >
-                U
+                {user?.user_metadata?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[12px] font-semibold truncate" style={{ color: 'var(--sidebar-foreground)' }}>
-                  Student
+                  {user?.user_metadata?.full_name || user?.email?.split('@')[0] || t("sidebar.student")}
                 </p>
                 <p className="text-[10px] truncate" style={{ color: 'oklch(0.55 0.04 270)' }}>
-                  Free plan
+                  {user?.isPremium ? "Premium Account" : t("sidebar.freePlan")}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-between px-1">
-              <ThemeToggle />
-              <button
-                onClick={() => router.push("/")}
-                className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all hover:bg-[oklch(0.72_0.2_270/_0.12)]"
-                style={{ color: 'var(--sidebar-foreground)', opacity: 0.6 }}
+            {showSettings && (
+              <div
+                className="mx-1 mb-2 p-2 rounded-xl border flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200 shadow-sm"
+                style={{ background: 'oklch(0.5 0.0 0 / 0.03)', borderColor: 'var(--sidebar-border)' }}
               >
-                <LogOut className="h-4 w-4" />
-                <span>Sign out</span>
+                <span className="text-xs font-semibold pl-1" style={{ color: 'var(--sidebar-foreground)' }}>{t("sidebar.settings", { defaultValue: "Settings" })}</span>
+                <div className="flex gap-2">
+                  <LanguageSelector position="top" />
+                  <ThemeToggle />
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between px-1 mt-1">
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className={cn(
+                  "flex items-center justify-center p-2 rounded-xl transition-all",
+                  showSettings ? "bg-primary/10 text-primary" : "hover:bg-[oklch(0.72_0.2_270/_0.12)]"
+                )}
+                style={!showSettings ? { color: 'var(--sidebar-foreground)', opacity: 0.6 } : {}}
+                title={t("sidebar.settings", { defaultValue: "Settings" })}
+              >
+                <Settings className="h-4 w-4 pointer-events-none" />
+              </button>
+
+              <button
+                onClick={logout}
+                className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all hover:bg-red-500/10 text-red-500 hover:text-red-700"
+                style={{ opacity: 0.8 }}
+              >
+                <LogOut className="h-4 w-4 pointer-events-none" />
+                <span className="hidden sm:inline">{t("sidebar.signOut")}</span>
               </button>
             </div>
           </>
         )}
       </div>
+
+      {showProfile && (
+        <ProfileModal 
+          isOpen={showProfile} 
+          onClose={() => setShowProfile(false)} 
+          user={user} 
+        />
+      )}
     </div>
   );
 }

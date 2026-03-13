@@ -4,57 +4,17 @@ import { useState, useEffect, useRef } from "react";
 import { Send, MessageCircle, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const initialComments = [
-  {
-    id: 1,
-    name: "Sardor Rakhimov",
-    text: "Bu platforma menga juda ko'p yordam berdi! Reading bo'limidagi testlar haqiqiy imtihonga juda o'xshash.",
-    date: "2025-12-14",
-    rating: 5,
-  },
-  {
-    id: 2,
-    name: "Malika Ismoilova",
-    text: "Listening testlari turli aksentlar bilan — bu juda foydali. 7.5 oldim shu platforma tufayli!",
-    date: "2025-12-10",
-    rating: 5,
-  },
-  {
-    id: 3,
-    name: "Javohir Tursunov",
-    text: "Writing bo'limidagi word counter va instant feedback juda zo'r. 6.0 dan 7.0 ga ko'tardim.",
-    date: "2025-11-28",
-    rating: 4,
-  },
-  {
-    id: 4,
-    name: "Nodira Karimova",
-    text: "Timer funksiyasi haqiqiy imtihondagi bosimni his qilishga yordam beradi. Ajoyib platforma!",
-    date: "2025-11-15",
-    rating: 5,
-  },
-  {
-    id: 5,
-    name: "Alisher Umarov",
-    text: "Barcha testlar sifatli va professional. Do'stlarimga ham tavsiya qildim.",
-    date: "2025-11-02",
-    rating: 4,
-  },
-  {
-    id: 6,
-    name: "Dilnoza Tosheva",
-    text: "Eng yaxshi IELTS tayyorgarlik sayti! Interface juda toza va qulay.",
-    date: "2025-10-20",
-    rating: 5,
-  },
-];
+import AllCommentsModal from "@/components/AllCommentsModal";
 
 function CommentCard({ comment }) {
   return (
     <div className="min-w-[280px] max-w-[320px] shrink-0 rounded-xl border bg-card p-4 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3 mb-2">
-        <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary font-bold text-xs">
-          {comment.name.split(" ").map(n => n[0]).join("")}
+        <div 
+          className="flex items-center justify-center w-9 h-9 rounded-full font-bold text-xs text-white"
+          style={{ background: comment.color || 'var(--primary)' }}
+        >
+          {comment.avatar || (comment.name && comment.name[0]) || 'U'}
         </div>
         <div>
           <h4 className="font-semibold text-sm leading-tight">{comment.name}</h4>
@@ -129,30 +89,60 @@ function AutoScrollCarousel({ comments }) {
 }
 
 export default function CommentsPage() {
-  const [comments, setComments] = useState(initialComments);
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [commentText, setCommentText] = useState("");
   const [rating, setRating] = useState(5);
+  const [band, setBand] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    fetch('/api/comments')
+      .then(r => r.json())
+      .then(data => {
+        setComments(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error fetching comments:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!firstName.trim() || !lastName.trim() || !commentText.trim()) return;
 
-    const newComment = {
-      id: Date.now(),
+    const payload = {
       name: `${firstName.trim()} ${lastName.trim()}`,
       text: commentText.trim(),
-      date: new Date().toISOString().split("T")[0],
       rating,
+      band: band ? parseFloat(band) : null,
     };
 
-    setComments((prev) => [newComment, ...prev]);
+    try {
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const returnedComment = await res.json();
+      if (res.ok) {
+        setComments(prev => [returnedComment, ...prev]);
+      } else {
+        console.error("Error submitting:", returnedComment.error);
+      }
+    } catch(err) {
+      console.error(err);
+    }
     setFirstName("");
     setLastName("");
     setCommentText("");
     setRating(5);
+    setBand("");
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 3000);
   };
@@ -172,8 +162,18 @@ export default function CommentsPage() {
 
       {/* Carousel — auto scroll, no page scroll */}
       <div className="shrink-0 mb-4">
-        <h2 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wider">O'quvchilar fikrlari</h2>
-        <AutoScrollCarousel comments={comments} />
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">O'quvchilar fikrlari</h2>
+          {comments.length > 0 && (
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="text-sm text-primary hover:underline font-medium"
+            >
+              Barcha fikrlarni ko'rish
+            </button>
+          )}
+        </div>
+        {!loading && <AutoScrollCarousel comments={comments} />}
       </div>
 
       {/* Divider */}
@@ -190,7 +190,7 @@ export default function CommentsPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3 max-w-2xl">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <input
               type="text"
               placeholder="Ism"
@@ -207,6 +207,19 @@ export default function CommentsPage() {
               required
               className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
             />
+            <select
+              value={band}
+              onChange={(e) => setBand(e.target.value)}
+              className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all"
+              style={!band ? { color: 'var(--muted-foreground)' } : {}}
+            >
+              <option value="" disabled hidden>Band score (ixtiyoriy)</option>
+              {[5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0].map(b => (
+                <option key={b} value={b} style={{ color: 'var(--foreground)' }}>
+                  {b.toFixed(1)}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Rating + Textarea row */}
@@ -245,6 +258,12 @@ export default function CommentsPage() {
           </Button>
         </form>
       </div>
+
+      <AllCommentsModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        comments={comments} 
+      />
     </div>
   );
 }

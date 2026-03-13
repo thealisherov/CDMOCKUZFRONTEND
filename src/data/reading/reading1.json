@@ -1,12 +1,13 @@
 {
   "id": "reading-test-optimism-science",
   "title": "IELTS Reading Mock Test",
-  "testFormat": "full_test", 
+  "testFormat": "full_test",
   "testType": "cambridge",
   "level": "medium",
   "timer": 60,
   "totalQuestions": 40,
   "testTution": "paid",
+  "//comment": "test uchun",
   "passages": [
     {
       "passageNumber": 1,
@@ -21,27 +22,48 @@
             {
               "number": 1,
               "question": "Studies at Yale University have shown that a positive attitude can lengthen someone’s lifespan by approximately ______.",
-              "answer": "seven years"
+              "answer": "seven years",
+              "alternativeAnswers": [
+                "Seven years",
+                "SEVEN YEARS",
+                "Seven Years"
+              ]
             },
             {
               "number": 2,
               "question": "Another US research team claims to have found a physical reason why this happens. As a result of an eight-year study on ______ male subjects of a certain age,",
-              "answer": "670"
+              "answer": "670",
+              "alternativeAnswers": []
             },
             {
               "number": 3,
               "question": "they have noted differences in the ______ among positive and negative thinkers.",
-              "answer": "lung function"
+              "answer": "lung function",
+              "alternativeAnswers": [
+                "Lung function",
+                "LUNG FUNCTION",
+                "Lung Function"
+              ]
             },
             {
               "number": 4,
               "question": "This discovery has led them to conclude that positive thinking makes the body’s entire ______ stronger, which, in turn, reduces ageing.",
-              "answer": "immune system"
+              "answer": "immune system",
+              "alternativeAnswers": [
+                "Immune system",
+                "IMMUNE SYSTEM",
+                "Immune System"
+              ]
             },
             {
               "number": 5,
               "question": "Rosalind Wright cites some early research on ______ in support of this view.",
-              "answer": "heart patients"
+              "answer": "heart patients",
+              "alternativeAnswers": [
+                "Heart patients",
+                "HEART PATIENTS",
+                "Heart Patients"
+              ]
             }
           ]
         },
@@ -201,7 +223,10 @@
           "instruction": "Choose TWO correct answers.",
           "questions": [
             {
-              "numbers": [21, 22],
+              "numbers": [
+                21,
+                22
+              ],
               "question": "Which TWO of the following reasons are given as possible explanations of scientists play behaviour?",
               "options": [
                 "A. Play may provide relief from their work.",
@@ -210,7 +235,10 @@
                 "D. Scientists get ideas from children's questions.",
                 "E. Scientists are secretive about their work."
               ],
-              "answers": ["A", "C"]
+              "answers": [
+                "A",
+                "C"
+              ]
             }
           ]
         },
@@ -221,22 +249,40 @@
             {
               "number": 23,
               "question": "Scientists play tricks\n\nThe passage gives two examples of tricks arising from the playfulness of scientists. Researchers at Caltech found that a colleague had been stealing their ______ and used a hoax involving a fake NMR spectrum to trap the offender.",
-              "answer": "data"
+              "answer": "data",
+              "alternativeAnswers": [
+                "Data",
+                "DATA"
+              ]
             },
             {
               "number": 24,
               "question": "Another story concerns a plate which a famous ______ is said to have left behind on a visit to California.",
-              "answer": "English navigator"
+              "answer": "English navigator",
+              "alternativeAnswers": [
+                "english navigator",
+                "ENGLISH NAVIGATOR",
+                "English Navigator"
+              ]
             },
             {
               "number": 25,
               "question": "The ______ that the plate was made of later revealed that it was a fake,",
-              "answer": "copper and zinc"
+              "answer": "copper and zinc",
+              "alternativeAnswers": [
+                "Copper and zinc",
+                "COPPER AND ZINC",
+                "Copper And Zinc"
+              ]
             },
             {
               "number": 26,
               "question": "a hoax carried out by friends of the director of the ______ .",
-              "answer": "Bancroft Library"
+              "answer": "Bancroft Library",
+              "alternativeAnswers": [
+                "bancroft library",
+                "BANCROFT LIBRARY"
+              ]
             }
           ]
         }

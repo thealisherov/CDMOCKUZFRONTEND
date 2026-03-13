@@ -4,10 +4,14 @@ import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { cn } from "@/lib/utils";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { LanguageProvider } from "@/components/LanguageContext";
+import { useTheme } from "next-themes"; // Assuming next-themes for useTheme
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const saved = localStorage.getItem("sidebar-collapsed");
@@ -23,9 +27,10 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+    <LanguageProvider>
+      <div className="min-h-screen flex" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
 
-      {/* ── Desktop Sidebar ── */}
+        {/* ── Desktop Sidebar ── */}
       <aside
         className={cn(
           "hidden md:flex flex-col fixed top-0 bottom-0 left-0 z-30 transition-all duration-300 ease-in-out",
@@ -61,7 +66,7 @@ export default function DashboardLayout({ children }) {
             <Menu className="h-5 w-5" />
             <span className="sr-only">Open sidebar</span>
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <div
               className="w-6 h-6 rounded-md flex items-center justify-center"
               style={{ background: 'linear-gradient(135deg, oklch(0.68 0.22 270), oklch(0.72 0.2 200))' }}
@@ -70,10 +75,13 @@ export default function DashboardLayout({ children }) {
             </div>
             <span className="font-bold text-base tracking-tight">Mega IELTS</span>
           </div>
+          <div className="flex items-center justify-end">
+            <LanguageSelector />
+          </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6 overflow-hidden">
+        <main className="flex-1 p-6 overflow-hidden relative">
           {children}
         </main>
       </div>
@@ -110,6 +118,7 @@ export default function DashboardLayout({ children }) {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </LanguageProvider>
   );
 }

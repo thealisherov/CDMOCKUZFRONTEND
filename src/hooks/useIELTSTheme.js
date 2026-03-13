@@ -20,6 +20,11 @@ const CONTRAST_THEMES = {
     '--opts-border':    '#e0e0e0',
     '--opts-highlight': '#ebebeb',
     '--opts-muted':     '#555555',
+    '--test-hl-bg':     '#ffee58',
+    '--test-hl-fg':     '#000000',
+    '--test-note-bg':   '#bfd4f2',
+    '--test-note-fg':   '#000000',
+    '--test-note-border': '#a6c1e3',
   },
   'white-on-black': {
     '--test-bg':        '#000000',
@@ -38,6 +43,11 @@ const CONTRAST_THEMES = {
     '--opts-border':    '#444444',
     '--opts-highlight': '#222222',
     '--opts-muted':     '#aaaaaa',
+    '--test-hl-bg':     '#ffee58',
+    '--test-hl-fg':     '#000000',
+    '--test-note-bg':   '#bfd4f2',
+    '--test-note-fg':   '#000000',
+    '--test-note-border': '#a6c1e3',
   },
   'yellow-on-black': {
     '--test-bg':        '#000000',
@@ -56,6 +66,11 @@ const CONTRAST_THEMES = {
     '--opts-border':    '#555500',
     '--opts-highlight': '#1a1a00',
     '--opts-muted':     '#cccc00',
+    '--test-hl-bg':     '#ffff00',
+    '--test-hl-fg':     '#000000',
+    '--test-note-bg':   '#ffff00',
+    '--test-note-fg':   '#000000',
+    '--test-note-border': '#555500',
   },
 };
 

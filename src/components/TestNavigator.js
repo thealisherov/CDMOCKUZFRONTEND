@@ -92,7 +92,7 @@ export default function TestNavigator({
                 </span>
 
                 {/* Question number boxes */}
-                <div className="flex items-center gap-[5px] overflow-x-auto no-scrollbar">
+                <div className="flex items-center gap-[5px] overflow-x-auto ">
                   {stats.questions.map((qNum) => {
                     const isAnswered = answeredSet.has(String(qNum));
                     const isCurrent = currentQuestion === qNum;
@@ -102,7 +102,7 @@ export default function TestNavigator({
                         key={qNum}
                         onClick={() => scrollToQuestion(qNum)}
                         title={`Go to question ${qNum}`}
-                        className={`flex items-center justify-center min-w-[29px] h-[42px] text-[18px] font-semibold shrink-0 outline-none cursor-pointer transition-colors`}
+                        className={`flex items-center justify-center min-w-[25px] h-[42px] text-[18px] font-semibold shrink-0 outline-none cursor-pointer transition-colors`}
                         style={{
                           border: isCurrent ? '2px solid #2563eb' : `1px solid var(--test-border)`,
                           background: isCurrent ? 'var(--test-bg)' : isAnswered ? 'var(--test-strip-bg)' : 'var(--test-bg)',

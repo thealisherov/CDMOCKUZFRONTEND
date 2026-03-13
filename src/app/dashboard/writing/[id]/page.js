@@ -1,57 +1,58 @@
-"use client";
+/**
+ * Writing Test Page — Server Component
+ *
+ * Fetches writing test data from Supabase and passes to client.
+ * Writing tests have NO answers to sanitize (user writes freely),
+ * so we pass the full data as-is.
+ */
+import { createClient } from '@/utils/supabase/server'
+import WritingTestClient from './WritingTestClient'
 
-import { use } from "react";
-import { useRouter } from "next/navigation";
-import Timer from "@/components/Timer";
-import WritingEditor from "@/components/WritingEditor";
-import { Button } from "@/components/ui/button";
-import { useDynamicFavicon } from "@/hooks/useDynamicFavicon";
+async function loadTestData(testId) {
+  try {
+    const supabase = await createClient()
+    const numericId = Number(testId)
 
-export default function WritingTestPage({ params }) {
-  const { id } = use(params);
-  const router = useRouter();
-  const timerKey = `timer_writing_${id}`;
+    let testRow = null
 
-  // Swap favicon while test is open
-  useDynamicFavicon('/favicon.png');
+    // Strategy 1: numeric ID → fetch by type + position
+    if (!isNaN(numericId) && numericId > 0) {
+      const { data: rows, error } = await supabase
+        .from('Tests')
+        .select('*')
+        .eq('type', 'writing')
+        .order('created_at', { ascending: true })
 
-  const handleExit = () => { localStorage.removeItem(timerKey); router.push('/dashboard/writing'); };
+      if (!error && rows) {
+        testRow = rows[numericId - 1] || null
+      }
+    }
 
-  return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <div className="flex items-center justify-between mb-4 border-b pb-4">
-        <h1 className="text-xl font-bold">Writing Task #{id}</h1>
-         <div className="flex items-center gap-4">
-           <Timer initialMinutes={40} storageKey={timerKey} />
-           <Button variant="destructive" onClick={handleExit}>Exit</Button>
-         </div>
-      </div>
-      
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 h-full overflow-hidden">
-        {/* Task Prompt */}
-        <div className="h-full overflow-y-auto pr-4 border-r">
-          <div className="bg-secondary/50 p-6 rounded-lg mb-6">
-            <h3 className="font-bold text-lg mb-2">Instructions</h3>
-            <p className="text-muted-foreground mb-4">You should spend about 40 minutes on this task.</p>
-            <p className="text-muted-foreground mb-4">Write about the following topic:</p>
-            
-            <div className="bg-background border p-4 rounded mb-4 font-medium italic">
-              "Some people think that children should begin their formal education at a very early age and should spend most of their time on school studies. Others believe that young children should spend most of their time playing."
-            </div>
-            
-            <p className="text-muted-foreground mb-4">Discuss both these views and give your own opinion.</p>
-            <p className="text-muted-foreground">Give reasons for your answer and include any relevant examples from your own knowledge or experience.</p>
-            <p className="text-muted-foreground mt-2">Write at least 250 words.</p>
-          </div>
-        </div>
-        
-        {/* Editor */}
-        <div className="h-full overflow-y-auto pl-2">
-          <div className="h-full pb-4">
-            <WritingEditor onSubmit={(text) => alert(`Submitted ${text.length} characters!`)} />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    // Strategy 2: string test_id → direct lookup
+    if (!testRow) {
+      const { data: row, error } = await supabase
+        .from('Tests')
+        .select('*')
+        .eq('test_id', testId)
+        .single()
+
+      if (!error && row) {
+        testRow = row
+      }
+    }
+
+    if (!testRow) return null
+
+    return testRow.data
+  } catch (err) {
+    console.error('[WritingTestPage] Error loading test:', err)
+    return null
+  }
+}
+
+export default async function WritingTestPage({ params }) {
+  const { id } = await params
+  const rawData = await loadTestData(id)
+
+  return <WritingTestClient id={id} rawData={rawData} />
 }

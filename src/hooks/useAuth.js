@@ -2,47 +2,113 @@
 
 import { useState, createContext, useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
-    // Check local storage or cookie for session
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    // Check initial session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+      if (currentUser) {
+        const meta = currentUser.user_metadata || {};
+        const isPremium = meta.role === 'admin' || (meta.premium_until && new Date(meta.premium_until) > new Date());
+        currentUser.isPremium = isPremium;
+      }
+      setUser(currentUser);
+    };
+
+    checkSession();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        const currentUser = session?.user ?? null;
+        if (currentUser) {
+          const meta = currentUser.user_metadata || {};
+          const isPremium = meta.role === 'admin' || (meta.premium_until && new Date(meta.premium_until) > new Date());
+          currentUser.isPremium = isPremium;
+        }
+        setUser(currentUser);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email, password) => {
-    // Mock login logic
-    console.log("Logging in with", email, password);
-    const mockUser = { id: "1", name: "Test User", email, role: "student" };
-    setUser(mockUser);
-    localStorage.setItem("user", JSON.stringify(mockUser));
-    router.push("/dashboard/reading");
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
+    router.push("/dashboard");
+    return data;
+  };
+
+  const loginWithGoogle = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback`
+      }
+    });
+    if (error) throw error;
+    // OAuth will automatically redirect to Google, then back to the `redirectTo` URL.
+    return data;
   };
 
   const register = async (name, email, password) => {
-    // Mock registration logic
-    console.log("Registering", name, email, password);
-    const mockUser = { id: "1", name, email, role: "student" };
-    setUser(mockUser);
-    localStorage.setItem("user", JSON.stringify(mockUser));
-    router.push("/dashboard/reading");
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+          role: "student",
+        }
+      }
+    });
+
+    if (error) throw error;
+    router.push("/dashboard");
+    return data;
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-    router.push("/");
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+      setUser(null);
+      router.push("/");
+    }
+  };
+
+  const resetPassword = async (email) => {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/api/auth/callback?next=/reset-password`,
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  const updatePassword = async (newPassword) => {
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    if (error) throw error;
+    return data;
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, loginWithGoogle, register, logout, resetPassword, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );

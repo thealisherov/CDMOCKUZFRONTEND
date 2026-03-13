@@ -1,10 +1,14 @@
 "use client";
 
-import { Check, X, Zap, Star, Crown, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Check, X, Zap, Star, Crown, Sparkles, Globe } from "lucide-react";
 import { useTranslation } from "@/components/LanguageContext";
+import { useRouter } from "next/navigation";
 
 export default function Pricing() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const [isUSD, setIsUSD] = useState(false);
 
   const tiers = [
     {
@@ -30,7 +34,7 @@ export default function Pricing() {
       name: t("pricing.premiumName"),
       badge: t("pricing.premiumBadge"),
       icon: Star,
-      price: "69 000",
+      price: isUSD ? "$5" : "69 000",
       priceLabel: t("pricing.premiumLabel"),
       period: t("pricing.premiumPeriod"),
       description: t("pricing.premiumDesc"),
@@ -48,7 +52,7 @@ export default function Pricing() {
       name: t("pricing.quartName"),
       badge: t("pricing.quartBadge"),
       icon: Crown,
-      price: "149 000",
+      price: isUSD ? "$12" : "149 000",
       priceLabel: t("pricing.quartLabel"),
       period: t("pricing.quartPeriod"),
       perMonth: t("pricing.quartPerMonth"),
@@ -61,6 +65,24 @@ export default function Pricing() {
       notIncluded: [],
       buttonText: t("pricing.quartBtn"),
       buttonStyle: "red",
+    },
+    {
+      id: "custom",
+      name: t("pricing.customName"),
+      badge: t("pricing.customBadge"),
+      icon: Sparkles,
+      price: "-1",
+      priceLabel: t("pricing.customLabel"),
+      period: t("pricing.customPeriod"),
+      description: t("pricing.customDesc"),
+      accentColor: "oklch(0.55 0.04 270)",
+      accentBg: "oklch(0.55 0.04 270 / 0.08)",
+      accentBorder: "oklch(0.55 0.04 270 / 0.25)",
+      popular: false,
+      features: t("pricing.customFeatures") || [],
+      notIncluded: [],
+      buttonText: t("pricing.customBtn"),
+      buttonStyle: "outline",
     },
   ];
 
@@ -84,13 +106,37 @@ export default function Pricing() {
           <h2 className="text-3xl font-black tracking-tight sm:text-4xl" style={{ color: "var(--foreground)" }}>
             {t("pricing.title")}
           </h2>
-          <p className="mx-auto max-w-[560px] text-base" style={{ color: "var(--muted-foreground)" }}>
+          <p className="mx-auto max-w-[560px] text-base mb-6" style={{ color: "var(--muted-foreground)" }}>
             {t("pricing.desc")}
           </p>
+          
+          {/* Currency Toggle */}
+          <div className="flex justify-center pt-2">
+            <div className="inline-flex bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl items-center shadow-inner">
+              <button
+                onClick={() => setIsUSD(true)}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  isUSD ? "bg-white dark:bg-gray-700 shadow-md text-blue-600 dark:text-blue-400" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5"
+                }`}
+              >
+                <Globe className="w-4 h-4 opacity-70" />
+                USD
+              </button>
+              <button
+                onClick={() => setIsUSD(false)}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  !isUSD ? "bg-white dark:bg-gray-700 shadow-md text-emerald-600 dark:text-emerald-400" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5"
+                }`}
+              >
+                <span className="font-serif leading-none opacity-80 mt-0.5">UZ</span>
+                UZS
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-7 max-w-5xl mx-auto items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-7 max-w-6xl mx-auto items-stretch">
           {tiers.map((tier) => {
             const Icon = tier.icon;
             return (
@@ -144,14 +190,20 @@ export default function Pricing() {
                         <span className="text-4xl font-black" style={{ color: tier.accentColor }}>
                           {t("pricing.freeLabel")}
                         </span>
+                      ) : tier.price === "-1" ? (
+                        <span className="text-3xl font-black" style={{ color: tier.accentColor }}>
+                          {t("pricing.customLabel")}
+                        </span>
                       ) : (
                         <>
                           <span className="text-3xl font-black tracking-tight" style={{ color: "var(--foreground)" }}>
                             {tier.price}
                           </span>
-                          <span className="text-sm font-semibold" style={{ color: "var(--muted-foreground)" }}>
-                            UZS
-                          </span>
+                          {!isUSD && (
+                            <span className="text-sm font-semibold" style={{ color: "var(--muted-foreground)" }}>
+                              UZS
+                            </span>
+                          )}
                         </>
                       )}
                     </div>
@@ -216,6 +268,13 @@ export default function Pricing() {
                     }
                     onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.88"; e.currentTarget.style.transform = "translateY(-1px)"; }}
                     onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; }}
+                    onClick={() => {
+                      if (tier.id === "free") {
+                        router.push("/dashboard");
+                      } else {
+                        router.push(`/dashboard/payment?plan=${tier.id}&currency=${isUSD ? 'usd' : 'uzs'}`);
+                      }
+                    }}
                   >
                     {tier.buttonText}
                   </button>
@@ -227,7 +286,7 @@ export default function Pricing() {
 
         {/* Bottom note */}
         <p className="text-center text-xs mt-10" style={{ color: "var(--muted-foreground)" }}>
-          {t("pricing.note")}
+          {isUSD ? t("pricing.noteUSD") : t("pricing.note")}
         </p>
       </div>
     </section>

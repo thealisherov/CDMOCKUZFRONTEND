@@ -1,0 +1,283 @@
+{
+  "id": "listening-test-1-clarence-house",
+  "title": "Listening Test 1",
+  "testFormat": "full_test",
+  "testType": "volume",
+  "level": "medium",
+  "timer": 40,
+  "totalQuestions": 40,
+ "_comment": "Volume7 test 1",
+  "testTution": "free",
+  "audio": "https://pub-359de657d62948868dbf1b069ed70702.r2.dev/Test1.mp3",
+  "parts": [
+    {
+      "partNumber": 1,
+      "questionRange": "1-10",
+      "image": null,
+      "questionGroups": [
+        {
+          "groupType": "note_completion",
+          "instruction": "Complete the notes below. Write ONE WORD AND/OR A NUMBER for each answer.",
+          "questions": [
+            {
+              "number": 1,
+              "question": "<b>Wedding arrangements - Clarence House Hotel</b><br>Available date: 1st June<br><b>The Oxford Suite has:</b><ul><li>a dining room with a good view of the ______</li></ul>",
+              "answer": "city",
+              "alternativeAnswers": ["City", "CITY", "city"]
+            },
+            {
+              "number": 2,
+              "question": "<ul><li>a private garden for ______ and for the wedding ceremony</li></ul>",
+              "answer": "photos",
+              "alternativeAnswers": ["Photos", "PHOTOS", "photos"]
+            },
+            {
+              "number": 3,
+              "question": "<ul><li>an area suitable for dancing</li></ul><b>The wedding package includes:</b><ul><li>use of the Oxford Suite</li><li>a three-course meal</li><li>room arranged with ______ tables</li></ul>",
+              "answer": "round",
+              "alternativeAnswers": ["Round", "ROUND", "round"]
+            },
+            {
+              "number": 4,
+              "question": "<ul><li>table ______ included</li></ul>",
+              "answer": "decorations",
+              "alternativeAnswers": ["Decorations", "DECORATIONS", "decorations"]
+            },
+            {
+              "number": 5,
+              "question": "<ul><li>white tablecloths and chairs</li><li>personalised printed ______</li></ul>",
+              "answer": "menu",
+              "alternativeAnswers": ["Menu", "MENU", "menu"]
+            },
+            {
+              "number": 6,
+              "question": "<ul><li>a late-evening buffet with a choice of ______ and hot drinks</li></ul>",
+              "answer": "sandwiches",
+              "alternativeAnswers": ["Sandwiches", "SANDWICHES", "sandwiches"]
+            },
+            {
+              "number": 7,
+              "question": "Music: hotel will organise a band (not included in price)<br>Total cost of package: £ ______",
+              "answer": "5995",
+              "alternativeAnswers": []
+            },
+            {
+              "number": 8,
+              "question": "Can also recommend a ______ supplier (new company)",
+              "answer": "cake",
+              "alternativeAnswers": ["Cake", "CAKE", "cake"]
+            },
+            {
+              "number": 9,
+              "question": "Wedding coordinator Sarah ______",
+              "answer": "Izard",
+              "alternativeAnswers": ["Izard", "IZARD", "izard"]
+            },
+            {
+              "number": 10,
+              "question": "Date arranged for visit: ______ at 11.30 a.m",
+              "answer": "15th October",
+              "alternativeAnswers": ["15th October", "15TH OCTOBER", "15th october"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "partNumber": 2,
+      "questionRange": "11-20",
+      "image": "/images/listening/volume7listening1.webp",
+      "questionGroups": [
+        {
+          "groupType": "matching",
+          "instruction": "What information does the tour guide give about each of the following products? Choose SIX correct letters, A-I, next to questions 11-16.",
+          "options": [
+            "A pure",
+            "B expensive",
+            "C perfumed",
+            "D best value for money",
+            "E imported",
+            "F made in the village",
+            "G popular overseas",
+            "H prize-winning",
+            "I coloured"
+          ],
+          "questions": [
+            { "number": 11, "question": "hand cream", "answer": "G" },
+            { "number": 12, "question": "jam", "answer": "B" },
+            { "number": 13, "question": "soaps", "answer": "A" },
+            { "number": 14, "question": "candles", "answer": "D" },
+            { "number": 15, "question": "ice cream", "answer": "H" },
+            { "number": 16, "question": "shampoo", "answer": "F" }
+          ]
+        },
+        {
+          "groupType": "map_labeling",
+          "instruction": "Label the map below. Choose the correct letter, A-H, next to the questions 17-20.",
+          "questions": [
+            { "number": 17, "question": "Wood", "answer": "B" },
+            { "number": 18, "question": "China", "answer": "H" },
+            { "number": 19, "question": "Wool", "answer": "E" },
+            { "number": 20, "question": "Drinks", "answer": "G" }
+          ]
+        }
+      ]
+    },
+    {
+      "partNumber": 3,
+      "questionRange": "21-30",
+      "image": null,
+      "questionGroups": [
+        {
+          "groupType": "multiple_choice",
+          "instruction": "Choose the correct answer.",
+          "questions": [
+            {
+              "number": 21,
+              "question": "Jen states that Irene has recently",
+              "options": [
+                "A) finished planting the experiment.",
+                "B) taken an extended break.",
+                "C) spent a lot of time in the laboratory."
+              ],
+              "answer": "C"
+            },
+            {
+              "number": 22,
+              "question": "What is Bill's attitude toward Kim?",
+              "options": [
+                "A) He is grateful for her contribution.",
+                "B) He thinks she is stylish.",
+                "C) He resents her avoiding lab work."
+              ],
+              "answer": "A"
+            },
+            {
+              "number": 23,
+              "question": "Jen believes that their project",
+              "options": [
+                "A) would be easier for boys good at maths.",
+                "B) would fail without Kim and Irene's input.",
+                "C) is almost done because Kim has finished the data analysis."
+              ],
+              "answer": "B"
+            },
+            {
+              "number": 24,
+              "question": "Bill and Jen are irritated with Linda because",
+              "options": [
+                "A) she is always late with her work.",
+                "B) she fails to keep in touch enough.",
+                "C) she thinks the project is an easy grade."
+              ],
+              "answer": "B"
+            },
+            {
+              "number": 25,
+              "question": "Jen was asked to join the team because she",
+              "options": [
+                "A) is popular with everyone on the team.",
+                "B) always reads all of her assignments.",
+                "C) enjoys talking to Professor Cooper."
+              ],
+              "answer": "C"
+            }
+          ]
+        },
+        {
+          "groupType": "matching",
+          "instruction": "Which section will each of the following group members write up? Choose FIVE correct letters, A-G, next to questions 26-30.",
+          "options": [
+            "A Abstract",
+            "B Acknowledgements",
+            "C Bibliography",
+            "D Discussion",
+            "E Literature review",
+            "F Methodology",
+            "G Results"
+          ],
+          "questions": [
+            { "number": 26, "question": "Irene", "answer": "F" },
+            { "number": 27, "question": "Kim", "answer": "G" },
+            { "number": 28, "question": "Jen", "answer": "E" },
+            { "number": 29, "question": "Bill", "answer": "C" },
+            { "number": 30, "question": "Linda", "answer": "D" }
+          ]
+        }
+      ]
+    },
+    {
+      "partNumber": 4,
+      "questionRange": "31-40",
+      "image": null,
+      "questionGroups": [
+        {
+          "groupType": "note_completion",
+          "instruction": "Complete the notes below. Write NO MORE THAN TWO WORDS for each answer.",
+          "questions": [
+            {
+              "number": 31,
+              "question": "<b>Impact of cars in Australia (1940s - 1990s)</b><br><br><b>1940s</b><ul><li>One person in eight owned a car</li><li>______ transport was used for 60% of journeys</li></ul>",
+              "answer": "public",
+              "alternativeAnswers": ["Public", "PUBLIC", "public"]
+            },
+            {
+              "number": 32,
+              "question": "<ul><li>Buses: Problems - crowded and ______ Advantage – affordable</li></ul>",
+              "answer": "uncomfortable",
+              "alternativeAnswers": ["Uncomfortable", "UNCOMFORTABLE", "uncomfortable"]
+            },
+            {
+              "number": 33,
+              "question": "<ul><li>Cars were associated with ______</li></ul>",
+              "answer": "freedom",
+              "alternativeAnswers": ["Freedom", "FREEDOM", "freedom"]
+            },
+            {
+              "number": 34,
+              "question": "<ul><li>Problems of car ownerships i. cost ii. many spare parts were imported</li><li>iii. Result of pressure from motorists - new ______ in Australia in 1949</li></ul>",
+              "answer": "taxes",
+              "alternativeAnswers": ["Taxes", "TAXES", "taxes"]
+            },
+            {
+              "number": 35,
+              "question": "<b>1960s</b><ul><li>Cars were cheaper and more reliable More people restrictions on fuel iv. high ______ on cars</li></ul>",
+              "answer": "government",
+              "alternativeAnswers": ["Government", "GOVERNMENT", "government"]
+            },
+            {
+              "number": 36,
+              "question": "<ul><li>lived in the suburbs</li><li>Main streets were congested and ______ (and usually straight)</li></ul>",
+              "answer": "polluted",
+              "alternativeAnswers": ["Polluted", "POLLUTED", "polluted"]
+            },
+            {
+              "number": 37,
+              "question": "<ul><li>New streets were built with curves to make drivers slow down</li></ul><b>1970s</b><ul><li>Roads had more ______</li></ul>",
+              "answer": "lanes",
+              "alternativeAnswers": ["Lanes", "LANES", "lanes"]
+            },
+            {
+              "number": 38,
+              "question": "<ul><li>More commuters</li><li>Car use affected the ______ between people</li></ul>",
+              "answer": "relationships",
+              "alternativeAnswers": ["Relationships", "RELATIONSHIPS", "relationships"]
+            },
+            {
+              "number": 39,
+              "question": "<ul><li>New types of ______ were designed to attract motorists</li></ul>",
+              "answer": "advertisements",
+              "alternativeAnswers": ["Advertisements", "ADVERTISEMENTS", "advertisements"]
+            },
+            {
+              "number": 40,
+              "question": "<b>1980s and 1990s</b><ul><li>Less business in town centres because of introduction of ______</li><li>Introduction of drive-in facilities, e.g. restaurants</li></ul>",
+              "answer": "shopping malls",
+              "alternativeAnswers": ["Shopping malls", "SHOPPING MALLS", "shopping malls", "shopping mall"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
