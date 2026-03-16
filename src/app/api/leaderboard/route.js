@@ -1,23 +1,35 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { createClient } from '@/utils/supabase/server';
 
-const supabaseAdmin = createClient(
+const supabaseAdmin = createAdminClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY || 'fake'
 );
 
 export async function GET(req) {
   try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) return NextResponse.json({ error: 'Missing auth' }, { status: 401 });
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-    if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    // Fetch ALL users
-    const { data: { users }, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
-    if (usersError) throw usersError;
+    // Fetch ALL users via admin client
+    const { data: usersData, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
+    
+    if (usersError) {
+      console.error('[Leaderboard API] listUsers error:', usersError);
+      // Fallback: If listUsers fails (maybe missing key), we can only show the current user or an empty list
+      return NextResponse.json({ 
+        error: 'Could not fetch users list. Check SUPABASE_SERVICE_ROLE_KEY in production.',
+        leaderboard: [],
+        currentUser: null 
+      }, { status: 500 });
+    }
+
+    const users = usersData.users;
 
     // Filter out admins — only students in leaderboard
     const students = users.filter(u => u.user_metadata?.role !== 'admin');

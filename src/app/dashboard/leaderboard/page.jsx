@@ -9,6 +9,7 @@ import { Trophy, Flame, Lock, Star, Crown } from "lucide-react";
 
 export default function LeaderboardPage() {
   const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -23,15 +24,22 @@ export default function LeaderboardPage() {
 
   const fetchLeaderboard = async () => {
     try {
+      setError(null);
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch("/api/leaderboard", {
         headers: { Authorization: `Bearer ${session?.access_token}` }
       });
-      if (!res.ok) throw new Error("Failed");
       const result = await res.json();
+      
+      if (!res.ok) {
+        setError(result.error || "Failed to load leaderboard");
+        return;
+      }
+      
       setData(result);
     } catch (err) {
       console.error(err);
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -61,6 +69,12 @@ export default function LeaderboardPage() {
         <h1 className="text-3xl font-black">{t("leaderboard.title")}</h1>
         <p className="text-sm text-muted-foreground max-w-md mx-auto">{t("leaderboard.desc")}</p>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-2xl text-center text-sm font-bold">
+          {error}
+        </div>
+      )}
 
       {/* Your Rank — only for premium */}
       {isPremium && currentUser && (
@@ -135,7 +149,7 @@ export default function LeaderboardPage() {
           </div>
         </div>
         <div className="divide-y divide-border/40">
-          {rest.map((entry) => (
+          {visibleList.map((entry) => (
             <div 
               key={entry.user_id}
               className={`grid grid-cols-12 items-center py-3 px-3 sm:px-4 text-sm transition-colors ${entry.isCurrentUser ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : 'hover:bg-muted/5'}`}
