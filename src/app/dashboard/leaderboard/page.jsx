@@ -117,7 +117,7 @@ export default function LeaderboardPage() {
             onClick={() => router.push('/dashboard/payment')}
             className="px-6 py-3 bg-white text-indigo-700 rounded-xl font-black text-sm hover:bg-white/90 transition-all shrink-0 flex items-center gap-2"
           >
-            <Star className="w-4 h-4" /> Premium
+            <Star className="w-4 h-4" /> {t("sidebar.premium") || "Premium"}
           </button>
         </div>
       )}
@@ -142,7 +142,7 @@ export default function LeaderboardPage() {
         <div className="p-3 sm:p-4 border-b border-border bg-muted/10">
           <div className="grid grid-cols-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             <div className="col-span-1 text-center">#</div>
-            <div className="col-span-5 sm:col-span-5">{t("leaderboard.tests") === "Tests" ? "Student" : "O'quvchi"}</div>
+            <div className="col-span-5 sm:col-span-5">{t("leaderboard.studentColumn") || (t("leaderboard.tests") === "Tests" ? "Student" : "O'quvchi")}</div>
             <div className="col-span-2 text-center">XP</div>
             <div className="col-span-2 text-center hidden sm:block">{t("leaderboard.tests")}</div>
             <div className="col-span-4 sm:col-span-2 text-center">{t("leaderboard.streak")}</div>
@@ -164,7 +164,7 @@ export default function LeaderboardPage() {
                   )}
                 </div>
                 <span className="font-bold truncate text-xs sm:text-sm">{entry.full_name}</span>
-                {entry.isCurrentUser && <span className="text-[9px] font-black bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full shrink-0">YOU</span>}
+                {entry.isCurrentUser && <span className="text-[9px] font-black bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full shrink-0">{t("leaderboard.you") || "YOU"}</span>}
               </div>
               <div className="col-span-2 text-center font-black text-indigo-600 text-xs sm:text-sm">{entry.xp}</div>
               <div className="col-span-2 text-center text-muted-foreground hidden sm:block">{entry.tests_taken}</div>
@@ -186,7 +186,7 @@ export default function LeaderboardPage() {
       {!isPremium && leaderboard.length > 10 && (
         <div className="text-center py-8 border-2 border-dashed border-indigo-200 dark:border-indigo-800 rounded-3xl">
           <Lock className="w-8 h-8 mx-auto mb-3 text-indigo-400" />
-          <p className="font-bold text-muted-foreground mb-1">+{leaderboard.length - 10} more students</p>
+          <p className="font-bold text-muted-foreground mb-1">+{leaderboard.length - 10} {t("leaderboard.moreStudents") || "more students"}</p>
           <p className="text-sm text-muted-foreground mb-4">{t("leaderboard.premiumOnly")}</p>
           <button 
             onClick={() => router.push('/dashboard/payment')}

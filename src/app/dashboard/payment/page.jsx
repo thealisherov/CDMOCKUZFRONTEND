@@ -47,7 +47,7 @@ function PaymentContent() {
             }`}
           >
             <Globe className="w-4 h-4 opacity-70" />
-            USD
+            {t("payment.usd") || "USD"}
           </button>
           <button
             onClick={() => setIsUSD(false)}
@@ -56,7 +56,7 @@ function PaymentContent() {
             }`}
           >
             <span className="font-serif leading-none opacity-80 mt-0.5">UZ</span>
-            UZS
+            {t("payment.uzs") || "UZS"}
           </button>
         </div>
       </div>

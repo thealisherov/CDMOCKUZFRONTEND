@@ -136,9 +136,12 @@ export const translations = {
       step2Inst3: "Send the receipt to the <AdminLink>Admin on Telegram</AdminLink> along with your <strong>account email address</strong> and <strong>full name</strong>.",
       contactAdmin: "Contact Admin to Activate",
       cardTitle: "Official Payment Card",
+      activePlan: "Active Plan",
       copied: "Copied!",
       copy: "Click to Copy",
       securityNote: "Card details are securely provided directly for this platform. Please do not share your own sensitive card details (such as CVV or expiry dates) with external admins. This transfer acts as a direct wallet top-up.",
+      usd: "USD",
+      uzs: "UZS",
     },
     sidebar: {
       reading: "Reading",
@@ -154,6 +157,8 @@ export const translations = {
       signOut: "Sign out",
       settings: "Settings",
       leaderboard: "Leaderboard",
+      modules: "Modules",
+      premiumAccount: "Premium Account",
     },
     profile: {
       accountInfo: "Account Info",
@@ -178,6 +183,11 @@ export const translations = {
       active: "Active",
       premiumPro: "Premium Pro",
       monthsAccess: "months access",
+      topStudent: "Top Performing Student",
+      basedOnXp: "Based on your count XP",
+      rankHidden: "Rank Hidden",
+      upgradeToSeeRank: "Upgrade to Premium to see your rank",
+      leaderboardRank: "Leaderboard Rank",
     },
     leaderboard: {
       title: "Top Performers",
@@ -189,6 +199,9 @@ export const translations = {
       premiumOnly: "Full leaderboard is available for Premium users",
       upgradeToSee: "Upgrade to see your rank",
       noData: "No data yet. Start taking tests!",
+      studentColumn: "Student",
+      you: "YOU",
+      moreStudents: "more students",
     },
     premiumPage: {
       title: "Upgrade to Premium",
@@ -225,6 +238,8 @@ export const translations = {
       readingDesc: "Select a test to begin your 60-minute practice session.",
       listeningDesc: "Select a test to challenge your listening skills (approx. 30-40 min).",
       writingDesc: "Choose a task and submit your essay for instant AI evaluation.",
+      tasks: "Tasks",
+      qs: "Qs",
     },
     // Footer
     footer: {
@@ -367,9 +382,12 @@ export const translations = {
       step2Inst3: "Chekni Telegram orqali <AdminLink>Adminga</AdminLink> jo'nating va akkountingiz ma'lumotlarini (<strong>email</strong> va <strong>ism-familiyangizni</strong>) taqdim qiling.",
       contactAdmin: "Adminga Yozish",
       cardTitle: "Rasmiy To'lov Kartasi",
+      cardTitle: "Rasmiy To'lov Kartasi",
       copied: "Nusxa olindi!",
       copy: "Nusxalash",
       securityNote: "Bu karta raqami faqat to'lov qilish uchun berilgan. Iltimos, o'zingizning karta ma'lumotlaringizni (CVV va amal qilish muddati kabi) boshqalarga, jumladan adminga ham bermang. Bu to'lov platformaga to'g'ridan to'g'ri o'tkazma hisoblanadi.",
+      usd: "USD",
+      uzs: "UZS",
     },
     sidebar: {
       reading: "Reading",
@@ -385,6 +403,8 @@ export const translations = {
       signOut: "Chiqish",
       settings: "Sozlamalar",
       leaderboard: "Reyting",
+      modules: "Modullar",
+      premiumAccount: "Premium Akkaunt",
     },
     profile: {
       accountInfo: "Akkaunt ma'lumotlari",
@@ -409,6 +429,11 @@ export const translations = {
       active: "Aktiv",
       premiumPro: "Premium Pro",
       monthsAccess: "oylik kirish",
+      topStudent: "Eng yetakchi o'quvchi",
+      basedOnXp: "Sizning count XP ballingiz asosida",
+      rankHidden: "Reyting yashirilgan",
+      upgradeToSeeRank: "O'z o'rningizni ko'rish uchun Premiumga o'ting",
+      leaderboardRank: "Reytingdagi o'rin",
     },
     leaderboard: {
       title: "Eng yaxshilar",
@@ -420,6 +445,9 @@ export const translations = {
       premiumOnly: "To'liq reyting faqat Premium foydalanuvchilar uchun",
       upgradeToSee: "O'z o'rningizni bilish uchun Premiumga o'ting",
       noData: "Hali ma'lumot yo'q. Test yechishni boshlang!",
+      studentColumn: "O'quvchi",
+      you: "SIZ",
+      moreStudents: "ta ko'p o'quvchilar",
     },
     premiumPage: {
       title: "Premiumga o'tish",
@@ -456,6 +484,8 @@ export const translations = {
       readingDesc: "60 daqiqalik mashg'ulotni boshlash uchun testni tanlang.",
       listeningDesc: "Tinglash qobiliyatingizni sinash uchun testni tanlang (taxminan 30-40 daq).",
       writingDesc: "AI tomonidan oniy baholash uchun inshoni tanlang va topshiring.",
+      tasks: "Vazifalar",
+      qs: "Savollar",
     },
     footer: {
       desc: "Bizning keng qamrovli platformamiz bilan IELTS imtihonini zabt eting. Mutaxassislar tomonidan jiddiy tayyorgarlik uchun yaratilgan.",
@@ -597,9 +627,12 @@ export const translations = {
       step2Inst3: "Отправьте чек <AdminLink>Админу в Telegram</AdminLink> вместе с вашим <strong>email адресом</strong> от аккаунта и <strong>именем</strong>.",
       contactAdmin: "Связаться с Администратором",
       cardTitle: "Официальная Карта Для Оплаты",
+      cardTitle: "Официальная Карта Для Оплаты",
       copied: "Скопировано!",
       copy: "Копировать",
       securityNote: "Данные карты предоставлены исключительно для оплаты. Пожалуйста, не сообщайте свои личные данные (например, CVV или срок действия вашей карты) никому. Этот перевод является прямым пополнением кошелька.",
+      usd: "USD",
+      uzs: "UZS",
     },
     sidebar: {
       reading: "Reading",
@@ -615,6 +648,8 @@ export const translations = {
       signOut: "Выйти",
       settings: "Настройки",
       leaderboard: "Рейтинг",
+      modules: "Модули",
+      premiumAccount: "Премиум Аккаунт",
     },
     profile: {
       accountInfo: "Данные аккаунта",
@@ -639,6 +674,11 @@ export const translations = {
       active: "Активна",
       premiumPro: "Premium Pro",
       monthsAccess: "мес. доступ",
+      topStudent: "Лучший студент",
+      basedOnXp: "На основе ваших count XP",
+      rankHidden: "Рейтинг скрыт",
+      upgradeToSeeRank: "Перейдите на Premium, чтобы увидеть свой ранг",
+      leaderboardRank: "Место в рейтинге",
     },
     leaderboard: {
       title: "Лучшие студенты",
@@ -650,6 +690,9 @@ export const translations = {
       premiumOnly: "Полный рейтинг доступен для Premium пользователей",
       upgradeToSee: "Перейдите на Premium, чтобы видеть свой рейтинг",
       noData: "Пока нет данных. Начните решать тесты!",
+      studentColumn: "Студент",
+      you: "ВЫ",
+      moreStudents: "больше студентов",
     },
     premiumPage: {
       title: "Перейти на Premium",
@@ -686,6 +729,8 @@ export const translations = {
       readingDesc: "Выберите тест для начала 60-минутной практики.",
       listeningDesc: "Выберите тест для проверки аудирования (прим. 30-40 мин).",
       writingDesc: "Выберите задание и отправьте эссе для мгновенной AI-оценки.",
+      tasks: "Задания",
+      qs: "Вопросы",
     },
     footer: {
       desc: "Сдайте IELTS с помощью нашей платформы. Разработано экспертами специально для вашего успеха.",

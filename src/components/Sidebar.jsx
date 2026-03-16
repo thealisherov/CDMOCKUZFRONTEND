@@ -134,7 +134,7 @@ export default function Sidebar({ collapsed, onToggle }) {
             className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest"
             style={{ color: 'oklch(0.55 0.04 270)' }}
           >
-            Modules
+            {t("sidebar.modules") || "Modules"}
           </p>
         )}
 
@@ -280,7 +280,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                   {user?.user_metadata?.full_name || user?.email?.split('@')[0] || t("sidebar.student")}
                 </p>
                 <p className="text-[10px] truncate" style={{ color: 'oklch(0.55 0.04 270)' }}>
-                  {user?.isPremium ? "Premium Account" : t("sidebar.freePlan")}
+                  {user?.isPremium ? t("sidebar.premiumAccount") || "Premium Account" : t("sidebar.freePlan")}
                 </p>
               </div>
             </div>

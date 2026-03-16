@@ -227,8 +227,8 @@ export default function TestListLayout({ title, description, tests = [], moduleT
       <div className="flex items-center gap-2">
         <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>
           {filteredTests.length === tests.length
-            ? t("testList.allTestsCount", { count: tests.length })
-            : t("testList.filteredTestsCount", { filtered: filteredTests.length, total: tests.length })}
+            ? t("testList.allTestsCount").replace("count", tests.length)
+            : t("testList.filteredTestsCount").replace("filtered", filteredTests.length).replace("total", tests.length)}
         </h2>
         {(searchQuery || levelFilter !== "All Levels" || typeFilter !== "All Types") && (
           <button
@@ -361,7 +361,7 @@ function DefaultTestItem({ test, moduleType, meta, t, user }) {
             </span>
             {test.questions && (
               <span className="flex items-center gap-1">
-                <FileText className="w-3 h-3" /> {test.questions} {moduleType === "writing" ? t("testList.tasks", { defaultValue: "Tasks" }) : t("testList.qs", { defaultValue: "Qs" })}
+                <FileText className="w-3 h-3" /> {test.questions} {moduleType === "writing" ? (t("testList.tasks") || "Tasks") : (t("testList.qs") || "Qs")}
               </span>
             )}
           </div>
