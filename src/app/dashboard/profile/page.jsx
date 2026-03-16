@@ -9,13 +9,14 @@ import { useRouter } from "next/navigation";
 import {
   Mail, Calendar, Shield, Crown, Clock, Flame,
   BookOpen, CheckCircle2, Timer, Camera,
-  Trophy, Target, Zap, CreditCard, TrendingUp
+  Trophy, Target, Zap, CreditCard, TrendingUp, Lock
 } from "lucide-react";
 
 export default function ProfilePage() {
   const { user: authUser } = useAuth();
   const { t } = useTranslation();
   const [profileData, setProfileData] = useState(null);
+  const [leaderboardData, setLeaderboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef(null);
@@ -29,12 +30,20 @@ export default function ProfilePage() {
   const fetchProfile = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch("/api/profile", {
-        headers: { Authorization: `Bearer ${session?.access_token}` }
-      });
-      if (!res.ok) throw new Error("Failed");
-      const data = await res.json();
+      
+      const [profileRes, leaderboardRes] = await Promise.all([
+        fetch("/api/profile", { headers: { Authorization: `Bearer ${session?.access_token}` }}),
+        fetch("/api/leaderboard", { headers: { Authorization: `Bearer ${session?.access_token}` }})
+      ]);
+
+      if (!profileRes.ok) throw new Error("Failed to load profile");
+      const data = await profileRes.json();
       setProfileData(data);
+
+      if (leaderboardRes.ok) {
+        const lbData = await leaderboardRes.json();
+        setLeaderboardData(lbData);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -156,6 +165,35 @@ export default function ProfilePage() {
             <InfoRow icon={Shield} label={t("profile.role")} value={meta.role || 'Student'} />
             <InfoRow icon={Calendar} label={t("profile.joined")} value={format(new Date(user.created_at), "MMMM dd, yyyy")} />
             <InfoRow icon={Zap} label={t("profile.xpLevel")} value={`${stats.xp || 0} XP`} />
+          </div>
+
+          {/* Rank Section */}
+          <div className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-border shadow-sm space-y-4 shadow-indigo-100/50 dark:shadow-none relative overflow-hidden">
+            <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground">{t("profile.leaderboardRank") || "Leaderboard Rank"}</h3>
+            {isPremium ? (
+              <div className="flex items-center gap-4 bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800/20">
+                <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-indigo-200 dark:shadow-none">
+                  #{leaderboardData?.currentUser?.rank || '?'}
+                </div>
+                <div>
+                  <p className="font-bold text-indigo-900 dark:text-indigo-100">Top Performing Student</p>
+                  <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70">Based on your {stats.xp || 0} XP</p>
+                </div>
+              </div>
+            ) : (
+              <div 
+                className="flex items-center gap-4 bg-muted/30 p-4 rounded-2xl border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => router.push('/dashboard/payment')}
+              >
+                <div className="w-12 h-12 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                  <Lock className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-bold text-muted-foreground text-sm">Rank Hidden</p>
+                  <p className="text-xs text-muted-foreground/70">Upgrade to Premium to see your rank</p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-border shadow-sm space-y-4">
