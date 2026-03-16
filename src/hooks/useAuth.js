@@ -54,11 +54,17 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  const getRedirectUrl = (path = '/api/auth/callback') => {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+    // Ensure no double slashes if path has leading slash
+    return `${baseUrl.replace(/\/$/, '')}${path}`;
+  };
+
   const loginWithGoogle = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/api/auth/callback`
+        redirectTo: getRedirectUrl()
       }
     });
     if (error) throw error;
@@ -93,7 +99,7 @@ export function AuthProvider({ children }) {
 
   const resetPassword = async (email) => {
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/api/auth/callback?next=/reset-password`,
+      redirectTo: getRedirectUrl('/api/auth/callback?next=/reset-password'),
     });
     if (error) throw error;
     return data;
