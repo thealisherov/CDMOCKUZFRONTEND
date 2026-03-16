@@ -6,10 +6,12 @@
  */
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import OpenAI from 'openai'
 
-// Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
+// Initialize OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || ''
+})
 
 // IELTS Listening/Reading band score mapping
 function calculateBand(score, total) {
@@ -89,226 +91,463 @@ function isCorrect(userAnswer, correctData) {
 }
 
 /**
- * Convert an image URL into a format Gemini can process.
+ * Convert an image URL into a format OpenAI can process.
  */
-async function urlToGenerativePart(imageUrl) {
+async function urlToOpenAIImagePart(imageUrl) {
   try {
     const response = await fetch(imageUrl)
     const blob = await response.blob()
     const arrayBuffer = await blob.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     return {
-      inlineData: {
-        data: buffer.toString('base64'),
-        mimeType: blob.type
+      type: "image_url",
+      image_url: {
+        url: "data:" + blob.type + ";base64," + buffer.toString('base64')
       }
     }
   } catch(e) {
-    console.warn("Could not fetch image for Gemini:", imageUrl, e)
+    console.warn("Could not fetch image for OpenAI:", imageUrl, e)
     return null
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
- * Handle Writing Test using Gemini AI
+ * Parses a score string and rounds to the nearest IELTS 0.5 increment.
+ * Clamps result to [0, 9].
  */
+function parseIELTSScore(str) {
+  const num = parseFloat((str || "").toString().trim());
+  if (isNaN(num)) return 0;
+  const clamped = Math.min(9, Math.max(0, num));
+  return Math.round(clamped * 2) / 2;
+}
+
+/**
+ * Rounds a raw average to the nearest IELTS 0.5 band.
+ */
+function roundToIELTSBand(raw) {
+  return Math.round(raw * 2) / 2;
+}
+
+// ─────────────────────────────────────────────────────────────
+// IELTS STRICT RUBRICS
+// (improved to avoid overscoring)
+// ─────────────────────────────────────────────────────────────
+
+const RUBRIC_TASK = [
+  "Task Achievement / Task Response (STRICT IELTS EXAMINER MODE)",
+  "",
+  "Band 5:",
+  "- Addresses the task only partially",
+  "- Ideas may be unclear or repetitive",
+  "",
+  "Band 6:",
+  "- Addresses all parts of the task but development may be limited",
+  "- Ideas are relevant but explanations may be weak",
+  "",
+  "Band 7:",
+  "- Addresses all parts of the task",
+  "- Clear position throughout",
+  "- Ideas supported with explanation or examples",
+  "",
+  "Band 8:",
+  "- Fully addresses all parts",
+  "- Ideas are well-developed and clearly supported",
+  "",
+  "STRICT RULE:",
+  "If ideas lack explanation OR development -> maximum Band 6.",
+].join("\n")
+
+const RUBRIC_COHERENCE = [
+  "Coherence and Cohesion (STRICT)",
+  "",
+  "Band 5:",
+  "- Organisation weak or unclear",
+  "- Paragraphing may be missing",
+  "",
+  "Band 6:",
+  "- Information organised but progression may be unclear",
+  "- Paragraphing exists but may be uneven",
+  "",
+  "Band 7:",
+  "- Ideas logically organised",
+  "- Clear progression through essay",
+  "",
+  "Band 8:",
+  "- Information logically sequenced",
+  "- Cohesion managed effectively",
+  "",
+  "STRICT RULE:",
+  "If paragraphing OR progression is weak -> maximum Band 6.",
+].join("\n")
+
+const RUBRIC_LEXICAL = [
+  "Lexical Resource (STRICT)",
+  "",
+  "Band 5:",
+  "- Limited vocabulary range",
+  "- Frequent word choice errors",
+  "",
+  "Band 6:",
+  "- Adequate vocabulary for the task",
+  "- Some attempts at less common words",
+  "",
+  "Band 7:",
+  "- Good vocabulary range",
+  "- Some less common lexical items",
+  "",
+  "Band 8:",
+  "- Wide vocabulary range",
+  "- Precise word choice",
+  "",
+  "STRICT RULE:",
+  "If vocabulary repetition is frequent -> maximum Band 6.",
+].join("\n")
+
+const RUBRIC_GRAMMAR = [
+  "Grammatical Range and Accuracy (STRICT)",
+  "",
+  "Band 5:",
+  "- Frequent grammar errors",
+  "",
+  "Band 6:",
+  "- Mix of simple and complex sentences",
+  "- Errors occur but meaning clear",
+  "",
+  "Band 7:",
+  "- Variety of complex structures",
+  "- Most sentences error-free",
+  "",
+  "Band 8:",
+  "- Wide range of structures",
+  "- Very few errors",
+  "",
+  "STRICT RULE:",
+  "If grammar errors appear regularly -> maximum Band 6.",
+].join("\n")
+
+// ─────────────────────────────────────────────────────────────
+// STRICT EXAMINER PROMPT
+// ─────────────────────────────────────────────────────────────
+
+function buildSystemPrompt(mainCriterionLabel) {
+  var lines = [];
+  lines.push("You are a VERY STRICT certified IELTS examiner.");
+  lines.push("");
+  lines.push("Evaluate the essay exactly like real IELTS examiners.");
+  lines.push("");
+  lines.push("Important rules:");
+  lines.push("");
+  lines.push("- Band 7+ is difficult to achieve.");
+  lines.push("- Most candidates are between Band 5.5 and 6.5.");
+  lines.push("- Do NOT over-score.");
+  lines.push("");
+  lines.push("Strict limits:");
+  lines.push("");
+  lines.push("If ideas lack explanation -> maximum Band 6.");
+  lines.push("");
+  lines.push("If grammar mistakes appear frequently -> maximum Band 6.");
+  lines.push("");
+  lines.push("If vocabulary repetition appears -> maximum Band 6.");
+  lines.push("");
+  lines.push("If paragraphing or organisation weak -> maximum Band 6.");
+  lines.push("");
+  lines.push("Use the IELTS descriptors below.");
+  lines.push("");
+  lines.push("----------------");
+  lines.push("");
+  lines.push(RUBRIC_TASK);
+  lines.push("");
+  lines.push("----------------");
+  lines.push("");
+  lines.push(RUBRIC_COHERENCE);
+  lines.push("");
+  lines.push("----------------");
+  lines.push("");
+  lines.push(RUBRIC_LEXICAL);
+  lines.push("");
+  lines.push("----------------");
+  lines.push("");
+  lines.push(RUBRIC_GRAMMAR);
+  lines.push("");
+  lines.push("----------------");
+  lines.push("");
+  lines.push("SCORING INSTRUCTIONS:");
+  lines.push("");
+  lines.push("Score each criterion from 0.0 to 9.0 using ONLY:");
+  lines.push("");
+  lines.push("0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0");
+  lines.push("");
+  lines.push("Do NOT invent numbers like 6.3 or 7.2.");
+  lines.push("");
+  lines.push("Overall Band Score:");
+  lines.push("");
+  lines.push("Average the four criteria and round to nearest 0.5.");
+  lines.push("");
+  lines.push("Feedback:");
+  lines.push("");
+  lines.push("Write 50-70 words explaining strengths and the main improvement needed.");
+  lines.push("");
+  lines.push("Then give EXACTLY 3 corrections.");
+  lines.push("");
+  lines.push("OUTPUT FORMAT EXACTLY:");
+  lines.push("");
+  lines.push(mainCriterionLabel + ": X.X");
+  lines.push("Coherence and Cohesion: X.X");
+  lines.push("Lexical Resource: X.X");
+  lines.push("Grammatical Range and Accuracy: X.X");
+  lines.push("Overall Band Score: X.X");
+  lines.push("");
+  lines.push("Feedback (50-70 words):");
+  lines.push("<paragraph>");
+  lines.push("");
+  lines.push("Top 3 Corrections:");
+  lines.push("");
+  lines.push("1) <title>");
+  lines.push("Example: <sentence>");
+  lines.push("Why: <reason>");
+  lines.push("");
+  lines.push("2) <title>");
+  lines.push("Example: <sentence>");
+  lines.push("Why: <reason>");
+  lines.push("");
+  lines.push("3) <title>");
+  lines.push("Example: <sentence>");
+  lines.push("Why: <reason>");
+  
+  return lines.join("\n");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OUTPUT PARSER
+// ─────────────────────────────────────────────────────────────────────────────
+
+function parseGeminiOutput(text) {
+  const parsed = {
+    TaskAchievement: "0",
+    TaskResponse: "0",
+    CoherenceAndCohesion: "0",
+    LexicalResource: "0",
+    GrammaticalRangeAndAccuracy: "0",
+    BandScore: "0",
+    Feedback: "",
+    Corrections: "",
+  };
+
+  const lines = text.split("\n").map(function (l) { return l.trim(); });
+  const feedbackLines = [];
+  const correctionsLines = [];
+  let inFeedback = false;
+  let inCorrections = false;
+
+  for (let idx = 0; idx < lines.length; idx++) {
+    const rawLine = lines[idx];
+    if (!rawLine) continue;
+    
+    // Clean markdown characters like ** or leading hyphens for score matching
+    const line = rawLine.replace(/\*/g, '').replace(/^- /, '').trim();
+    if (!line) continue;
+
+    // ── Score lines ────────────────────────────────────────────────────────
+    if (line.match(/^Task\s*Achievement/i)) {
+      parsed.TaskAchievement = extractScore(line);
+    } else if (line.match(/^Task\s*Response/i)) {
+      parsed.TaskResponse = extractScore(line);
+    } else if (line.match(/^Coherence\s*(and|&)\s*Cohesion/i)) {
+      parsed.CoherenceAndCohesion = extractScore(line);
+    } else if (line.match(/^Lexical\s*Resource/i)) {
+      parsed.LexicalResource = extractScore(line);
+    } else if (line.match(/^Grammatical\s*Range\s*(and|&)\s*Accuracy/i)) {
+      parsed.GrammaticalRangeAndAccuracy = extractScore(line);
+    } else if (line.match(/^Overall\s*Band\s*Score/i)) {
+      parsed.BandScore = extractScore(line);
+    }
+
+    // ── Feedback block ─────────────────────────────────────────────────────
+    else if (line.match(/^Feedback/i)) {
+      inFeedback = true;
+      inCorrections = false;
+      const colonIdx = rawLine.indexOf(":");
+      if (colonIdx > -1) {
+        const after = rawLine.slice(colonIdx + 1).trim();
+        if (after) feedbackLines.push(after);
+      }
+    } else if (inFeedback && line.match(/^Top\s*\d*\s*Corrections/i)) {
+      inFeedback = false;
+      inCorrections = true;
+    } else if (inFeedback) {
+      feedbackLines.push(rawLine);
+    }
+
+    // ── Corrections block ──────────────────────────────────────────────────
+    else if (inCorrections) {
+      correctionsLines.push(rawLine);
+    }
+  }
+
+  parsed.Feedback = feedbackLines.join(" ").trim() || "No feedback provided.";
+  parsed.Corrections = correctionsLines.join("\n").trim();
+
+  return parsed;
+}
+
+/** Extracts the numeric part after the first colon on a score line. */
+function extractScore(line) {
+  const parts = line.split(":");
+  return parts.length > 1 ? parts.slice(1).join(":").trim() : "0";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EMPTY RESULT  (no essay provided)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function buildEmptyResult(index, taskCount) {
+  return {
+    isTask1: index === 0 && taskCount === 2,
+    TaskAchievement: "0.0",
+    TaskResponse: "0.0",
+    CoherenceAndCohesion: "0.0",
+    LexicalResource: "0.0",
+    GrammaticalRangeAndAccuracy: "0.0",
+    BandScore: "0.0",
+    Feedback: "No response provided.",
+    Corrections: "",
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WRITING TEST CHECKER
+// ─────────────────────────────────────────────────────────────────────────────
+
 async function checkWritingTest(userAnswers, testRow) {
-  if (!process.env.GEMINI_API_KEY) {
-    return NextResponse.json({ error: 'Gemini API kaliti yo\'q!' }, { status: 500 })
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json(
+      { error: "OpenAI API kaliti yo'q!" },
+      { status: 500 }
+    );
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
-    const results = {}
-    let totalBandSum = 0
-    let validBandCount = 0
-
-    const tasks = testRow.data.tasks || []
+    const results = {};
+    const tasks = testRow.data.tasks || [];
 
     for (let i = 0; i < tasks.length; i++) {
-      const task = tasks[i]
-      const essayText = userAnswers[i] || ""
-      
-      if (!essayText.trim()) {
-        results[i] = {
-          TaskAchievement: "0.0",
-          TaskResponse: "0.0",
-          CoherenceAndCohesion: "0.0",
-          LexicalResource: "0.0",
-          GrammaticalRange: "0.0",
-          BandScore: "0.0",
-          Feedback: "No response provided."
-        }
+      const task = tasks[i];
+      const essayText = (userAnswers[i] || "").toString().trim();
+
+      // ── Empty response ──────────────────────────────────────────────────
+      if (!essayText) {
+        results[i] = buildEmptyResult(i, tasks.length);
         continue;
       }
 
-      let systemInstruction = "";
-      if (task.taskNumber === 1) {
-        systemInstruction = `You are a certified IELTS examiner.
+      const isTask1 = task.taskNumber === 1 || (task.type && task.type === "task1");
+      const mainCriterionLabel = isTask1 ? "Task Achievement" : "Task Response";
 
-Evaluate the student's IELTS Writing Task 1 (Chart type).
+      // ── Prompt ──────────────────────────────────────────────────────────
+      const systemInstruction = buildSystemPrompt(mainCriterionLabel);
+      const userPrompt = "Task prompt:\n" + (task.content || "(no task content available)") + "\n\nStudent Essay:\n" + essayText;
 
-Score using the official IELTS criteria:
+      const userContent = [
+        { type: "text", text: userPrompt },
+      ];
 
-Task Achievement
-Coherence and Cohesion
-Lexical Resource
-Grammatical Range and Accuracy
-
-Instructions:
-
-Score each criterion from 0 to 9
-
-Calculate the overall band score
-
-Write feedback of about 50 words
-
-Evaluate strictly like a real IELTS examiner
-
-Return the result ONLY in this format:
-
-Task Achievement: X.X
-Coherence and Cohesion: X.X
-Lexical Resource: X.X
-Grammatical Range and Accuracy: X.X
-Overall Band Score: X.X
-
-Feedback (about 50 words):
-Your feedback here.`
-      } else {
-        systemInstruction = `You are a certified IELTS examiner.
-
-Evaluate the student's IELTS Writing Task 2 essay.
-
-Essay Type: Agree or Disagree Essay.
-
-Score the essay according to official IELTS criteria:
-
-Task Response
-Coherence and Cohesion
-Lexical Resource
-Grammatical Range and Accuracy
-
-Instructions:
-
-Score each criterion from 0 to 9
-
-Calculate the overall band score
-
-Write feedback of about 50 words
-
-Be objective and strict
-
-Return the result ONLY in this format:
-
-Task Response: X.X
-Coherence and Cohesion: X.X
-Lexical Resource: X.X
-Grammatical Range and Accuracy: X.X
-Overall Band Score: X.X
-
-Feedback (about 50 words):
-Your feedback here.`
-      }
-
-      const userPrompt = `
-Task Question:
-${task.content}
-
-Student Essay:
-${essayText}
-`
-      const contentParts = [userPrompt];
-      
-      // If Task 1 and there is an image, provide it to AI
+      // Attach image if present
       if (task.image) {
-        const imagePart = await urlToGenerativePart(task.image);
-        if (imagePart) contentParts.unshift(imagePart);
-      }
-
-      // We use systemInstructions natively or inline
-      const geminiPrompt = `${systemInstruction}\n\n${userPrompt}`;
-
-      const finalContent = [];
-      if (task.image) {
-         const imagePart = await urlToGenerativePart(task.image);
-         if (imagePart) finalContent.push(imagePart);
-      }
-      finalContent.push({ text: geminiPrompt });
-
-      const result = await model.generateContent(finalContent);
-      const outputText = result.response.text();
-
-      // Parse the outputText
-      const parsed = {
-        TaskAchievement: "0.0",
-        TaskResponse: "0.0",
-        CoherenceAndCohesion: "0.0",
-        LexicalResource: "0.0",
-        GrammaticalRange: "0.0",
-        BandScore: "0.0",
-        Feedback: ""
-      }
-
-      const lines = outputText.split('\n');
-      let isFeedback = false;
-      let feedbackLines = [];
-
-      for (let line of lines) {
-        const t = line.trim();
-        if (t.startsWith('Task Achievement:')) parsed.TaskAchievement = t.split(':')[1].trim();
-        else if (t.startsWith('Task Response:')) parsed.TaskResponse = t.split(':')[1].trim();
-        else if (t.startsWith('Coherence and Cohesion:')) parsed.CoherenceAndCohesion = t.split(':')[1].trim();
-        else if (t.startsWith('Lexical Resource:')) parsed.LexicalResource = t.split(':')[1].trim();
-        else if (t.startsWith('Grammatical Range and Accuracy:')) parsed.GrammaticalRange = t.split(':')[1].trim();
-        else if (t.startsWith('Overall Band Score:')) parsed.BandScore = t.split(':')[1].trim();
-        else if (t.startsWith('Feedback')) {
-          isFeedback = true;
-          // grab the rest of the line if there is text after colon
-          if (t.includes(':') && t.split(':')[1].trim()) {
-            feedbackLines.push(t.split(':')[1].trim());
-          }
-        } else if (isFeedback) {
-          if (t) feedbackLines.push(t);
+        try {
+          const imagePart = await urlToOpenAIImagePart(task.image);
+          if (imagePart) userContent.unshift(imagePart);
+        } catch (e) {
+          console.warn("Image attach failed", e);
         }
       }
-      
-      parsed.Feedback = feedbackLines.join(" ").trim() || "No feedback provided by AI.";
-      results[i] = parsed;
-      
-      if (parseFloat(parsed.BandScore) > 0) {
-        totalBandSum += parseFloat(parsed.BandScore);
-        validBandCount++;
-      }
+
+      // ── Call OpenAI ──────────────────────────────────────────────────────
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: systemInstruction },
+          { role: "user", content: userContent }
+        ],
+      });
+      const outputText = completion.choices[0].message.content;
+
+      // ── Parse raw text ──────────────────────────────────────────────────
+      const rawParsed = parseGeminiOutput(outputText);
+
+      // ── Convert & validate each criterion (IELTS 0.5 rounding) ──────────
+      const ta = parseIELTSScore(rawParsed.TaskAchievement);
+      const tr = parseIELTSScore(rawParsed.TaskResponse);
+      const cc = parseIELTSScore(rawParsed.CoherenceAndCohesion);
+      const lr = parseIELTSScore(rawParsed.LexicalResource);
+      const gra = parseIELTSScore(rawParsed.GrammaticalRangeAndAccuracy);
+
+      const mainScore = isTask1 ? ta : tr;
+
+      // ── Band score: average of 4 criteria, rounded to 0.5 ───────────────
+      const avgRaw = (mainScore + cc + lr + gra) / 4;
+      const bandScore = roundToIELTSBand(avgRaw);
+
+      results[i] = {
+        isTask1,
+        TaskAchievement: isTask1 ? ta.toFixed(1) : "N/A",
+        TaskResponse: isTask1 ? "N/A" : tr.toFixed(1),
+        CoherenceAndCohesion: cc.toFixed(1),
+        LexicalResource: lr.toFixed(1),
+        GrammaticalRangeAndAccuracy: gra.toFixed(1),
+        BandScore: bandScore.toFixed(1),
+        Feedback: rawParsed.Feedback || "No feedback provided.",
+        Corrections: rawParsed.Corrections || "",
+      };
     }
 
-    let finalOverallBand = 0;
-    if (validBandCount > 0) {
-      if (tasks.length === 2 && validBandCount === 2) {
-        // Officially, Task 2 is worth twice as much as Task 1
-        // Usually: (Task 1 + 2 * Task 2) / 3   Or average. For simplicity, average here.
-        const t1Score = parseFloat(results[0]?.BandScore) || 0;
-        const t2Score = parseFloat(results[1]?.BandScore) || 0;
-        // IELTS rounding: Round to nearest half band
-        let rawAvg = (t1Score + (t2Score * 2)) / 3;
-        finalOverallBand = Math.round(rawAvg * 2) / 2;
-      } else {
-        finalOverallBand = Math.round((totalBandSum / validBandCount) * 2) / 2;
-      }
-    }
+    // ── Final overall band ────────────────────────────────────────────────
+    const finalOverallBand = calcFinalBand(results, tasks.length);
 
     return NextResponse.json({
       score: 0,
       total: 0,
       band: finalOverallBand.toFixed(1),
       isWriting: true,
-      tasksEvaluation: results
-    })
+      tasksEvaluation: results,
+    });
   } catch (err) {
-    console.error('[API /api/tests/[id]/check] Writing verification error:', err)
-    return NextResponse.json({ error: 'Writing testni tekshirishda xatolik yuz berdi: ' + err.message }, { status: 500 })
+    console.error("[checkWritingTest] Error:", err);
+    return NextResponse.json(
+      { error: "Writing testni tekshirishda xatolik: " + (err.message || err) },
+      { status: 500 }
+    );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FINAL BAND CALCULATION
+// Official IELTS weighting: Task 2 counts double when two tasks are present.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function calcFinalBand(results, taskCount) {
+  const bands = Object.values(results).map(function (r) {
+    return parseFloat(r.BandScore) || 0;
+  });
+
+  if (bands.length === 0) return 0;
+
+  if (taskCount === 2 && bands.length === 2) {
+    const raw = (bands[0] + bands[1] * 2) / 3;
+    return roundToIELTSBand(raw);
+  }
+
+  const sum = bands.reduce(function (a, b) { return a + b; }, 0);
+  return roundToIELTSBand(sum / bands.length);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN POST HANDLER
+// ─────────────────────────────────────────────────────────────────────────────
 
 export async function POST(request, { params }) {
   try {

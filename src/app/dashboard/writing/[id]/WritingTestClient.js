@@ -367,7 +367,7 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
                                </div>
                                <div>
                                  <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Grammatical Range</div>
-                                 <div style={{ fontWeight: 700, fontSize: 20, color: '#0f172a' }}>{evalData.GrammaticalRange}</div>
+                                 <div style={{ fontWeight: 700, fontSize: 20, color: '#0f172a' }}>{evalData.GrammaticalRangeAndAccuracy || evalData.GrammaticalRange}</div>
                                </div>
                             </div>
                           </div>
