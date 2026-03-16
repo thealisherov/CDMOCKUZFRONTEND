@@ -1,29 +1,22 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 'fake'
-);
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET(req) {
   try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) return NextResponse.json({ error: 'Missing auth' }, { status: 401 });
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
     
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     // Fetch user stats
-    const { data: stats } = await supabaseAdmin
+    const { data: stats } = await supabase
       .from('user_stats')
       .select('*')
       .eq('user_id', user.id)
       .single();
 
     // Fetch payments
-    const { data: payments } = await supabaseAdmin
+    const { data: payments } = await supabase
       .from('payments')
       .select('*')
       .eq('user_id', user.id)
@@ -31,7 +24,7 @@ export async function GET(req) {
       .limit(20);
 
     // Fetch test results 
-    const { data: testResults } = await supabaseAdmin
+    const { data: testResults } = await supabase
       .from('test_results')
       .select('*')
       .eq('user_id', user.id)
@@ -52,11 +45,9 @@ export async function GET(req) {
 
 export async function PATCH(req) {
   try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) return NextResponse.json({ error: 'Missing auth' }, { status: 401 });
-    
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+
     if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await req.json();
@@ -66,10 +57,9 @@ export async function PATCH(req) {
     if (avatar_url !== undefined) updateData.avatar_url = avatar_url;
     if (full_name !== undefined) updateData.full_name = full_name;
 
-    const { data: updated, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-      user.id,
-      { user_metadata: updateData }
-    );
+    const { data: updated, error: updateError } = await supabase.auth.updateUser({
+      data: updateData
+    });
 
     if (updateError) throw updateError;
     return NextResponse.json(updated.user);
