@@ -47,7 +47,7 @@ export async function GET(request) {
         type: row.type,
         title: d.title || `Test ${index + 1}`,
         description: d.testFormat === 'full_test' || d.testType === 'full_test'
-          ? (row.type === 'listening' ? '4-Part Listening · 40 Questions' 
+          ? (row.type === 'listening' ? '4-Section Listening · 40 Questions' 
            : row.type === 'writing' ? 'Task 1 & Task 2 · 2 Tasks' 
            : '3 Passages · 40 Questions')
           : (d.description || (row.type === 'writing' ? '2 Tasks' : '')),
@@ -55,7 +55,7 @@ export async function GET(request) {
         level: d.level || 'medium',
         testType: d.testFormat || d.testType || 'full_test',
         questions: d.totalQuestions || (row.type === 'writing' ? 2 : 40),
-        access: d.testTution || d.access || 'free',
+        access: (d.testTution === 'paid' || d.access === 'paid') ? 'premium' : (d.testTution || d.access || 'free'),
         completed: false, // TODO: integrate user progress later
       }
     })

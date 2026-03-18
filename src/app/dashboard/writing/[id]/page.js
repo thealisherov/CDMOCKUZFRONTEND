@@ -51,7 +51,8 @@ async function loadTestData(testId) {
 }
 
 export default async function WritingTestPage({ params }) {
-  const { id } = await params
+  const resolvedParams = await Promise.resolve(params);
+  const id = resolvedParams?.id;
   const rawData = await loadTestData(id)
 
   return <WritingTestClient id={id} rawData={rawData} />

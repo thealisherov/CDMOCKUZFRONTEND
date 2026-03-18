@@ -187,7 +187,10 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
 
   const handleRetry = () => { clearAllTestData(); };
   const handleExit = useCallback(() => { clearAllTestData(); router.push('/dashboard/writing'); }, [clearAllTestData, router]);
-  const handleTimerEnd = useCallback(() => { handleRetry(); handleSubmit(); }, [handleRetry]);
+  // Timer expired: just submit current essays (don't clear first!)
+  const handleSubmitRef = useRef(handleSubmit);
+  handleSubmitRef.current = handleSubmit;
+  const handleTimerEnd = useCallback(() => { handleSubmitRef.current(); }, []);
 
   // ── NOT FOUND ──
   if (!rawData) {

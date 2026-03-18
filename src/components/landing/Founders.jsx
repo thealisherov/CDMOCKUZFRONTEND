@@ -13,7 +13,7 @@ export default function Founders() {
       role: t("founders.mkRole"),
       bio: t("founders.mkBio"),
       initials: "MK",
-      image: null,
+      image: "/MuhammadaliUstoz.webp",
       gradient: "linear-gradient(160deg, #e22d2d 0%, #9b1a1a 100%)",
       glow: "rgba(226,45,45,0.30)",
       badges: [{ icon: Award, text: t("founders.mkBadge") }],
@@ -25,7 +25,7 @@ export default function Founders() {
       role: t("founders.aaRole"),
       bio: t("founders.aaBio"),
       initials: "AA",
-      image: "/ProfileIMG.jpg",
+      image: "/Abdulaziz.webp",
       gradient: "linear-gradient(160deg, oklch(0.55 0.22 270) 0%, oklch(0.35 0.2 260) 100%)",
       glow: "oklch(0.55 0.22 270 / 0.30)",
       badges: [
@@ -118,7 +118,7 @@ export default function Founders() {
 
                 {/* Bottom gradient fade into card */}
                 <div
-                  className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none"
+                  className="absolute bottom-0 left-0 right-0 h-10 pointer-events-none"
                   style={{
                     background: "linear-gradient(to top, var(--card) 0%, transparent 100%)",
                   }}

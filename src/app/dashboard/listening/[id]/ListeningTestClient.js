@@ -130,10 +130,15 @@ function ListeningTestInner({ id, rawData }) {
   }, [parts.length, activePartIndex]);
 
   const getBlockQCount = (block) => {
-    if (block.type === 'gap_fill') {
-      const matches = block.content.match(/\{\d+\}/g);
-      return matches ? matches.length : 0;
-    } else if (block.questions) {
+    if (['gap_fill', 'drag_drop_summary', 'flow_chart', 'table'].includes(block.type)) {
+      const m = block.content?.match(/\{\d+\}/g);
+      return m ? m.length : 0;
+    }
+    if (block.type === 'checkbox_multiple' && block.questions) {
+      // Each sub-question covers multiple question numbers
+      return block.questions.reduce((sum, q) => sum + (q.numbers ? q.numbers.length : 1), 0);
+    }
+    if (block.questions) {
       return block.questions.length;
     }
     return 0;
@@ -268,11 +273,66 @@ function ListeningTestInner({ id, rawData }) {
     router.push('/dashboard/listening');
   }, [clearAllTestData, router]);
 
-  // Timer expired: full reset, show results
-  const handleTimerExpire = useCallback(() => {
-    clearAllTestData();
+  // Use ref to always capture latest userAnswers (avoids stale closure in timer callback)
+  const userAnswersRef = useRef(userAnswers);
+  userAnswersRef.current = userAnswers;
+
+  // Timer expired: auto-submit (evaluate + save)
+  const handleTimerExpire = useCallback(async () => {
+    const latestAnswers = userAnswersRef.current;
+    // Stop audio first
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.stopAndReset();
+    }
+    try { localStorage.removeItem(timerKey); } catch { /* */ }
+    
+    // Trigger full submit (evaluate + save to DB)
     setSubmitted(true);
-  }, [clearAllTestData]);
+    setIsEvaluating(true);
+    setEvalError(null);
+    try {
+      const res = await fetch(`/api/tests/${id}/check`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userAnswers: latestAnswers, type: 'listening' }),
+      });
+      if (!res.ok) throw new Error('Server returned ' + res.status);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setServerResult(data);
+
+      // Save to Supabase
+      try {
+        const saveRes = await fetch('/api/attempts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            test_numeric_id: Number(id),
+            test_type: 'listening',
+            test_title: rawData?.title || `Listening Test ${id}`,
+            user_answers: latestAnswers,
+            server_results: data,
+            correct_count: data.correct || 0,
+            total_questions: data.total || totalQuestions,
+            band_score: data.band || null,
+          }),
+        });
+        if (saveRes.ok) {
+          const savedData = await saveRes.json();
+          if (savedData?.id) setSavedAttemptId(savedData.id);
+        }
+      } catch (saveErr) {
+        console.warn('Could not save attempt after timer expire:', saveErr);
+      }
+    } catch (err) {
+      console.error('[TimerExpire] Eval error:', err);
+      setEvalError(err.message || 'Evaluation error');
+    } finally {
+      setIsEvaluating(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, totalQuestions, rawData, timerKey, audioPlayerRef]);
+
 
   if (!rawData) {
     return (

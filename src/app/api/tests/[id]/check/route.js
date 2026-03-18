@@ -32,12 +32,57 @@ function calculateBand(score, total) {
   return '2.5'
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// EXTRACT ANSWERS
+// Builds a map: { qNum: { answer, alternatives, isMulti?, groupNums?, groupAnswers? } }
+// For multiple_choice_multiple (numbers[] + answers[]), we store group info
+// so we can evaluate the full set order-independently.
+// ─────────────────────────────────────────────────────────────────────────────
 function extractAnswers(data) {
   const answerMap = {}
 
-  const processQuestions = (questions) => {
-    if (!questions) return
-    questions.forEach(q => {
+  const processGroup = (group) => {
+    if (!group || !group.questions) return
+    const gt = (group.groupType || '')
+    const isMultiGroup = gt === 'multiple_choice_multiple' ||
+      gt === 'multiple_choice_multiple_answer'
+
+    if (isMultiGroup) {
+      // Detect whether this group uses shared answers[] or per-question answer
+      // Case A: one question with numbers[] + answers[]
+      //   { numbers: [21,22], answers: ['A','C'] }
+      // Case B: separate questions each with number + answer (listening style)
+      //   { number: 27, answer: 'B' }, { number: 28, answer: 'D' }
+      const allNums = []
+      const allCorrect = []
+
+      group.questions.forEach(q => {
+        if (q.numbers && q.answers) {
+          // Case A
+          q.numbers.forEach(n => allNums.push(n))
+          ;(Array.isArray(q.answers) ? q.answers : [q.answers]).forEach(a => allCorrect.push(String(a).trim().toUpperCase()))
+        } else if (q.number !== undefined) {
+          // Case B
+          allNums.push(q.number)
+          if (q.answer) allCorrect.push(String(q.answer).trim().toUpperCase())
+        }
+      })
+
+      // Store each number with a reference to the full group
+      allNums.forEach(num => {
+        answerMap[String(num)] = {
+          answer: allCorrect,          // full set of correct answers for the group
+          alternatives: [],
+          isMultiGroup: true,
+          groupNums: allNums.map(String),  // all question numbers in this group
+          groupAnswers: allCorrect,         // correct answer set (order-irrelevant)
+        }
+      })
+      return
+    }
+
+    // Normal questions
+    group.questions.forEach(q => {
       if (q.number !== undefined) {
         answerMap[String(q.number)] = {
           answer: q.answer,
@@ -56,31 +101,35 @@ function extractAnswers(data) {
     })
   }
 
+  const processAllGroups = (groups) => {
+    ;(groups || []).forEach(group => processGroup(group))
+  }
+
   if (data.parts) {
-    data.parts.forEach(part => {
-      (part.questionGroups || []).forEach(group => {
-        processQuestions(group.questions)
-      })
-    })
+    data.parts.forEach(part => processAllGroups(part.questionGroups))
   }
   if (data.passages) {
-    data.passages.forEach(passage => {
-      (passage.questionGroups || []).forEach(group => {
-        processQuestions(group.questions)
-      })
-    })
+    data.passages.forEach(passage => processAllGroups(passage.questionGroups))
   }
   return answerMap
 }
 
+// Order-independent set equality check
+function setsEqual(setA, setB) {
+  if (setA.length !== setB.length) return false
+  const a = [...setA].sort()
+  const b = [...setB].sort()
+  return a.every((v, i) => v === b[i])
+}
+
 function isCorrect(userAnswer, correctData) {
-  if (!userAnswer || !correctData) return false
-  const uAnswer = String(userAnswer).trim().toLowerCase()
+  if (!correctData) return false
+  const uAnswer = String(userAnswer || '').trim().toLowerCase()
   if (!uAnswer) return false
   if (correctData.isMulti && Array.isArray(correctData.answer)) {
     return correctData.answer.some(a => String(a).trim().toLowerCase() === uAnswer)
   }
-  const mainAnswer = String(correctData.answer).trim().toLowerCase()
+  const mainAnswer = String(correctData.answer || '').trim().toLowerCase()
   if (uAnswer === mainAnswer) return true
   if (correctData.alternatives && correctData.alternatives.length > 0) {
     return correctData.alternatives.some(alt =>
@@ -599,11 +648,41 @@ export async function POST(request, { params }) {
     let score = 0
     const results = {}
 
+    // Track which multi-groups have already been evaluated (to avoid double-evaluating)
+    const evaluatedGroups = new Set()
+
     Object.keys(answerMap).forEach(qNum => {
       const correctData = answerMap[qNum]
+
+      // ── Multiple-choice-multiple GROUP evaluation ─────────────────────────
+      // Each slot is evaluated INDEPENDENTLY.
+      // Correct answer pool = {A, C} → if user picks A → ✅, D → ❌
+      // Order doesn't matter: C,A = A,C (both full marks)
+      if (correctData.isMultiGroup) {
+        const groupKey = correctData.groupNums.sort().join(',')
+        if (evaluatedGroups.has(groupKey)) return // already handled
+        evaluatedGroups.add(groupKey)
+
+        const correctSet = correctData.groupAnswers.map(a => String(a).trim().toUpperCase())
+
+        correctData.groupNums.forEach(n => {
+          const uAns = String(userAnswers[n] || '').trim().toUpperCase()
+          // Each answer is correct if it appears in the correct answer pool
+          const individualCorrect = uAns !== '' && correctSet.includes(uAns)
+          if (individualCorrect) score++
+          results[n] = {
+            correct: individualCorrect,
+            userAnswer: userAnswers[n] || '',
+            correctAnswer: correctSet,
+            isMultiGroup: true,
+          }
+        })
+        return
+      }
+
+      // ── Normal question evaluation ────────────────────────────────────────
       const userAnswer = userAnswers[qNum] || ''
       const correct = isCorrect(userAnswer, correctData)
-
       if (correct) score++
       results[qNum] = {
         correct,

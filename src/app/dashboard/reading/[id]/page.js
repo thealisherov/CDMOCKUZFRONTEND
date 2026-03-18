@@ -42,7 +42,10 @@ async function loadTestData(testId) {
       }
     }
 
-    if (!testRow) return null
+    if (!testRow) {
+      console.log('CRITICAL: testRow still null after both strategies. testId:', testId);
+      return null;
+    }
 
     // SECURITY: Strip answers before sending to client
     const safeData = sanitizeTestData(testRow.data)
@@ -51,12 +54,13 @@ async function loadTestData(testId) {
     return adaptReadingData(safeData)
   } catch (err) {
     console.error('[ReadingTestPage] Error loading test:', err)
-    return null
+    return { isError: true, message: err.message, stack: err.stack }
   }
 }
 
 export default async function ReadingTestPage({ params }) {
-  const { id } = await params
+  const resolvedParams = await Promise.resolve(params);
+  const id = resolvedParams?.id;
   const rawData = await loadTestData(id)
 
   return <ReadingTestClient id={id} rawData={rawData} />

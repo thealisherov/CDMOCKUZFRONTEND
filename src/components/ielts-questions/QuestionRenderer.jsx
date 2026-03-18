@@ -7,6 +7,8 @@ import TrueFalse from './TrueFalse';
 import MatchDropdown from './MatchDropdown';
 import DragDropSummary from './DragDropSummary';
 import CheckboxMultiple from './CheckboxMultiple';
+import FlowChart from './FlowChart';
+import TableCompletion from './TableCompletion';
 
 /**
  * QuestionRenderer — Stateless controller. All answer state lives in the
@@ -59,6 +61,12 @@ const QuestionRenderer = ({ data, onAnswersChange, startIndex = 1, userAnswers =
 
       case 'checkbox_multiple':
         return <CheckboxMultiple {...commonProps} />;
+
+      case 'flow_chart':
+        return <FlowChart {...commonProps} />;
+
+      case 'table':
+        return <TableCompletion {...commonProps} />;
 
       default:
         return (

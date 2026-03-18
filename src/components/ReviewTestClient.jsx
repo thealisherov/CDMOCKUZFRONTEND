@@ -12,6 +12,8 @@ import ReviewMatchDropdown from '@/components/review-questions/ReviewMatchDropdo
 import ReviewTrueFalse from '@/components/review-questions/ReviewTrueFalse';
 import ReviewCheckboxMultiple from '@/components/review-questions/ReviewCheckboxMultiple';
 import ReviewDragDropSummary from '@/components/review-questions/ReviewDragDropSummary';
+import ReviewFlowChart from '@/components/review-questions/ReviewFlowChart';
+import ReviewTableCompletion from '@/components/review-questions/ReviewTableCompletion';
 
 // ── Audio Player for Review Mode ───────────────────────────────
 function ReviewAudioPlayer({ src }) {
@@ -126,9 +128,10 @@ export default function ReviewTestClient({ testId, attemptId, rawData, moduleTyp
 
   const getBlockQCount = (block) => {
     if (!block) return 0;
-    if (block.type === 'gap_fill' || block.type === 'drag_drop_summary') {
-      const m = block.content?.match(/\{\d+\}/g);
-      return m ? m.length : 0;
+    if (['gap_fill', 'drag_drop_summary', 'flow_chart', 'table'].includes(block.type)) {
+      const content = block.content || '';
+      const matches = content.match(/\{\d+\}/g);
+      return matches ? matches.length : 0;
     }
     if (block.type === 'checkbox_multiple') {
       return (block.questions || []).reduce((s, q) => s + (q.numbers ? q.numbers.length : 1), 0);
@@ -488,6 +491,10 @@ function ReviewQuestionBlock({ block, startIndex, userAnswers, correctAnswersMap
       return <ReviewMatchDropdown {...props} />;
     case 'drag_drop_summary':
       return <ReviewDragDropSummary {...props} />;
+    case 'flow_chart':
+      return <ReviewFlowChart {...props} />;
+    case 'table':
+      return <ReviewTableCompletion {...props} />;
     case 'checkbox_multiple':
       return <ReviewCheckboxMultiple {...props} />;
     default:

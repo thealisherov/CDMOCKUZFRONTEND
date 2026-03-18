@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useDynamicFavicon } from '@/hooks/useDynamicFavicon';
 import { useRouter } from 'next/navigation';
 import Timer from '@/components/Timer';
@@ -51,9 +51,9 @@ function ReadingTestInner({ id, rawData }) {
 
   const getBlockQCount = (block) => {
     if (!block) return 0;
-    if (block.type === 'gap_fill' || block.type === 'drag_drop_summary') {
-      const m = block.content?.match(/\{\d+\}/g);
-      return m ? m.length : 0;
+    if (['gap_fill', 'drag_drop_summary', 'flow_chart', 'table'].includes(block.type)) {
+      const matches = (block.content || '').match(/\{\d+\}/g);
+      return matches ? matches.length : 0;
     }
     if (block.type === 'checkbox_multiple') {
       return (block.questions || []).reduce((s, q) => s + (q.numbers ? q.numbers.length : 1), 0);
@@ -184,9 +184,62 @@ function ReadingTestInner({ id, rawData }) {
       try { localStorage.removeItem(timerKey); } catch { /* */ }
     }
   };
-  const handleRetry     = () => { clearAllTestData(); };
-  const handleExit      = useCallback(() => { clearAllTestData(); router.push('/dashboard/reading'); }, [clearAllTestData, router]);
-  const handleTimerEnd  = useCallback(() => { clearAllTestData(); setSubmitted(true); }, [clearAllTestData]);
+  const handleRetry = () => { clearAllTestData(); };
+  const handleExit  = useCallback(() => { clearAllTestData(); router.push('/dashboard/reading'); }, [clearAllTestData, router]);
+
+  // Use ref to always capture latest userAnswers in timer callback
+  const userAnswersRef = useRef(userAnswers);
+  userAnswersRef.current = userAnswers;
+
+  // Timer expired: auto-submit answers (evaluate + save to DB)
+  const handleTimerEnd = useCallback(async () => {
+    const latestAnswers = userAnswersRef.current;
+    try { localStorage.removeItem(`timer_reading_${id}`); } catch { /* */ }
+    setSubmitted(true);
+    setIsEvaluating(true);
+    setEvalError(null);
+    try {
+      const res = await fetch(`/api/tests/${id}/check`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userAnswers: latestAnswers, type: 'reading' }),
+      });
+      if (!res.ok) throw new Error('Server returned ' + res.status);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setServerResult(data);
+
+      // Save to Supabase
+      try {
+        const saveRes = await fetch('/api/attempts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            test_numeric_id: Number(id),
+            test_type: 'reading',
+            test_title: rawData?.title || `Reading Test ${id}`,
+            user_answers: latestAnswers,
+            server_results: data,
+            correct_count: data.correct || 0,
+            total_questions: data.total || totalQuestions,
+            band_score: data.band || null,
+          }),
+        });
+        if (saveRes.ok) {
+          const savedData = await saveRes.json();
+          if (savedData?.id) setSavedAttemptId(savedData.id);
+        }
+      } catch (saveErr) {
+        console.warn('Could not save attempt after timer expire:', saveErr);
+      }
+    } catch (err) {
+      console.error('[TimerExpire] Eval error:', err);
+      setEvalError(err.message || 'Evaluation error');
+    } finally {
+      setIsEvaluating(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, totalQuestions, rawData]);
 
   if (!rawData || rawData.isError) {
     return (

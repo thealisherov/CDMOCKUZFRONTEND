@@ -59,7 +59,8 @@ async function loadTestData(testId) {
 }
 
 export default async function ListeningTestPage({ params }) {
-  const { id } = await params
+  const resolvedParams = await Promise.resolve(params);
+  const id = resolvedParams?.id;
   const rawData = await loadTestData(id)
 
   return <ListeningTestClient id={id} rawData={rawData} />

@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen, Headphones, PenTool, Mic,
   MessageCircle, LogOut, PanelLeftClose, PanelLeftOpen,
-  Zap, Star, Settings, ShieldCheck, Trophy
+  Zap, Star, Settings, ShieldCheck, Trophy, Sparkles, FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -39,6 +39,8 @@ export default function Sidebar({ collapsed, onToggle }) {
     { name: t("sidebar.listening"), href: "/dashboard/listening", icon: Headphones,    locked: false },
     { name: t("sidebar.writing"),   href: "/dashboard/writing",   icon: PenTool,       locked: false },
     { name: t("sidebar.speaking"),  href: "#",                    icon: Mic,           locked: true, badge: t("sidebar.soon") },
+    { name: t("sidebar.predictions") || "Predictions", href: "#", icon: Sparkles,      locked: true, badge: t("sidebar.soon") },
+    { name: t("sidebar.articles") || "Articles",       href: "#", icon: FileText,      locked: true, badge: t("sidebar.soon") },
     { name: t("sidebar.comments"),  href: "/dashboard/comments",  icon: MessageCircle, locked: false },
     { name: t("sidebar.leaderboard") || "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy, locked: false },
     { name: t("sidebar.premium"),   href: "/dashboard/premium",   icon: Star,          locked: false, badge: t("sidebar.upgrade") },

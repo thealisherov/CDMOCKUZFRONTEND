@@ -33,8 +33,8 @@ export const translations = {
     about: {
       statsText: "Successful Students",
       title: "About Our Mission",
-      desc1: "We started with a simple goal: to make high-quality, authentic IELTS preparation accessible to everyone in Uzbekistan.",
-      desc2: "Our team consists of certified examiners and band 8.5+ scorers who understand exactly what it takes to succeed. We don't just provide tests; we provide a roadmap to your dream university.",
+      desc1: "We started with a simple goal: to make high-quality, authentic IELTS preparation accessible to everyone.",
+      desc2: "Our team consists of certified examiners and band 8.5+ scorers who understand exactly what it takes to succeed. We provide a roadmap to your dream university, no matter where you are.",
       btn: "Join Our Community",
     },
     // Founders
@@ -61,7 +61,7 @@ export const translations = {
       badge: "Pricing",
       title: "Choose the right plan for you",
       desc: "Start free, upgrade as you need. No hidden fees.",
-      note: "All prices are in UZS. Payments supported via Click, Payme, and Uzum.",
+      note: "Affordable plans for everyone. We support multiple payment methods for international students.",
       freeLabel: "Free",
       freeName: "Free",
       freePeriod: "Forever",
@@ -139,9 +139,9 @@ export const translations = {
       activePlan: "Active Plan",
       copied: "Copied!",
       copy: "Click to Copy",
-      securityNote: "Card details are securely provided directly for this platform. Please do not share your own sensitive card details (such as CVV or expiry dates) with external admins. This transfer acts as a direct wallet top-up.",
+       securityNote: "Your payment details are handled securely. We never store sensitive card information on our servers.",
       usd: "USD",
-      uzs: "UZS",
+      local: "Local",
     },
     sidebar: {
       reading: "Reading",
@@ -159,6 +159,8 @@ export const translations = {
       leaderboard: "Leaderboard",
       modules: "Modules",
       premiumAccount: "Premium Account",
+      predictions: "Predictions",
+      articles: "Articles",
     },
     profile: {
       accountInfo: "Account Info",
@@ -282,8 +284,8 @@ export const translations = {
     about: {
       statsText: "Muvaffaqiyatli o'quvchilar",
       title: "Bizning maqsadimiz",
-      desc1: "Biz oddiy maqsad bilan boshladik: yuqori sifatli va haqiqiy IELTS tayyorgarligini O'zbekistondagi har bir kishi uchun ochiq qilish.",
-      desc2: "Jamoamiz aynan qanday qilib muvaffaqiyatga erishishni biladigan sertifikatlangan imtihon oluvchilar va band 8.5+ egalaridan iborat. Biz shunchaki testlar bermaymiz; orzuingizdagi universitetga boradigan yo'l xaritasini beramiz.",
+      desc1: "Biz oddiy maqsad bilan boshladik: yuqori sifatli va haqiqiy IELTS tayyorgarligini barcha uchun ochiq qilish.",
+      desc2: "Jamoamiz aynan qanday qilib muvaffaqiyatga erishishni biladigan sertifikatlangan mutaxassislardan iborat. Biz qayerda bo'lishingizdan qat'iy nazar, orzuingizdagi universitetga boradigan yo'l xaritasini beramiz.",
       btn: "Jamiyatimizga qo'shiling",
     },
     founders: {
@@ -307,7 +309,7 @@ export const translations = {
       badge: "Narxlar",
       title: "O'z imkoniyatingizga mos tarif",
       desc: "Bepul boshlang, maqsadingizga qarab kengaytiring. Yashirin to'lovlar yo'q.",
-      note: "Barcha narxlar UZS da. To'lov Click, Payme va Uzum orqali amalga oshiriladi.",
+      note: "Barcha uchun hamyonbop rejalar. Biz xalqaro to'lov usullarini qo'llab-quvvatlaymiz.",
       freeLabel: "Bepul",
       freeName: "Bepul",
       freePeriod: "Muddatsiz",
@@ -385,9 +387,9 @@ export const translations = {
       cardTitle: "Rasmiy To'lov Kartasi",
       copied: "Nusxa olindi!",
       copy: "Nusxalash",
-      securityNote: "Bu karta raqami faqat to'lov qilish uchun berilgan. Iltimos, o'zingizning karta ma'lumotlaringizni (CVV va amal qilish muddati kabi) boshqalarga, jumladan adminga ham bermang. Bu to'lov platformaga to'g'ridan to'g'ri o'tkazma hisoblanadi.",
+      securityNote: "To'lov ma'lumotlaringiz xavfsiz tarzda boshqariladi. Biz maxfiy karta ma'lumotlarini o'z serverlarimizda saqlamaymiz.",
       usd: "USD",
-      uzs: "UZS",
+      local: "Mahalliy",
     },
     sidebar: {
       reading: "Reading",
@@ -405,6 +407,8 @@ export const translations = {
       leaderboard: "Reyting",
       modules: "Modullar",
       premiumAccount: "Premium Akkaunt",
+      predictions: "Bashoratlar",
+      articles: "Maqolalar",
     },
     profile: {
       accountInfo: "Akkaunt ma'lumotlari",
@@ -527,8 +531,8 @@ export const translations = {
     about: {
       statsText: "Успешных студентов",
       title: "Наша миссия",
-      desc1: "Мы начинали с простой цели: сделать качественную и аутентичную подготовку к IELTS доступной каждому в Узбекистане.",
-      desc2: "Наша команда состоит из сертифицированных экзаменаторов и людей, сдавших IELTS на 8.5+, которые точно знают, что нужно для успеха. Мы даем не просто тесты; мы даем карту пути к университету вашей мечты.",
+      desc1: "Мы начинали с простой цели: сделать качественную и аутентичную подготовку к IELTS доступной каждому.",
+      desc2: "Наша команда состоит из сертифицированных специалистов, которые точно знают, что нужно для успеха. Мы даем карту пути к университету вашей мечты, где бы вы ни находились.",
       btn: "Присоединяйтесь к нам",
     },
     founders: {
@@ -552,7 +556,7 @@ export const translations = {
       badge: "Цены",
       title: "Выберите подходящий план",
       desc: "Начните бесплатно, обновляйте по мере необходимости. Никаких скрытых платежей.",
-      note: "Все цены указаны в UZS. Оплата через Click, Payme и Uzum.",
+      note: "Доступные планы для всех. Мы поддерживаем различные способы оплаты для иностранных студентов.",
       freeLabel: "Бесплатно",
       freeName: "Бесплатно",
       freePeriod: "Навсегда",
@@ -630,9 +634,9 @@ export const translations = {
       cardTitle: "Официальная Карта Для Оплаты",
       copied: "Скопировано!",
       copy: "Копировать",
-      securityNote: "Данные карты предоставлены исключительно для оплаты. Пожалуйста, не сообщайте свои личные данные (например, CVV или срок действия вашей карты) никому. Этот перевод является прямым пополнением кошелька.",
+      securityNote: "Ваши платежные данные обрабатываются безопасно. Мы не храним конфиденциальную информацию о картах на наших серверах.",
       usd: "USD",
-      uzs: "UZS",
+      local: "Местный",
     },
     sidebar: {
       reading: "Reading",
@@ -650,6 +654,8 @@ export const translations = {
       leaderboard: "Рейтинг",
       modules: "Модули",
       premiumAccount: "Премиум Аккаунт",
+      predictions: "Прогнозы",
+      articles: "Статьи",
     },
     profile: {
       accountInfo: "Данные аккаунта",

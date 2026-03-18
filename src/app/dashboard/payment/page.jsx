@@ -8,8 +8,8 @@ import { useTranslation } from "@/components/LanguageContext";
 function PaymentContent() {
   const searchParams = useSearchParams();
   const initialPlan = searchParams.get("plan") || "monthly";
-  const initialCurrency = searchParams.get("currency") || "uzs";
-  const [isUSD, setIsUSD] = useState(initialCurrency === "usd");
+  const initialCurrency = searchParams.get("currency") || "usd";
+  const [isUSD, setIsUSD] = useState(initialCurrency === "usd" || initialCurrency !== "uzs");
   const [selectedPlan, setSelectedPlan] = useState(initialPlan);
   const [copied, setCopied] = useState(false);
   const { t } = useTranslation();
@@ -21,7 +21,7 @@ function PaymentContent() {
   ];
 
   const handleCopy = () => {
-    navigator.clipboard.writeText("4008470041142372");
+    navigator.clipboard.writeText("4008410041142312");
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
@@ -148,7 +148,7 @@ function PaymentContent() {
                   {t("payment.cardTitle")}
                 </h3>
                 <span className="text-xs font-semibold px-2.5 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full">
-                  {isUSD ? "USD / VISA" : "UZS / HUMO"}
+                  {isUSD ? "USD / VISA (International)" : "UZS / Local Card"}
                 </span>
               </div>
 
@@ -156,51 +156,36 @@ function PaymentContent() {
               <div 
                 className="relative w-full aspect-[1.586/1] rounded-[20px] overflow-hidden shadow-2xl group select-none transition-transform hover:scale-[1.02] duration-300"
                 style={{
-                  background: "linear-gradient(135deg, #111111 0%, #2a2a2a 100%)",
+                  background: "linear-gradient(135deg, #0f172a 0%, #334155 100%)",
                   fontFamily: "'Courier New', Courier, monospace"
                 }}
               >
-                {/* Decorative Mandala pattern placeholder */}
+                {/* Decorative Pattern */}
                 <div 
-                  className="absolute inset-0 pointer-events-none opacity-30 mix-blend-overlay"
+                  className="absolute inset-0 pointer-events-none opacity-20"
                   style={{
-                    backgroundImage: "radial-gradient(circle at 40% 20%, #d4af37 1px, transparent 1px), radial-gradient(circle at 60% 80%, #d4af37 1px, transparent 1px)",
-                    backgroundSize: "40px 40px",
+                    backgroundImage: "radial-gradient(circle at 10% 20%, rgba(255,255,255,0.1) 1px, transparent 1px)",
+                    backgroundSize: "20px 20px",
                   }}
                 />
-                <div 
-                  className="absolute -top-[50%] -left-[20%] w-[150%] h-[150%] rounded-full border-[1px] border-[#d4af37]/10 pointer-events-none"
-                />
-                <div 
-                  className="absolute -top-[30%] -left-[10%] w-[110%] h-[110%] rounded-full border-[1px] border-[#d4af37]/20 pointer-events-none"
-                />
-
-                {/* Top Right: Hamkorbank Logo */}
-                <div className="absolute top-[8%] right-[6%] flex items-center gap-2 z-10">
-                  <div className="flex gap-1 transform -skew-x-[20deg]">
-                    <div className="w-[6px] h-[18px] bg-white rounded-[1px]" />
-                    <div className="w-[6px] h-[18px] bg-white rounded-[1px]" />
-                  </div>
-                  <span className="text-white font-bold text-lg tracking-wider" style={{ fontFamily: "Inter, sans-serif" }}>HAMKORBANK</span>
+                
+                {/* Global Bank Logo */}
+                <div className="absolute top-[8%] left-[6%] flex items-center gap-2 z-10">
+                   <div className="w-8 h-8 rounded-full border-2 border-white/20 flex items-center justify-center">
+                      <Globe className="w-5 h-5 text-white/80" />
+                   </div>
+                   <span className="text-white font-black text-sm tracking-widest" style={{ fontFamily: "Inter, sans-serif" }}>GLOBAL REACH BANK</span>
                 </div>
 
                 {/* Chip & Contactless */}
-                <div className="absolute top-[28%] left-[10%] flex items-center gap-4 z-10">
-                  <div className="w-[45px] h-[35px] rounded-md bg-gradient-to-br from-[#e5c07b] to-[#d4af37] relative border border-[#b38b22] shadow-sm overflow-hidden">
-                     {/* Chip lines */}
-                     <div className="absolute top-[30%] left-0 right-0 h-[1px] bg-[#9a7b21]" />
-                     <div className="absolute top-[60%] left-0 right-0 h-[1px] bg-[#9a7b21]" />
-                     <div className="absolute top-0 bottom-0 left-[30%] w-[1px] bg-[#9a7b21]" />
-                     <div className="absolute top-0 bottom-0 left-[70%] w-[1px] bg-[#9a7b21]" />
-                     <div className="absolute inset-0 border border-[#9a7b21] rounded-md m-[4px]" />
+                <div className="absolute top-[32%] left-[10%] flex items-center gap-4 z-10">
+                  <div className="w-[45px] h-[35px] rounded-md bg-gradient-to-br from-[#e5c07b] to-[#d4af37] relative border border-[#b38b22] shadow-sm">
+                     <div className="absolute inset-0 border border-[#9a7b21] rounded-md m-[4px] opacity-40" />
                   </div>
                   
                   {/* Contactless symbol */}
-                  <div className="flex gap-1.5 items-center justify-center rotate-90 ml-2 opacity-90">
-                    <div className="w-[2px] h-[8px] bg-white rounded-full" />
-                    <div className="w-[2px] h-[14px] bg-white rounded-full" />
-                    <div className="w-[2px] h-[20px] bg-white rounded-full" />
-                    <div className="w-[2px] h-[26px] bg-white rounded-full" />
+                  <div className="flex gap-1 items-center justify-center rotate-90 ml-2 opacity-60">
+                    {[1, 2, 3, 4].map(w => <div key={w} className="w-[1.5px] bg-white rounded-full" style={{ height: `${6+w*5}px` }} />)}
                   </div>
                 </div>
 
@@ -208,11 +193,10 @@ function PaymentContent() {
                 <div 
                   className="absolute top-[52%] left-[6%] right-[6%] z-20 cursor-pointer group"
                   onClick={handleCopy}
-                  title="Click to copy card number"
                 >
                   <div className="flex items-center justify-start gap-5 text-[#f5f5f5] text-[26px] tracking-widest font-bold"
                        style={{ 
-                         textShadow: "-1px -1px 1px rgba(255,255,255,0.1), 1px 1px 1.5px rgba(0,0,0,0.8)",
+                         textShadow: "1px 1px 2px rgba(0,0,0,0.8)",
                          fontFamily: "'Courier Prime', 'Courier New', monospace"
                        }}>
                     <span>4008</span>
@@ -222,57 +206,37 @@ function PaymentContent() {
                   </div>
                   
                   {/* Hover Copy Overlay */}
-                  <div className="absolute inset-x-0 -inset-y-3 bg-black/50 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                  <div className="absolute inset-x-0 -inset-y-3 bg-black/50 backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
                     {copied ? (
-                      <span className="text-white font-bold text-sm tracking-normal flex items-center gap-1.5" style={{ fontFamily: "Inter, sans-serif" }}>
-                        <CheckCircle2 className="w-5 h-5 text-green-400" /> {t("payment.copied")}
+                      <span className="text-white font-bold text-xs tracking-normal flex items-center gap-1.5" style={{ fontFamily: "Inter, sans-serif" }}>
+                        <CheckCircle2 className="w-4 h-4 text-green-400" /> {t("payment.copied")}
                       </span>
                     ) : (
-                      <span className="text-white font-bold text-sm tracking-normal flex items-center gap-1.5" style={{ fontFamily: "Inter, sans-serif" }}>
-                        <Copy className="w-5 h-5" /> {t("payment.copy")}
+                      <span className="text-white font-bold text-xs tracking-normal flex items-center gap-1.5" style={{ fontFamily: "Inter, sans-serif" }}>
+                        <Copy className="w-4 h-4" /> {t("payment.copy")}
                       </span>
                     )}
                   </div>
                 </div>
 
                 {/* Valid Thru */}
-                <div className="absolute top-[69%] left-[30%] z-10 flex items-center gap-2">
-                  <div className="flex flex-col text-[6px] font-bold text-white/80 uppercase leading-[1.1] text-right tracking-widest">
-                    <span>Valid</span>
-                    <span>Thru</span>
-                  </div>
-                  <span className="text-[17px] text-[#f5f5f5] font-bold tracking-widest"
-                        style={{ 
-                          textShadow: "-1px -1px 1px rgba(255,255,255,0.1), 1px 1px 1px rgba(0,0,0,0.8)",
-                        }}>
-                    03/29
-                  </span>
+                <div className="absolute bottom-[25%] right-[15%] z-10 flex items-center gap-2 uppercase">
+                  <span className="text-[7px] text-white/60 font-bold leading-tight text-right">Valid<br/>Thru</span>
+                  <span className="text-[17px] text-white font-bold tracking-widest">03/29</span>
                 </div>
 
                 {/* Name */}
-                <div className="absolute bottom-[18%] left-[6%] z-10">
-                  <span className="text-[15px] text-[#f5f5f5] font-bold tracking-[0.16em] uppercase"
-                        style={{ 
-                          textShadow: "-1px -1px 1px rgba(255,255,255,0.1), 1px 1px 1px rgba(0,0,0,0.8)",
-                        }}>
-                    AZIZBEK ALISHEROV
+                <div className="absolute bottom-[10%] left-[8%] z-10">
+                  <span className="text-[14px] text-white/90 font-bold tracking-[0.2em] uppercase">
+                    ALISHEROV ABDULAZIZ
                   </span>
                 </div>
 
                 {/* VISA Logo */}
-                <div className="absolute bottom-[6%] left-[6%] z-10">
-                  <span className="text-white text-[32px] font-black italic tracking-tighter" style={{ fontFamily: "Arial, sans-serif" }}>
+                <div className="absolute bottom-[8%] right-[8%] z-10">
+                  <span className="text-white text-[34px] font-black italic tracking-tighter" style={{ fontFamily: "Arial, sans-serif" }}>
                     VISA
                   </span>
-                </div>
-
-                {/* HUMO Logo */}
-                <div className="absolute bottom-[6%] right-[6%] z-10">
-                  <div className="bg-[#18392a] rounded-lg px-3 py-1.5 flex items-center justify-center shadow-lg relative overflow-hidden border border-[#d4af37]/30">
-                    <span className="text-[#d4af37] font-bold tracking-widest text-lg relative z-10" style={{ fontFamily: "sans-serif" }}>HUMO</span>
-                    {/* HUMO swoosh */}
-                    <div className="absolute bottom-0 right-0 w-[80%] h-[30%] bg-gradient-to-l from-[#d4af37] to-transparent rounded-tl-full opacity-60"></div>
-                  </div>
                 </div>
               </div>
 

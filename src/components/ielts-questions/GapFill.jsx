@@ -72,11 +72,25 @@ const GapFill = ({ data, onAnswer, userAnswers = {} }) => {
 
   return (
     <div className="mb-8 font-sans">
-      <div className="space-y-3 leading-loose text-gray-800">
+      <div className="space-y-3 leading-loose text-gray-800 ielts-html-content">
         <div className="leading-[2.5] [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-3 [&_li]:mb-2 [&_li]:mt-1">
           {parse(data.content, options)}
         </div>
       </div>
+      <style jsx global>{`
+        .ielts-html-content table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 1.5rem 0;
+          border: 1px solid #777;
+        }
+        .ielts-html-content th, .ielts-html-content td {
+          border: 1px solid #777;
+          padding: 8px 12px;
+          text-align: left;
+        }
+        .ielts-html-content th { background-color: #f7f7f7; }
+      `}</style>
     </div>
   );
 };

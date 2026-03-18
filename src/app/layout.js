@@ -15,7 +15,7 @@ const firaCode = Fira_Code({
 });
 
 export const metadata = {
-  metadataBase: new URL('https://megaielts.uz'), // Deploy qilinganda haqiqiy domen bilan almashtirish mumkin
+  metadataBase: new URL('https://megaielts.com'), // Base URL for global SEO
   title: {
     default: "Mega IELTS — The Ultimate Online IELTS Mock Platform",
     template: "%s | Mega IELTS"
@@ -25,8 +25,8 @@ export const metadata = {
   keywords: [
     "IELTS", "IELTS mock", "online IELTS test", "IELTS practice free", 
     "IELTS reading test", "IELTS listening test", "IELTS writing check", "IELTS speaking mock",
-    "Mega IELTS", "IELTS preparation Uzbekistan", "IELTS band 8", "IELTS exam simulator",
-    "CEFR mock", "ingliz tili testlari", "IELTS onlayn test", "IELTS tayyorgarlik"
+    "Mega IELTS", "IELTS preparation online", "IELTS band 8", "IELTS exam simulator",
+    "Global IELTS mock", "English proficiency", "Study abroad prep"
   ],
   authors: [{ name: "Mega IELTS Team" }],
   creator: "Mega IELTS",
@@ -47,11 +47,11 @@ export const metadata = {
   openGraph: {
     title: "Mega IELTS — Advanced Online Mock Platform",
     description: "Take professional IELTS mock tests online. Instant results for Reading and Listening, AI evaluation for Writing. Track your progress to Band 9.0.",
-    url: 'https://megaielts.uz',
+    url: 'https://megaielts.com',
     siteName: 'Mega IELTS',
     images: [
       {
-        url: 'https://megaielts.uz/og-image.jpg', // Kelajakda shunday rasm qo'shishingiz kerak bo'ladi public/og-image.jpg
+        url: 'https://megaielts.com/og-image.jpg', // Public image link for social media previews
         width: 1200,
         height: 630,
         alt: 'Mega IELTS Platform Preview',
@@ -65,7 +65,7 @@ export const metadata = {
     title: 'Mega IELTS — Real Exam Experience Online',
     description: 'Master your IELTS with comprehensive practice tests and AI feedback.',
     creator: '@megaielts',
-    images: ['https://megaielts.uz/og-image.jpg'],
+    images: ['https://megaielts.com/og-image.jpg'],
   },
   robots: {
     index: true,
@@ -94,8 +94,8 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'WebSite',
-      '@id': 'https://megaielts.uz/#website',
-      url: 'https://megaielts.uz',
+      '@id': 'https://megaielts.com/#website',
+      url: 'https://megaielts.com',
       name: 'Mega IELTS',
       description: 'The ultimate online IELTS preparation and mock test platform.',
       publisher: {
@@ -106,10 +106,10 @@ const jsonLd = {
     },
     {
       '@type': 'EducationalOrganization',
-      '@id': 'https://megaielts.uz/#organization',
+      '@id': 'https://megaielts.com/#organization',
       name: 'Mega IELTS',
-      url: 'https://megaielts.uz',
-      logo: 'https://megaielts.uz/logo.png',
+      url: 'https://megaielts.com',
+      logo: 'https://megaielts.com/logo.png',
       sameAs: [
         'https://t.me/megaieltsuz', // Telegram manzilingiz (O'zgartirib olishingiz mumkin)
         'https://instagram.com/megaieltsuz' // Instagram manzilingiz (O'zgartirib olishingiz mumkin)
