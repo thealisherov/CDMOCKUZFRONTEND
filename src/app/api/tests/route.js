@@ -37,11 +37,39 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Ma\'lumotlarni olishda xatolik' }, { status: 500 })
     }
 
+    // ── Check user attempts for "completed" status ──
+    let completedMap = {}; // { "reading_1": { completed: true, bestBand: "7.0" }, ... }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        let attemptsQuery = supabase
+          .from('TestAttempts')
+          .select('test_numeric_id, test_type, band_score')
+          .eq('user_id', user.id);
+        
+        if (type) {
+          attemptsQuery = attemptsQuery.eq('test_type', type);
+        }
+
+        const { data: attempts } = await attemptsQuery;
+        if (attempts) {
+          attempts.forEach(a => {
+            const key = `${a.test_type}_${a.test_numeric_id}`;
+            if (!completedMap[key] || parseFloat(a.band_score) > parseFloat(completedMap[key].bestBand || '0')) {
+              completedMap[key] = { completed: true, bestBand: a.band_score };
+            }
+          });
+        }
+      }
+    } catch { /* user not logged in — skip */ }
+
     // Extract only metadata from the JSONB `data` column — never send questions/answers
     const testList = (rows || []).map((row, index) => {
       const d = row.data || {}
+      const numericId = index + 1;
+      const attemptInfo = completedMap[`${row.type}_${numericId}`];
       return {
-        id: index + 1,                                // numeric ID for URL (position-based)
+        id: numericId,                                // numeric ID for URL (position-based)
         supabaseId: row.id,                           // uuid (internal)
         test_id: row.test_id,                         // e.g. "listening-test-1-clarence-house"
         type: row.type,
@@ -56,7 +84,8 @@ export async function GET(request) {
         testType: d.testFormat || d.testType || 'full_test',
         questions: d.totalQuestions || (row.type === 'writing' ? 2 : 40),
         access: (d.testTution === 'paid' || d.access === 'paid') ? 'premium' : (d.testTution || d.access || 'free'),
-        completed: false, // TODO: integrate user progress later
+        completed: attemptInfo?.completed || false,
+        bestBand: attemptInfo?.bestBand || null,
       }
     })
 

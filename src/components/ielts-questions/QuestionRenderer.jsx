@@ -5,6 +5,8 @@ import GapFill from './GapFill';
 import RadioMatrix from './RadioMatrix';
 import TrueFalse from './TrueFalse';
 import MatchDropdown from './MatchDropdown';
+import MatchHeadings from './MatchHeadings';
+import MatchingDragDrop from './MatchingDragDrop';
 import DragDropSummary from './DragDropSummary';
 import CheckboxMultiple from './CheckboxMultiple';
 import FlowChart from './FlowChart';
@@ -56,6 +58,9 @@ const QuestionRenderer = ({ data, onAnswersChange, startIndex = 1, userAnswers =
       case 'match_dropdown':
         return <MatchDropdown {...commonProps} />;
 
+      case 'matching_drag':
+        return <MatchingDragDrop {...commonProps} />;
+
       case 'drag_drop_summary':
         return <DragDropSummary {...commonProps} />;
 
@@ -64,6 +69,9 @@ const QuestionRenderer = ({ data, onAnswersChange, startIndex = 1, userAnswers =
 
       case 'flow_chart':
         return <FlowChart {...commonProps} />;
+
+      case 'match_headings':
+        return <MatchHeadings {...commonProps} />;
 
       case 'table':
         return <TableCompletion {...commonProps} />;

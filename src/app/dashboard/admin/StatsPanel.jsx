@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Users, CreditCard, DollarSign, Wallet, Calendar, ArrowUpRight, TrendingUp } from "lucide-react";
+import { Users, CreditCard, DollarSign, Wallet, Calendar, ArrowUpRight, TrendingUp, BookOpen, Headphones, PenTool, Gift, Star, FileText } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 
 export default function StatsPanel() {
@@ -114,6 +114,62 @@ export default function StatsPanel() {
           isCurrency
           suffix="$"
         />
+      </div>
+
+      {/* ── Test Library Stats ── */}
+      <div className="bg-white dark:bg-black/20 border border-border rounded-2xl p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <FileText className="w-5 h-5 text-indigo-500" />
+          <h3 className="font-bold">Test Library</h3>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {/* Total */}
+          <div className="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border-2 border-indigo-100 dark:border-indigo-800/40 text-center">
+            <p className="text-xs font-bold uppercase tracking-wider text-indigo-500 opacity-70 mb-1">Total</p>
+            <p className="text-2xl font-black text-indigo-600">{stats?.tests?.total || 0}</p>
+          </div>
+          {/* Reading */}
+          <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-100 dark:border-blue-800/40 text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <BookOpen className="w-3.5 h-3.5 text-blue-500" />
+              <p className="text-xs font-bold uppercase tracking-wider text-blue-500 opacity-70">Reading</p>
+            </div>
+            <p className="text-2xl font-black text-blue-600">{stats?.tests?.reading || 0}</p>
+          </div>
+          {/* Listening */}
+          <div className="p-4 rounded-xl bg-teal-50 dark:bg-teal-900/20 border-2 border-teal-100 dark:border-teal-800/40 text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <Headphones className="w-3.5 h-3.5 text-teal-500" />
+              <p className="text-xs font-bold uppercase tracking-wider text-teal-500 opacity-70">Listening</p>
+            </div>
+            <p className="text-2xl font-black text-teal-600">{stats?.tests?.listening || 0}</p>
+          </div>
+          {/* Writing */}
+          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-100 dark:border-amber-800/40 text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <PenTool className="w-3.5 h-3.5 text-amber-500" />
+              <p className="text-xs font-bold uppercase tracking-wider text-amber-500 opacity-70">Writing</p>
+            </div>
+            <p className="text-2xl font-black text-amber-600">{stats?.tests?.writing || 0}</p>
+          </div>
+          {/* Free */}
+          <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-100 dark:border-emerald-800/40 text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <Gift className="w-3.5 h-3.5 text-emerald-500" />
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-500 opacity-70">Free</p>
+            </div>
+            <p className="text-2xl font-black text-emerald-600">{stats?.tests?.free || 0}</p>
+          </div>
+          {/* Premium */}
+          <div className="p-4 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-100 dark:border-yellow-800/40 text-center">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <Star className="w-3.5 h-3.5 text-yellow-500" />
+              <p className="text-xs font-bold uppercase tracking-wider text-yellow-500 opacity-70">Premium</p>
+            </div>
+            <p className="text-2xl font-black text-yellow-600">{stats?.tests?.premium || 0}</p>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-black/20 border border-border rounded-2xl p-6">

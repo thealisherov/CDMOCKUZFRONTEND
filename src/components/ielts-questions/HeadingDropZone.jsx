@@ -3,15 +3,17 @@
 import React, { useState } from 'react';
 
 /**
- * HeadingDropZone — "List of Headings" question type (LEFT panel drop zone).
- * 
- * Sits directly above a paragraph and accepts drops from the right panel.
+ * HeadingDropZone — IELTS CD-style drop zone for "List of Headings".
+ *
+ * Empty state:  Dashed border box with the question number centered
+ *               on the top edge (floating badge style).
+ * Filled state: Solid thin border (light blue), heading text in bold inside.
  */
 const HeadingDropZone = ({ questionId, globalNum, onDrop, currentAnswer }) => {
   const [isOver, setIsOver] = useState(false);
 
   const handleDragOver = (e) => {
-    e.preventDefault(); // Necessary to allow dropping
+    e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     if (!isOver) setIsOver(true);
   };
@@ -30,58 +32,131 @@ const HeadingDropZone = ({ questionId, globalNum, onDrop, currentAnswer }) => {
     }
   };
 
-  const handleClear = () => {
+  const handleClear = (e) => {
+    e.stopPropagation();
     if (onDrop) {
       onDrop({ [questionId]: '' });
     }
   };
 
+  /* ═══════════════ FILLED STATE ═══════════════ */
+  if (currentAnswer) {
+    return (
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        style={{
+          position: 'relative',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '8px 14px',
+          border: '1.5px solid #7ecbf5',
+          borderRadius: 4,
+          background: '#fff',
+          marginBottom: 6,
+          maxWidth: '100%',
+          cursor: 'pointer',
+        }}
+      >
+        {/* Heading text */}
+        <span
+          style={{
+            fontWeight: 700,
+            fontSize: 15,
+            lineHeight: 1.4,
+            color: 'var(--test-fg, #111)',
+          }}
+          title={currentAnswer}
+        >
+          {currentAnswer}
+        </span>
+
+        {/* Clear ✕ button */}
+        <button
+          onClick={handleClear}
+          title="Remove heading"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 20,
+            height: 20,
+            border: '1px solid #ccc',
+            borderRadius: 3,
+            background: '#f5f5f5',
+            cursor: 'pointer',
+            color: '#888',
+            fontSize: 13,
+            fontWeight: 700,
+            lineHeight: 1,
+            padding: 0,
+            marginLeft: 4,
+            flexShrink: 0,
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#fee2e2';
+            e.currentTarget.style.borderColor = '#fca5a5';
+            e.currentTarget.style.color = '#dc2626';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = '#f5f5f5';
+            e.currentTarget.style.borderColor = '#ccc';
+            e.currentTarget.style.color = '#888';
+          }}
+        >
+          ✕
+        </button>
+      </div>
+    );
+  }
+
+  /* ═══════════════ EMPTY STATE ═══════════════ */
   return (
     <div
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`
-        relative flex items-center min-h-[42px] max-w-sm mb-4 rounded-md
-        transition-all duration-200 ease-in-out border
-        ${isOver 
-          ? 'bg-blue-50 border-blue-400 border-dashed shadow-inner scale-[1.01]' 
-          : currentAnswer 
-            ? 'bg-white border-[#d2d2d2] shadow-sm' 
-            : 'bg-[#f6f6f6] border-[#e0e0e0] hover:border-gray-400'
-        }
-      `}
+      style={{
+        position: 'relative',
+        display: 'inline-block',
+        minWidth: 600,
+        maxWidth: '80%',
+        height: 40,
+        border: isOver
+          ? '2px dashed #2563eb'
+          : '1.5px dashed #999',
+        borderRadius: 4,
+        background: isOver ? 'rgba(37, 99, 235, 0.04)' : 'transparent',
+        marginBottom: 6,
+        transition: 'all 0.2s ease',
+      }}
     >
-      {/* Question Number Badge */}
-      <div className="flex-none flex items-center justify-center font-bold text-[14.5px] text-[#333] w-12 h-full min-h-[42px] px-3 border-r border-[#e0e0e0] select-none shadow-sm">
+      {/* ── Number badge centered on the top border ── */}
+      <div
+        style={{
+          position: 'absolute',
+          marginTop: '8px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minWidth: 38,
+          height: 24,
+          padding: '0 10px',
+          background: 'var(--test-panel-bg, #fff)',
+          fontWeight: 700,
+          fontSize: 14,
+          color: 'var(--test-fg, #333)',
+          userSelect: 'none',
+          letterSpacing: '-0.3px',
+        }}
+      >
         {globalNum}
       </div>
-
-      {/* Answer Area */}
-      <div className="flex-grow flex items-center overflow-hidden pr-3">
-        {currentAnswer ? (
-          <span className="font-semibold text-[#111] text-[13.5px] truncate pt-0.5" title={currentAnswer}>
-            {currentAnswer}
-          </span>
-        ) : (
-          <span className="text-[#a0a0a0] text-[13px] pt-0.5 pointer-events-none select-none">
-            {isOver ? "Drop heading here..." : ""}
-          </span>
-        )}
-      </div>
-
-      {/* Clear Button */}
-      {currentAnswer && (
-        <button
-          onClick={handleClear}
-          className="flex-none mr-2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-          title="Remove heading"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      )}
     </div>
   );
 };

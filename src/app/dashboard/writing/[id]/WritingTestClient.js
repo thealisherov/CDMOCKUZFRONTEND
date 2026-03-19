@@ -13,6 +13,7 @@ import { useIELTSTheme } from '@/hooks/useIELTSTheme';
 import { NotesProvider, useNotes } from '@/components/NotesContext';
 import NotesSidebar from '@/components/ielts/NotesSidebar';
 import { useDynamicFavicon } from '@/hooks/useDynamicFavicon';
+import { createClient } from '@/utils/supabase/client';
 
 /**
  * Word counter
@@ -54,6 +55,14 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
 
   const { contrast, setContrast, textSize, setTextSize, getWrapperStyle } = useIELTSTheme();
   useDynamicFavicon('/favicon.png');
+
+  // Fetch user email for "Test taker ID"
+  const [userEmail, setUserEmail] = useState('');
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      if (data?.user?.email) setUserEmail(data.user.email);
+    });
+  }, []);
 
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [activeTaskIndex, setActiveTaskIndex] = useState(0);
@@ -464,7 +473,7 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <span style={{ color: '#e22d2d', fontSize: 26, fontWeight: 900, letterSpacing: 1 }}>IELTS</span>
-            <span style={{ fontSize: 15, fontWeight: 500 }}>Test taker ID</span>
+            <span style={{ fontSize: 15, fontWeight: 500 }}>{userEmail || 'Test taker ID'}</span>
           </div>
           <div className="flex items-center gap-6">
             <Timer initialMinutes={timerMinutes} onExpire={handleTimerEnd} storageKey={timerKey} />

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { createClient } from '@/utils/supabase/client';
 import { useDynamicFavicon } from '@/hooks/useDynamicFavicon';
 import { useRouter } from 'next/navigation';
 import Timer from '@/components/Timer';
@@ -28,6 +29,14 @@ function ReadingTestInner({ id, rawData }) {
   useDynamicFavicon('/favicon.png');
 
   const { contrast, setContrast, textSize, setTextSize, getWrapperStyle } = useIELTSTheme();
+
+  // Fetch user email for "Test taker ID"
+  const [userEmail, setUserEmail] = useState('');
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      if (data?.user?.email) setUserEmail(data.user.email);
+    });
+  }, []);
 
   const [userAnswers,   setUserAnswers]   = useState({});
   const [submitted,     setSubmitted]     = useState(false);
@@ -321,7 +330,7 @@ function ReadingTestInner({ id, rawData }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <span style={{ color: '#e22d2d', fontSize: 26, fontWeight: 900, letterSpacing: 1 }}>IELTS</span>
-            <span style={{ fontSize: 15, fontWeight: 500 }}>Test taker ID</span>
+            <span style={{ fontSize: 15, fontWeight: 500 }}>{userEmail || 'Test taker ID'}</span>
           </div>
           <div className="flex items-center gap-6">
             <Timer initialMinutes={timerMinutes} onExpire={handleTimerEnd} storageKey={timerKey} />
@@ -383,11 +392,10 @@ function ReadingTestInner({ id, rawData }) {
                       headingQ = matchHeadingsBlock.questions.find(q => q.text.toUpperCase().includes(`PARAGRAPH ${paragraphLetter}`));
                     }
 
-                    // Auto-detect "A Text..." or "A. Text..." pattern at paragraph start
-                    const letterMatch = trimmed.match(/^([A-Z])(\.| )?\\s+(.+)$/s);
-                    const hasBoldLetter = letterMatch !== null;
-                    const boldLetter    = hasBoldLetter ? letterMatch[1] : null;
-                    const restText      = hasBoldLetter ? letterMatch[3] : trimmed;
+                    // Pattern 1: "Paragraph A\n..." — bold "Paragraph A", then content on new line
+                    const paragraphHeaderMatch = trimmed.match(/^(Paragraph\s+[A-Z])\s*\n([\s\S]*)$/);
+                    // Pattern 2: "A\n..." or "A ..." — single letter at start, bold only the letter
+                    const singleLetterMatch = !paragraphHeaderMatch && trimmed.match(/^([A-Z])(?:[.\s])\s*([\s\S]+)$/);
 
                     return (
                       <div key={idx} className="mb-4">
@@ -396,12 +404,24 @@ function ReadingTestInner({ id, rawData }) {
                             <HeadingDropZone questionId={headingQ.id} globalNum={headingQ.id} onDrop={handleBlockAnswers} currentAnswer={userAnswers[headingQ.id]} />
                           </div>
                         )}
-                        <p className="text-[16.5px] font-medium leading-[1.85]" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)' }}>
-                          {hasBoldLetter
-                            ? <><strong style={{ fontWeight: 900, marginRight: '6px' }}>{boldLetter}</strong>{restText}</>
-                            : trimmed
-                          }
-                        </p>
+                        {paragraphHeaderMatch ? (
+                          <>
+                            <p className="text-[17px] font-bold mb-1" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)', fontWeight: 900 }}>
+                              {paragraphHeaderMatch[1]}
+                            </p>
+                            <p className="text-[16.5px] font-medium leading-[1.85]" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)' }}>
+                              {paragraphHeaderMatch[2]}
+                            </p>
+                          </>
+                        ) : singleLetterMatch ? (
+                          <p className="text-[16.5px] font-medium leading-[1.85]" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)' }}>
+                            <strong style={{ fontWeight: 900, marginRight: '6px' }}>{singleLetterMatch[1]}</strong>{singleLetterMatch[2]}
+                          </p>
+                        ) : (
+                          <p className="text-[16.5px] font-medium leading-[1.85]" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)' }}>
+                            {trimmed}
+                          </p>
+                        )}
                       </div>
                     );
                   })}

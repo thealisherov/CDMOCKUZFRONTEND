@@ -18,6 +18,7 @@ import NotesSidebar from '@/components/ielts/NotesSidebar';
 import HighlightableContent from '@/components/HighlightableContent';
 import { useDynamicFavicon } from '@/hooks/useDynamicFavicon';
 import { usePersistedState } from '@/hooks/usePersistedState';
+import { createClient } from '@/utils/supabase/client';
 
 
 // Data is passed as props from the Server Component
@@ -30,6 +31,14 @@ function ListeningTestInner({ id, rawData }) {
   const audioPlayerRef = useRef(null);
 
   const { contrast, setContrast, textSize, setTextSize, getWrapperStyle } = useIELTSTheme();
+
+  // Fetch user email for "Test taker ID"
+  const [userEmail, setUserEmail] = useState('');
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      if (data?.user?.email) setUserEmail(data.user.email);
+    });
+  }, []);
 
   useDynamicFavicon('/favicon.png');
   const [optionsOpen, setOptionsOpen] = usePersistedState(`opts_listening_${id}`, false);
@@ -411,7 +420,7 @@ function ListeningTestInner({ id, rawData }) {
         <div className="flex items-center gap-4">
           <span style={{ color: '#e22d2d' }} className="text-3xl font-black tracking-wider mr-4">IELTS</span>
           <div className="flex flex-col">
-            <span style={{ color: 'var(--test-header-fg)' }} className="text-[15px] font-bold leading-tight">Test taker ID</span>
+            <span style={{ color: 'var(--test-header-fg)' }} className="text-[15px] font-bold leading-tight">{userEmail || 'Test taker ID'}</span>
             <span className="text-[12px] flex items-center mt-0.5 opacity-80">
               <Volume2 className="w-4 h-4 mr-1" /> Audio is playing
             </span>

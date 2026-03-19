@@ -335,7 +335,7 @@ function DefaultTestItem({ test, moduleType, meta, t, user }) {
             {test.completed && (
               <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: 'oklch(0.52 0.16 145 / 0.1)', color: 'oklch(0.42 0.14 145)', border: '1px solid oklch(0.52 0.16 145 / 0.25)' }}>
-                ✓ {t("testList.done")}
+                ✓ {t("testList.done")}{test.bestBand ? ` · ${test.bestBand}` : ''}
               </span>
             )}
           </div>

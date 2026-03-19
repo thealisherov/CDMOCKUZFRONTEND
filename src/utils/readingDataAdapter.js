@@ -35,6 +35,7 @@ function mapGroupType(groupType) {
       return 'drag_drop_summary'; // UI uses draggable boxes
 
     case 'yes_no_not_given':
+    case 'true_false_not_given':
       return 'true_false';
 
     case 'matching_sentence_endings':
@@ -52,6 +53,9 @@ function mapGroupType(groupType) {
     case 'matching_features': // For things like "Match each sentence to a researcher"
     case 'matching_information':
       return 'match_dropdown';
+
+    case 'matching': // Generic matching (e.g. "Match each finding with the correct place A-E")
+      return 'matching_drag';
       
     case 'matching_headings':
       return 'match_headings'; // handled differently by ResizableSplitPane passages -> DropZones
@@ -79,7 +83,10 @@ function buildGapFillContent(questions) {
     questionText = questionText.replace(/(<br\s*\/?>)?\s*↓\s*(<br\s*\/?>)?/g, '\n');
     content += questionText;
     if (idx < questions.length - 1) {
-      content += '\n';
+      // Check if the question already ends with an HTML block tag (br, /ul, /li, /p, etc.)
+      // If so, no extra separator is needed. Otherwise join with a space for flowing text.
+      const endsWithBlock = /<\/(ul|ol|li|p|div|table|tr|td|th)>\s*$|<br\s*\/?>\s*$/i.test(questionText);
+      content += endsWithBlock ? '' : ' ';
     }
   });
   return content;
@@ -316,6 +323,15 @@ function convertQuestionGroup(group, passageContent) {
       break;
     }
 
+    case 'true_false_not_given': {
+      block.questions = group.questions.map((q) => ({
+        id: String(q.number),
+        text: q.question,
+      }));
+      block.options = ['TRUE', 'FALSE', 'NOT GIVEN'];
+      break;
+    }
+
     case 'matching_sentence_endings': {
       // the options are provided in the first question
       const firstQ = group.questions[0];
@@ -401,6 +417,37 @@ function convertQuestionGroup(group, passageContent) {
       } else if (firstQ?.options) {
         block.optionDescriptions = firstQ.options;
       }
+      break;
+    }
+
+    case 'matching': {
+      // Drag-drop matching: questions with drop zones + draggable option items
+      const firstQ = group.questions[0];
+      let optionLetters = group.options || (firstQ?.options ? extractOptionLetters(firstQ.options) : []);
+      
+      block.questions = group.questions.map((q) => ({
+        id: String(q.number),
+        text: q.question,
+      }));
+      block.options = optionLetters;
+      
+      // Full option descriptions for drag-drop display
+      if (group.options) {
+        block.optionDescriptions = group.options;
+      } else if (firstQ?.options) {
+        block.optionDescriptions = firstQ.options;
+      }
+      break;
+    }
+
+    case 'matching_headings': {
+      // Heading options come from the first question's options
+      const firstQ = group.questions[0];
+      block.headings = firstQ?.options || [];
+      block.questions = group.questions.map((q) => ({
+        id: String(q.number),
+        text: q.question,
+      }));
       break;
     }
 

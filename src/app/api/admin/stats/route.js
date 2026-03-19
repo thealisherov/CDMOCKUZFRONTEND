@@ -45,13 +45,34 @@ export async function GET(req) {
     const revenueUZS = payments?.filter(p => p.currency === 'UZS').reduce((sum, p) => sum + Number(p.amount), 0) || 0;
     const revenueUSD = payments?.filter(p => p.currency === 'USD').reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
+    // 3. Get test statistics
+    let testStats = { total: 0, reading: 0, listening: 0, writing: 0, free: 0, premium: 0 };
+    try {
+      const { data: tests } = await supabaseAdmin
+        .from('Tests')
+        .select('type, data');
+      if (tests) {
+        testStats.total = tests.length;
+        tests.forEach(t => {
+          if (t.type === 'reading') testStats.reading++;
+          else if (t.type === 'listening') testStats.listening++;
+          else if (t.type === 'writing') testStats.writing++;
+          
+          const access = t.data?.testTution || t.data?.access || 'free';
+          if (access === 'paid') testStats.premium++;
+          else testStats.free++;
+        });
+      }
+    } catch { /* Tests table may not exist */ }
+
     return NextResponse.json({
       totalUsers,
       premiumUsers,
       revenueUZS,
       revenueUSD,
       paymentCount: payments?.length || 0,
-      newUsers: 0 // Would need profiles table with created_at to filter
+      newUsers: 0,
+      tests: testStats,
     });
 
   } catch (err) {

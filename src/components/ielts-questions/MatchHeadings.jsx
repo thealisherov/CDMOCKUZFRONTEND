@@ -1,19 +1,17 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 
 /**
- * MatchHeadings — "List of Headings" question type (RIGHT panel).
+ * MatchHeadings — IELTS CD-style "List of Headings" (RIGHT panel).
  *
- * Displays the heading options as draggable cards.
+ * Displays heading options as clean bold text items with thin borders.
  * Users drag headings from here and drop them onto HeadingDropZone
  * components in the passage (left panel).
  *
- * Props:
- *  - data        : Object  — { headings: string[], questions: [{id, text, paragraphLetter}], answers }
- *  - onAnswer    : Function(questionId, value)
- *  - startIndex  : Number
- *  - userAnswers : Object — current answers from parent (to track used headings)
+ * Design matches official IELTS CD interface:
+ * - Simple bordered items, bold text, no grip icons
+ * - Used headings get faded and crossed out
  */
 const MatchHeadings = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => {
   const [draggedHeading, setDraggedHeading] = useState(null);
@@ -35,10 +33,11 @@ const MatchHeadings = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => 
     e.dataTransfer.effectAllowed = 'move';
     setDraggedHeading(heading);
 
-    // Create a custom drag image
+    // Custom drag image
     const dragEl = document.createElement('div');
     dragEl.textContent = heading;
-    dragEl.style.cssText = 'position:fixed;top:-1000px;padding:8px 16px;background:#333;color:#fff;border-radius:6px;font-size:13px;font-weight:500;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+    dragEl.style.cssText =
+      'position:fixed;top:-1000px;padding:8px 16px;background:#333;color:#fff;border-radius:4px;font-size:14px;font-weight:700;max-width:400px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 4px 12px rgba(0,0,0,.25);';
     document.body.appendChild(dragEl);
     e.dataTransfer.setDragImage(dragEl, 0, 0);
     setTimeout(() => document.body.removeChild(dragEl), 0);
@@ -49,16 +48,9 @@ const MatchHeadings = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => 
   };
 
   return (
-    <div className="mb-8 font-sans">
-      {/* List of Headings header */}
-      <div className="mb-3">
-        <h4 className="font-bold text-[#333] text-sm tracking-wide uppercase">
-          List of Headings
-        </h4>
-      </div>
-
-      {/* Heading cards */}
-      <div className="space-y-1.5">
+    <div className="mb-6 font-sans">
+      {/* ── Heading items ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
         {headings.map((heading, idx) => {
           const isUsed = usedHeadings.has(heading);
           const isDragging = draggedHeading === heading;
@@ -69,18 +61,49 @@ const MatchHeadings = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => 
               draggable={!isUsed}
               onDragStart={(e) => handleDragStart(e, heading)}
               onDragEnd={handleDragEnd}
-              className={`
-                relative px-5 py-2 border border-gray-200 rounded-lg text-[13px] leading-snug
-                transition-all duration-150 select-none shadow-sm
-                ${isUsed
-                  ? 'bg-gray-50 text-gray-400 cursor-default line-through opacity-60'
-                  : isDragging
-                    ? 'bg-blue-50 border-blue-200 text-blue-700 shadow-md scale-[1.02] cursor-grabbing'
-                    : 'bg-white text-gray-800 cursor-grab hover:border-gray-400 hover:shadow active:scale-[1.01]'
+              style={{
+                padding: '10px 14px',
+                border: '1px solid #d1d5db',
+                borderBottom: idx < headings.length - 1 ? 'none' : '1px solid #d1d5db',
+                background: isDragging
+                  ? 'rgba(37, 99, 235, 0.05)'
+                  : isUsed
+                    ? '#f9fafb'
+                    : 'var(--test-panel-bg, #fff)',
+                cursor: isUsed ? 'default' : isDragging ? 'grabbing' : 'grab',
+                opacity: isUsed ? 0.4 : isDragging ? 0.5 : 1,
+                textDecoration: isUsed ? 'line-through' : 'none',
+                userSelect: 'none',
+                transition: 'all 0.15s ease',
+                borderRadius: idx === 0
+                  ? '4px 4px 0 0'
+                  : idx === headings.length - 1
+                    ? '0 0 4px 4px'
+                    : 0,
+              }}
+              onMouseEnter={(e) => {
+                if (!isUsed && !isDragging) {
+                  e.currentTarget.style.background = '#f0f7ff';
                 }
-              `}
+              }}
+              onMouseLeave={(e) => {
+                if (!isUsed && !isDragging) {
+                  e.currentTarget.style.background = 'var(--test-panel-bg, #fff)';
+                }
+              }}
             >
-              <span className="font-medium">{heading}</span>
+              <span
+                style={{
+                  fontWeight: 700,
+                  fontSize: 14.5,
+                  lineHeight: 1.45,
+                  color: isUsed
+                    ? '#9ca3af'
+                    : 'var(--test-fg, #111827)',
+                }}
+              >
+                {heading}
+              </span>
             </div>
           );
         })}
