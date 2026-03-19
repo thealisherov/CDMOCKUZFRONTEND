@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import {
   Search, ChevronDown, BookOpen, Headphones, PenTool,
   Clock, FileText, Play, RotateCcw, Star, Lock, Gift,
-  Zap, TrendingUp, Filter, BarChart3
+  Zap, TrendingUp, Filter, BarChart3, Share2, Check
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -279,6 +279,74 @@ export default function TestListLayout({ title, description, tests = [], moduleT
   );
 }
 
+function ShareButton({ test, moduleType }) {
+  const [shared, setShared] = useState(false);
+
+  const handleShare = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = `${window.location.origin}/dashboard/${moduleType}/${test.id}`;
+    const shareData = {
+      title: test.title,
+      text: `IELTS ${moduleType.charAt(0).toUpperCase() + moduleType.slice(1)} Test — ${test.title}`,
+      url,
+    };
+    try {
+      if (navigator.share && navigator.canShare?.(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(url);
+        setShared(true);
+        setTimeout(() => setShared(false), 2000);
+      }
+    } catch {
+      // user cancelled or not supported — fallback
+      try {
+        await navigator.clipboard.writeText(url);
+        setShared(true);
+        setTimeout(() => setShared(false), 2000);
+      } catch {}
+    }
+  };
+
+  return (
+    <button
+      onClick={handleShare}
+      title="Share test"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        border: '1.5px solid var(--border)',
+        background: shared ? 'oklch(0.52 0.16 145 / 0.1)' : 'var(--card)',
+        color: shared ? 'oklch(0.42 0.14 145)' : 'var(--muted-foreground)',
+        cursor: 'pointer',
+        transition: 'all 0.18s',
+        flexShrink: 0,
+      }}
+      onMouseEnter={e => {
+        if (!shared) {
+          e.currentTarget.style.borderColor = 'var(--primary)';
+          e.currentTarget.style.color = 'var(--primary)';
+        }
+      }}
+      onMouseLeave={e => {
+        if (!shared) {
+          e.currentTarget.style.borderColor = 'var(--border)';
+          e.currentTarget.style.color = 'var(--muted-foreground)';
+        }
+      }}
+    >
+      {shared
+        ? <Check  className="w-4 h-4" />
+        : <Share2 className="w-4 h-4" />}
+    </button>
+  );
+}
+
 function DefaultTestItem({ test, moduleType, meta, t, user }) {
   const levelKey   = (test.level || test.difficulty || '').toLowerCase();
   const levelStyle = LEVEL_STYLE[levelKey] || {};
@@ -368,8 +436,9 @@ function DefaultTestItem({ test, moduleType, meta, t, user }) {
         </div>
       </div>
 
-      {/* Right — CTA */}
-      <div className="ml-5 shrink-0">
+      {/* Right — Share + CTA */}
+      <div className="ml-5 shrink-0 flex items-center gap-2">
+        <ShareButton test={test} moduleType={moduleType} />
         {isLocked ? (
           <Link
             href="/dashboard/payment"

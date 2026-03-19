@@ -183,191 +183,171 @@ function roundToIELTSBand(raw) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// IELTS STRICT RUBRICS
-// (improved to avoid overscoring)
+// IELTS STRICT RUBRICS (IMPROVED)
 // ─────────────────────────────────────────────────────────────
 
 const RUBRIC_TASK = [
   "Task Achievement / Task Response (STRICT IELTS EXAMINER MODE)",
   "",
   "Band 5:",
-  "- Addresses the task only partially",
-  "- Ideas may be unclear or repetitive",
+  "- Addresses the task partially",
+  "- Ideas unclear or repetitive",
   "",
   "Band 6:",
-  "- Addresses all parts of the task but development may be limited",
-  "- Ideas are relevant but explanations may be weak",
+  "- Addresses all parts but development limited",
+  "- Ideas lack explanation or examples",
   "",
   "Band 7:",
-  "- Addresses all parts of the task",
   "- Clear position throughout",
-  "- Ideas supported with explanation or examples",
+  "- Ideas supported with explanations/examples",
   "",
   "Band 8:",
-  "- Fully addresses all parts",
-  "- Ideas are well-developed and clearly supported",
+  "- Fully developed ideas",
+  "- Well-supported arguments",
   "",
   "STRICT RULE:",
-  "If ideas lack explanation OR development -> maximum Band 6.",
+  "If ideas lack explanation → max Band 6",
 ].join("\n")
+
 
 const RUBRIC_COHERENCE = [
   "Coherence and Cohesion (STRICT)",
   "",
   "Band 5:",
-  "- Organisation weak or unclear",
-  "- Paragraphing may be missing",
+  "- Weak organisation",
   "",
   "Band 6:",
-  "- Information organised but progression may be unclear",
-  "- Paragraphing exists but may be uneven",
+  "- Organisation present but unclear progression",
   "",
   "Band 7:",
-  "- Ideas logically organised",
-  "- Clear progression through essay",
+  "- Logical organisation and clear progression",
   "",
   "Band 8:",
-  "- Information logically sequenced",
-  "- Cohesion managed effectively",
+  "- Smooth logical flow",
   "",
   "STRICT RULE:",
-  "If paragraphing OR progression is weak -> maximum Band 6.",
+  "If progression unclear → max Band 6",
 ].join("\n")
+
 
 const RUBRIC_LEXICAL = [
   "Lexical Resource (STRICT)",
   "",
   "Band 5:",
-  "- Limited vocabulary range",
-  "- Frequent word choice errors",
+  "- Limited vocabulary",
   "",
   "Band 6:",
-  "- Adequate vocabulary for the task",
-  "- Some attempts at less common words",
+  "- Adequate vocabulary but repetitive",
   "",
   "Band 7:",
   "- Good vocabulary range",
-  "- Some less common lexical items",
   "",
   "Band 8:",
-  "- Wide vocabulary range",
-  "- Precise word choice",
+  "- Wide and precise vocabulary",
   "",
   "STRICT RULE:",
-  "If vocabulary repetition is frequent -> maximum Band 6.",
+  "If repetition frequent → max Band 6",
 ].join("\n")
+
 
 const RUBRIC_GRAMMAR = [
   "Grammatical Range and Accuracy (STRICT)",
   "",
   "Band 5:",
-  "- Frequent grammar errors",
+  "- Frequent errors",
   "",
   "Band 6:",
-  "- Mix of simple and complex sentences",
-  "- Errors occur but meaning clear",
+  "- Mix of simple/complex sentences",
   "",
   "Band 7:",
   "- Variety of complex structures",
-  "- Most sentences error-free",
   "",
   "Band 8:",
-  "- Wide range of structures",
-  "- Very few errors",
+  "- Wide range, mostly error-free",
   "",
   "STRICT RULE:",
-  "If grammar errors appear regularly -> maximum Band 6.",
+  "If mostly simple sentences → max Band 6",
 ].join("\n")
 
+
 // ─────────────────────────────────────────────────────────────
-// STRICT EXAMINER PROMPT
+// UPDATED STRICT PROMPT
 // ─────────────────────────────────────────────────────────────
 
 function buildSystemPrompt(mainCriterionLabel) {
   var lines = [];
+
   lines.push("You are a VERY STRICT certified IELTS examiner.");
   lines.push("");
-  lines.push("Evaluate the essay exactly like real IELTS examiners.");
+
+  lines.push("Band 7+ is difficult.");
+  lines.push("Do NOT over-score.");
+  lines.push("Most candidates are Band 5.5–6.5.");
   lines.push("");
-  lines.push("Important rules:");
+
+  lines.push("STRICT LIMITS:");
   lines.push("");
-  lines.push("- Band 7+ is difficult to achieve.");
-  lines.push("- Most candidates are between Band 5.5 and 6.5.");
-  lines.push("- Do NOT over-score.");
+
+  lines.push("- If ideas lack explanation → max Band 6");
+  lines.push("- If vocabulary repetition → max Band 6");
+  lines.push("- If grammar errors frequent → max Band 6");
+  lines.push("- If mostly simple sentences → max Band 6");
+  lines.push("- If organisation weak → max Band 6");
   lines.push("");
-  lines.push("Strict limits:");
-  lines.push("");
-  lines.push("If ideas lack explanation -> maximum Band 6.");
-  lines.push("");
-  lines.push("If grammar mistakes appear frequently -> maximum Band 6.");
-  lines.push("");
-  lines.push("If vocabulary repetition appears -> maximum Band 6.");
-  lines.push("");
-  lines.push("If paragraphing or organisation weak -> maximum Band 6.");
-  lines.push("");
-  lines.push("Use the IELTS descriptors below.");
-  lines.push("");
+
   lines.push("----------------");
-  lines.push("");
   lines.push(RUBRIC_TASK);
-  lines.push("");
   lines.push("----------------");
-  lines.push("");
   lines.push(RUBRIC_COHERENCE);
-  lines.push("");
   lines.push("----------------");
-  lines.push("");
   lines.push(RUBRIC_LEXICAL);
-  lines.push("");
   lines.push("----------------");
-  lines.push("");
   lines.push(RUBRIC_GRAMMAR);
-  lines.push("");
   lines.push("----------------");
+
+  lines.push("SCORING:");
+  lines.push("Use only IELTS bands (0–9, step 0.5)");
   lines.push("");
-  lines.push("SCORING INSTRUCTIONS:");
+
+  // 🔥 NEW FEEDBACK SYSTEM
+  lines.push("FEEDBACK REQUIREMENTS:");
   lines.push("");
-  lines.push("Score each criterion from 0.0 to 9.0 using ONLY:");
+  lines.push("Write feedback based on ALL 4 criteria.");
   lines.push("");
-  lines.push("0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0");
+  lines.push("For EACH criterion:");
+  lines.push("- Explain WHY this score was given");
+  lines.push("- Explain HOW to improve to next band");
   lines.push("");
-  lines.push("Do NOT invent numbers like 6.3 or 7.2.");
-  lines.push("");
-  lines.push("Overall Band Score:");
-  lines.push("");
-  lines.push("Average the four criteria and round to nearest 0.5.");
-  lines.push("");
-  lines.push("Feedback:");
-  lines.push("");
-  lines.push("Write 50-70 words explaining strengths and the main improvement needed.");
-  lines.push("");
-  lines.push("Then give EXACTLY 3 corrections.");
-  lines.push("");
+
   lines.push("OUTPUT FORMAT EXACTLY:");
   lines.push("");
+
   lines.push(mainCriterionLabel + ": X.X");
   lines.push("Coherence and Cohesion: X.X");
   lines.push("Lexical Resource: X.X");
   lines.push("Grammatical Range and Accuracy: X.X");
   lines.push("Overall Band Score: X.X");
   lines.push("");
-  lines.push("Feedback (50-70 words):");
-  lines.push("<paragraph>");
+
+  // 🔥 UPDATED FEEDBACK FORMAT
+  lines.push("Feedback:");
+  lines.push(mainCriterionLabel + ": <why + how>");
+  lines.push("Coherence and Cohesion: <why + how>");
+  lines.push("Lexical Resource: <why + how>");
+  lines.push("Grammatical Range and Accuracy: <why + how>");
   lines.push("");
+
   lines.push("Top 3 Corrections:");
-  lines.push("");
   lines.push("1) <title>");
   lines.push("Example: <sentence>");
   lines.push("Why: <reason>");
-  lines.push("");
   lines.push("2) <title>");
   lines.push("Example: <sentence>");
   lines.push("Why: <reason>");
-  lines.push("");
   lines.push("3) <title>");
   lines.push("Example: <sentence>");
   lines.push("Why: <reason>");
-  
+
   return lines.join("\n");
 }
 
@@ -390,55 +370,86 @@ function parseGeminiOutput(text) {
   const lines = text.split("\n").map(function (l) { return l.trim(); });
   const feedbackLines = [];
   const correctionsLines = [];
-  let inFeedback = false;
-  let inCorrections = false;
+  
+  // State machine
+  // 0 = scanning scores
+  // 1 = inside Feedback block
+  // 2 = inside Corrections block
+  let state = 0;
+  
+  // We track whether we've passed the score block.
+  // Score lines appear BEFORE "Feedback:", so once we hit Feedback: we flip state.
+  // IMPORTANT: lines like "Task Achievement: 6.5" can also appear inside Feedback block
+  // as criterion-specific feedback lines — we only parse them as SCORES while state===0.
 
   for (let idx = 0; idx < lines.length; idx++) {
     const rawLine = lines[idx];
-    if (!rawLine) continue;
-    
-    // Clean markdown characters like ** or leading hyphens for score matching
-    const line = rawLine.replace(/\*/g, '').replace(/^- /, '').trim();
+    if (!rawLine) {
+      // blank lines inside feedback/corrections are kept as separators
+      if (state === 1) feedbackLines.push("");
+      continue;
+    }
+
+    // Strip markdown bold/italic markers
+    const line = rawLine.replace(/\*\*/g, '').replace(/\*/g, '').trim();
     if (!line) continue;
 
-    // ── Score lines ────────────────────────────────────────────────────────
-    if (line.match(/^Task\s*Achievement/i)) {
-      parsed.TaskAchievement = extractScore(line);
-    } else if (line.match(/^Task\s*Response/i)) {
-      parsed.TaskResponse = extractScore(line);
-    } else if (line.match(/^Coherence\s*(and|&)\s*Cohesion/i)) {
-      parsed.CoherenceAndCohesion = extractScore(line);
-    } else if (line.match(/^Lexical\s*Resource/i)) {
-      parsed.LexicalResource = extractScore(line);
-    } else if (line.match(/^Grammatical\s*Range\s*(and|&)\s*Accuracy/i)) {
-      parsed.GrammaticalRangeAndAccuracy = extractScore(line);
-    } else if (line.match(/^Overall\s*Band\s*Score/i)) {
-      parsed.BandScore = extractScore(line);
+    // ── Detect section headers first (highest priority) ────────────────────
+    if (line.match(/^Feedback\s*:/i)) {
+      state = 1;
+      // Anything after "Feedback:" on the same line is part of feedback
+      const colonIdx = line.indexOf(":");
+      const after = line.slice(colonIdx + 1).trim();
+      if (after) feedbackLines.push(after);
+      continue;
     }
 
-    // ── Feedback block ─────────────────────────────────────────────────────
-    else if (line.match(/^Feedback/i)) {
-      inFeedback = true;
-      inCorrections = false;
-      const colonIdx = rawLine.indexOf(":");
-      if (colonIdx > -1) {
-        const after = rawLine.slice(colonIdx + 1).trim();
-        if (after) feedbackLines.push(after);
-      }
-    } else if (inFeedback && line.match(/^Top\s*\d*\s*Corrections/i)) {
-      inFeedback = false;
-      inCorrections = true;
-    } else if (inFeedback) {
-      feedbackLines.push(rawLine);
+    if (line.match(/^Top\s*\d*\s*Corrections\s*:/i) || line.match(/^Top\s*3\s*Corrections/i)) {
+      state = 2;
+      continue;
     }
 
-    // ── Corrections block ──────────────────────────────────────────────────
-    else if (inCorrections) {
+    // ── State: inside Corrections ──────────────────────────────────────────
+    if (state === 2) {
       correctionsLines.push(rawLine);
+      continue;
+    }
+
+    // ── State: inside Feedback ─────────────────────────────────────────────
+    if (state === 1) {
+      feedbackLines.push(rawLine);
+      continue;
+    }
+
+    // ── State: scanning for scores (state === 0) ───────────────────────────
+    // Only parse score lines before we enter Feedback block
+    const scoreLine = line.replace(/^-\s*/, '').trim();
+
+    if (scoreLine.match(/^Task\s*Achievement\s*:/i)) {
+      const val = extractScore(scoreLine);
+      if (!isNaN(parseFloat(val))) parsed.TaskAchievement = val;
+    } else if (scoreLine.match(/^Task\s*Response\s*:/i)) {
+      const val = extractScore(scoreLine);
+      if (!isNaN(parseFloat(val))) parsed.TaskResponse = val;
+    } else if (scoreLine.match(/^Coherence\s*(and|&)\s*Cohesion\s*:/i)) {
+      const val = extractScore(scoreLine);
+      if (!isNaN(parseFloat(val))) parsed.CoherenceAndCohesion = val;
+    } else if (scoreLine.match(/^Lexical\s*Resource\s*:/i)) {
+      const val = extractScore(scoreLine);
+      if (!isNaN(parseFloat(val))) parsed.LexicalResource = val;
+    } else if (scoreLine.match(/^Grammatical\s*Range\s*(and|&)?\s*Accuracy\s*:/i)) {
+      const val = extractScore(scoreLine);
+      if (!isNaN(parseFloat(val))) parsed.GrammaticalRangeAndAccuracy = val;
+    } else if (scoreLine.match(/^Overall\s*Band\s*Score\s*:/i)) {
+      const val = extractScore(scoreLine);
+      if (!isNaN(parseFloat(val))) parsed.BandScore = val;
     }
   }
 
-  parsed.Feedback = feedbackLines.join(" ").trim() || "No feedback provided.";
+  // Join feedback lines into readable paragraphs
+  // Each criterion line ("Task Achievement: ...") becomes its own paragraph
+  const rawFeedback = feedbackLines.join("\n").trim();
+  parsed.Feedback = rawFeedback || "No feedback provided.";
   parsed.Corrections = correctionsLines.join("\n").trim();
 
   return parsed;
@@ -486,11 +497,15 @@ async function checkWritingTest(userAnswers, testRow) {
 
     for (let i = 0; i < tasks.length; i++) {
       const task = tasks[i];
-      const essayText = (userAnswers[i] || "").toString().trim();
+      // JSON keys become strings after serialize/deserialize, so try both
+      const essayText = (userAnswers[String(i)] ?? userAnswers[i] ?? "").toString().trim();
+
+      console.log(`[Writing] Task ${i + 1} essay length: ${essayText.length} chars`);
 
       // ── Empty response ──────────────────────────────────────────────────
       if (!essayText) {
         results[i] = buildEmptyResult(i, tasks.length);
+        console.log(`[Writing] Task ${i + 1}: empty essay, skipping AI`);
         continue;
       }
 
@@ -525,8 +540,12 @@ async function checkWritingTest(userAnswers, testRow) {
       });
       const outputText = completion.choices[0].message.content;
 
+      // ── Debug: log what AI returned ──────────────────────────────────────
+      console.log(`[Writing] Task ${i + 1} AI raw output:\n`, outputText);
+
       // ── Parse raw text ──────────────────────────────────────────────────
       const rawParsed = parseGeminiOutput(outputText);
+      console.log(`[Writing] Task ${i + 1} parsed:`, rawParsed);
 
       // ── Convert & validate each criterion (IELTS 0.5 rounding) ──────────
       const ta = parseIELTSScore(rawParsed.TaskAchievement);
@@ -538,8 +557,10 @@ async function checkWritingTest(userAnswers, testRow) {
       const mainScore = isTask1 ? ta : tr;
 
       // ── Band score: average of 4 criteria, rounded to 0.5 ───────────────
-      const avgRaw = (mainScore + cc + lr + gra) / 4;
-      const bandScore = roundToIELTSBand(avgRaw);
+      // If AI gave Overall Band Score directly, prefer it; else compute
+      const aiOverall = parseIELTSScore(rawParsed.BandScore);
+      const computedAvg = (mainScore + cc + lr + gra) / 4;
+      const bandScore = aiOverall > 0 ? roundToIELTSBand(aiOverall) : roundToIELTSBand(computedAvg);
 
       results[i] = {
         isTask1,
@@ -549,8 +570,9 @@ async function checkWritingTest(userAnswers, testRow) {
         LexicalResource: lr.toFixed(1),
         GrammaticalRangeAndAccuracy: gra.toFixed(1),
         BandScore: bandScore.toFixed(1),
-        Feedback: rawParsed.Feedback || "No feedback provided.",
+        Feedback: rawParsed.Feedback && rawParsed.Feedback.length > 5 ? rawParsed.Feedback : "AI feedback parsing failed. Please try again.",
         Corrections: rawParsed.Corrections || "",
+        _rawOutput: process.env.NODE_ENV === 'development' ? outputText : undefined,
       };
     }
 

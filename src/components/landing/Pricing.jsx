@@ -36,7 +36,7 @@ export default function Pricing() {
     return {
       ...fallback,
       name: dbPlan.name_en || fallback.name,
-      price: isUSD ? dbPlan.price_usd?.toString() : dbPlan.price_uzs?.toLocaleString(),
+      price: isUSD ? (dbPlan.price_usd !== undefined && dbPlan.price_usd !== null ? `$${dbPlan.price_usd}` : fallback.price) : dbPlan.price_uzs?.toLocaleString(),
       features: dbPlan.features || fallback.features,
       notIncluded: dbPlan.not_included || fallback.notIncluded,
       popular: dbPlan.is_popular !== undefined ? dbPlan.is_popular : fallback.popular
@@ -229,8 +229,13 @@ export default function Pricing() {
                         </span>
                       ) : (
                         <>
+                          {isUSD && (
+                            <span className="text-3xl font-black tracking-tight" style={{ color: "var(--foreground)" }}>
+                              $
+                            </span>
+                          )}
                           <span className="text-3xl font-black tracking-tight" style={{ color: "var(--foreground)" }}>
-                            {tier.price}
+                            {isUSD ? tier.price.replace('$', '') : tier.price}
                           </span>
                           {!isUSD && (
                             <span className="text-sm font-semibold" style={{ color: "var(--muted-foreground)" }}>

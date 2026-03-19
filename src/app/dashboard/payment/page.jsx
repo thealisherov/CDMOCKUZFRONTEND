@@ -169,12 +169,12 @@ function PaymentContent() {
                   }}
                 />
                 
-                {/* Global Bank Logo */}
+                {/* Hamkorbank Logo */}
                 <div className="absolute top-[8%] left-[6%] flex items-center gap-2 z-10">
-                   <div className="w-8 h-8 rounded-full border-2 border-white/20 flex items-center justify-center">
-                      <Globe className="w-5 h-5 text-white/80" />
+                   <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden" style={{ background: "linear-gradient(135deg, #00923f, #006b2e)" }}>
+                      <span className="text-white font-black text-[11px]" style={{ fontFamily: "Inter, sans-serif" }}>HB</span>
                    </div>
-                   <span className="text-white font-black text-sm tracking-widest" style={{ fontFamily: "Inter, sans-serif" }}>GLOBAL REACH BANK</span>
+                   <span className="text-white font-black text-sm tracking-widest" style={{ fontFamily: "Inter, sans-serif" }}>HAMKORBANK</span>
                 </div>
 
                 {/* Chip & Contactless */}

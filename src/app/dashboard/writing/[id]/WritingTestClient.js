@@ -14,6 +14,7 @@ import { NotesProvider, useNotes } from '@/components/NotesContext';
 import NotesSidebar from '@/components/ielts/NotesSidebar';
 import { useDynamicFavicon } from '@/hooks/useDynamicFavicon';
 import { createClient } from '@/utils/supabase/client';
+import toast, { Toaster } from 'react-hot-toast';
 
 /**
  * Word counter
@@ -130,6 +131,30 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
 
 
   const handleSubmit = async () => { 
+    // ── Validate: at least one task must have text ────────────────────────
+    const hasAnyEssay = tasks.some((_, i) => countWords(essays[i] || '') > 0);
+    if (!hasAnyEssay) {
+      toast.error(
+        tasks.length > 1
+          ? 'Iltimos, kamida bitta task uchun essay yozing!'
+          : 'Iltimos, essayingizni yozing!',
+        {
+          duration: 4000,
+          style: {
+            background: '#1e293b',
+            color: '#f8fafc',
+            borderRadius: '12px',
+            fontSize: '14px',
+            fontWeight: '600',
+            padding: '14px 20px',
+            border: '1px solid #ef4444',
+          },
+          iconTheme: { primary: '#ef4444', secondary: '#fff' },
+        }
+      );
+      return;
+    }
+
     setSubmitted(true);
     setShowConfirm(false);
     setIsEvaluating(true);
@@ -386,13 +411,49 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
                         )}
 
                         {evalData?.Feedback && (
-                          <div style={{ padding: '20px 24px', background: '#fffbeb', borderBottom: '1px solid #fef3c7' }}>
-                            <h5 style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 8px 0', color: '#92400e', fontSize: 14 }}>
+                          <div style={{
+                            padding: '20px 24px',
+                            borderBottom: '1px solid #fef3c7',
+                            background: evalData.Feedback === 'No response provided.'
+                              ? '#f8fafc'
+                              : evalData.Feedback.startsWith('AI feedback parsing')
+                              ? '#fff7ed'
+                              : '#fffbeb',
+                          }}>
+                            <h5 style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 12px 0', color: '#92400e', fontSize: 14 }}>
                               Examiner Comments
                             </h5>
-                            <p style={{ fontSize: 15, lineHeight: 1.6, fontWeight: 500, color: '#78350f', margin: 0 }}>
-                              {evalData.Feedback}
-                            </p>
+                            {/* No essay written */}
+                            {evalData.Feedback === 'No response provided.' ? (
+                              <p style={{ fontSize: 14, color: '#94a3b8', fontStyle: 'italic', margin: 0 }}>
+                                No essay was submitted for this task.
+                              </p>
+                            ) : evalData.Feedback.startsWith('AI feedback parsing') ? (
+                              /* Parsing failed */
+                              <p style={{ fontSize: 14, color: '#b45309', fontWeight: 600, margin: 0 }}>
+                                ⚠️ {evalData.Feedback}
+                              </p>
+                            ) : (
+                              /* Real feedback — criterion-by-criterion */
+                              <div style={{ fontSize: 14, lineHeight: 1.7, color: '#78350f' }}>
+                                {evalData.Feedback.split('\n').map((line, li) => {
+                                  if (!line.trim()) return <br key={li} />;
+                                  const criterionMatch = line.match(/^(Task\s*(Achievement|Response)|Coherence.*Cohesion|Lexical\s*Resource|Grammatical.*Accuracy)\s*:/i);
+                                  if (criterionMatch) {
+                                    const colonIdx = line.indexOf(':');
+                                    const label = line.slice(0, colonIdx);
+                                    const rest = line.slice(colonIdx + 1).trim();
+                                    return (
+                                      <p key={li} style={{ margin: '0 0 10px 0' }}>
+                                        <span style={{ fontWeight: 700, color: '#92400e' }}>{label}:</span>
+                                        {rest ? ' ' + rest : ''}
+                                      </p>
+                                    );
+                                  }
+                                  return <p key={li} style={{ margin: '0 0 8px 0', fontWeight: 500 }}>{line}</p>;
+                                })}
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -665,6 +726,7 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
 export default function WritingTestClient({ id, rawData, isReviewMode = false, initialEssays = {}, initialEvaluation = null }) {
   return (
     <NotesProvider testId={`writing_${id}`}>
+      <Toaster position="top-center" />
       <WritingTestInner 
         id={id} 
         rawData={rawData} 
