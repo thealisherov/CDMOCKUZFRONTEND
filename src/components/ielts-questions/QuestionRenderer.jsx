@@ -11,6 +11,7 @@ import DragDropSummary from './DragDropSummary';
 import CheckboxMultiple from './CheckboxMultiple';
 import FlowChart from './FlowChart';
 import TableCompletion from './TableCompletion';
+import ShortAnswer from './ShortAnswer';
 
 /**
  * QuestionRenderer — Stateless controller. All answer state lives in the
@@ -47,8 +48,10 @@ const QuestionRenderer = ({ data, onAnswersChange, startIndex = 1, userAnswers =
         return <GapFill {...commonProps} />;
 
       case 'matrix_match':
+      case 'matching_drag':
       case 'radio_matrix':
         return <RadioMatrix {...commonProps} />;
+
 
       case 'true_false':
       case 'yes_no':
@@ -58,8 +61,6 @@ const QuestionRenderer = ({ data, onAnswersChange, startIndex = 1, userAnswers =
       case 'match_dropdown':
         return <MatchDropdown {...commonProps} />;
 
-      case 'matching_drag':
-        return <MatchingDragDrop {...commonProps} />;
 
       case 'drag_drop_summary':
         return <DragDropSummary {...commonProps} />;
@@ -75,6 +76,10 @@ const QuestionRenderer = ({ data, onAnswersChange, startIndex = 1, userAnswers =
 
       case 'table':
         return <TableCompletion {...commonProps} />;
+
+      case 'short_answer':
+      case 'short_answers':
+        return <ShortAnswer {...commonProps} />;
 
       default:
         return (

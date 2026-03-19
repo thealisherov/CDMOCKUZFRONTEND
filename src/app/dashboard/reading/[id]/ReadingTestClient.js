@@ -376,52 +376,68 @@ function ReadingTestInner({ id, rawData }) {
         <ResizableSplitPane
           left={
             <div className="h-full overflow-y-auto" style={{ background: 'var(--test-panel-bg)', color: 'var(--test-fg)' }}>
+              {currentPassage?.image && (
+                <div className="px-6 py-4">
+                  <img src={currentPassage.image} alt="Passage visual" className="w-full rounded border border-gray-200 shadow-md" />
+                </div>
+              )}
               {currentPassage?.title && !currentPassage.title.match(/^(Reading )?Passage \d+/i) && (
                 <div style={{ borderBottom: '1px solid var(--test-border)' }} className="px-6 py-4">
                   <h2 className="font-bold text-[25px]" style={{ color: 'var(--test-fg)' }}>{currentPassage?.title}</h2>
                 </div>
               )}
+
               <div className="px-6 pt-6 pb-32">
                 <HighlightableContent className="max-w-none leading-relaxed" containerId="reading_passage">
                   {(currentPassage?.text || currentPassage?.content || '').split('\n\n').map((paragraph, idx) => {
                     const trimmed = paragraph.trim();
+                    if (!trimmed) return null;
+
                     const matchHeadingsBlock = currentBlocks.find(b => b.type === 'match_headings');
-                    const paragraphLetter    = String.fromCharCode(65 + idx);
+                    
+                    // 1. Labelni aniqlash (Section 1, Paragraph A, yoki shunchaki A)
+                    const sectionMatch = trimmed.match(/^(Section\s+(\d+|[A-ZIVX]+)|Paragraph\s+([A-Z]|\d+)|([A-Z])(?:\.|\s))\s*([\s\S]*)$/i);
+                    
                     let headingQ = null;
-                    if (matchHeadingsBlock?.questions) {
-                      headingQ = matchHeadingsBlock.questions.find(q => q.text.toUpperCase().includes(`PARAGRAPH ${paragraphLetter}`));
+                    let displayContent = trimmed;
+                    let labelFound = "";
+
+                    if (sectionMatch) {
+                      labelFound = (sectionMatch[1] || '').trim().toUpperCase();
+                      const contentAfterLabel = sectionMatch[5]?.trim();
+
+                      if (matchHeadingsBlock?.questions) {
+                        headingQ = matchHeadingsBlock.questions.find(q => {
+                          const qt = q.text.toUpperCase();
+                          // "Section 1" deb qidiradi yoki agar rasmdek bo'lsa "1" yoki "A"
+                          return qt === labelFound || qt.includes(labelFound);
+                        });
+                      }
+
+                      // Agar drop zone chiqsa, labelni matndan o'chirib tashlaymiz
+                      if (headingQ) {
+                        displayContent = contentAfterLabel;
+                      }
                     }
 
-                    // Pattern 1: "Paragraph A\n..." — bold "Paragraph A", then content on new line
-                    const paragraphHeaderMatch = trimmed.match(/^(Paragraph\s+[A-Z])\s*\n([\s\S]*)$/);
-                    // Pattern 2: "A\n..." or "A ..." — single letter at start, bold only the letter
-                    const singleLetterMatch = !paragraphHeaderMatch && trimmed.match(/^([A-Z])(?:[.\s])\s*([\s\S]+)$/);
-
                     return (
-                      <div key={idx} className="mb-4">
+                      <div key={idx} className="mb-6">
                         {headingQ && (
                           <div className="mb-2">
-                            <HeadingDropZone questionId={headingQ.id} globalNum={headingQ.id} onDrop={handleBlockAnswers} currentAnswer={userAnswers[headingQ.id]} />
+                            <HeadingDropZone 
+                              questionId={headingQ.id} 
+                              globalNum={headingQ.id} 
+                              onDrop={handleBlockAnswers} 
+                              currentAnswer={userAnswers[headingQ.id]} 
+                            />
                           </div>
                         )}
-                        {paragraphHeaderMatch ? (
-                          <>
-                            <p className="text-[17px] font-bold mb-1" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)', fontWeight: 900 }}>
-                              {paragraphHeaderMatch[1]}
-                            </p>
-                            <p className="text-[16.5px] font-medium leading-[1.85]" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)' }}>
-                              {paragraphHeaderMatch[2]}
-                            </p>
-                          </>
-                        ) : singleLetterMatch ? (
-                          <p className="text-[16.5px] font-medium leading-[1.85]" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)' }}>
-                            <strong style={{ fontWeight: 900, marginRight: '6px' }}>{singleLetterMatch[1]}</strong>{singleLetterMatch[2]}
-                          </p>
-                        ) : (
-                          <p className="text-[16.5px] font-medium leading-[1.85]" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)' }}>
-                            {trimmed}
-                          </p>
-                        )}
+                        <p className="text-[16.5px] font-medium leading-[1.85]" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)' }}>
+                          {!headingQ && labelFound && (
+                            <strong style={{ fontWeight: 900, marginRight: '8px' }}>{sectionMatch[1]}</strong>
+                          )}
+                          {displayContent}
+                        </p>
                       </div>
                     );
                   })}

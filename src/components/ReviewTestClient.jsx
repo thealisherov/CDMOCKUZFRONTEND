@@ -497,6 +497,9 @@ function ReviewQuestionBlock({ block, startIndex, userAnswers, correctAnswersMap
       return <ReviewTableCompletion {...props} />;
     case 'checkbox_multiple':
       return <ReviewCheckboxMultiple {...props} />;
+    case 'short_answer':
+    case 'short_answers':
+      return <ReviewShortAnswer {...props} />;
     default:
       return <ReviewGenericBlock {...props} />;
   }
@@ -571,6 +574,75 @@ function ReviewGapFill({ data, userAnswers, correctAnswersMap, showCorrect }) {
           {parse(data.content, options)}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Review ShortAnswer ──
+function ReviewShortAnswer({ data, startIndex, userAnswers, correctAnswersMap, showCorrect }) {
+  const questions = data.questions || [];
+
+  return (
+    <div className="mb-8 font-sans">
+      {data.instruction && (
+        <div className="mb-5 px-4 py-3 rounded-md text-sm font-medium leading-relaxed"
+          style={{ background: '#f5f5f5', color: '#444', border: '1px solid #ddd' }}>
+          {data.instruction}
+        </div>
+      )}
+      <ol className="space-y-4" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+        {questions.map((q, qIdx) => {
+          const globalNum = q.number !== undefined ? q.number : startIndex + qIdx;
+          const qId = String(globalNum);
+          const userAns = userAnswers[qId] || '';
+          const serverData = correctAnswersMap[qId];
+          const isCorrect = serverData?.correct || false;
+          const correctAns = serverData?.correctAnswer;
+          const isUnanswered = !userAns || userAns.trim() === '';
+
+          const borderColor = isUnanswered ? '#d1d5db' : isCorrect ? '#10b981' : '#ef4444';
+          const bgColor    = isUnanswered ? '#f9fafb'  : isCorrect ? '#f0fdf4' : '#fef2f2';
+          const textColor  = isUnanswered ? '#9ca3af'  : isCorrect ? '#065f46' : '#991b1b';
+
+          return (
+            <li key={qId} className="flex items-baseline gap-3">
+              {/* Number badge */}
+              <span
+                className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full text-white font-bold text-xs"
+                style={{ background: isUnanswered ? '#d1d5db' : isCorrect ? '#10b981' : '#ef4444' }}
+              >
+                {globalNum}
+              </span>
+
+              {/* Question text */}
+              <span
+                className="flex-1 flex flex-wrap items-baseline gap-x-2 leading-relaxed font-medium text-gray-800"
+                style={{ fontSize: '1.05em' }}
+              >
+                <span dangerouslySetInnerHTML={{ __html: q.text }} />
+
+                {/* Answer box */}
+                <span
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border font-semibold text-sm"
+                  style={{ borderColor, background: bgColor, color: textColor, minWidth: 80 }}
+                >
+                  {isUnanswered ? '—' : userAns}
+                  {!isUnanswered && (
+                    <span style={{ fontWeight: 900 }}>{isCorrect ? ' ✓' : ' ✗'}</span>
+                  )}
+                </span>
+
+                {/* Correct answer hint */}
+                {showCorrect && !isCorrect && correctAns && (
+                  <span className="text-sm font-bold italic" style={{ color: '#10b981' }}>
+                    (✓ {Array.isArray(correctAns) ? correctAns[0] : correctAns})
+                  </span>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
     </div>
   );
 }

@@ -9,3 +9,4 @@ export { default as MatchDropdown } from './MatchDropdown';
 export { default as DragDropSummary } from './DragDropSummary';
 export { default as CheckboxMultiple } from './CheckboxMultiple';
 export { default as MatchingDragDrop } from './MatchingDragDrop';
+export { default as ShortAnswer } from './ShortAnswer';

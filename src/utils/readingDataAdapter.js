@@ -50,13 +50,12 @@ function mapGroupType(groupType) {
     case 'multiple_choice_multiple':
       return 'checkbox_multiple'; // checkbox-select from options
 
-    case 'matching_features': // For things like "Match each sentence to a researcher"
+    case 'matching': // Generic matching
+    case 'matching_drag':
+    case 'matching_features': 
     case 'matching_information':
-      return 'match_dropdown';
+      return 'radio_matrix'; 
 
-    case 'matching': // Generic matching (e.g. "Match each finding with the correct place A-E")
-      return 'matching_drag';
-      
     case 'matching_headings':
       return 'match_headings'; // handled differently by ResizableSplitPane passages -> DropZones
 
@@ -236,9 +235,9 @@ function buildAnswersMap(questions) {
  */
 function extractOptionLetters(options) {
   if (!options || options.length === 0) return [];
-  // Check if options start with a letter pattern like "A.", "A ", "A:"
   return options.map((opt) => {
-    const match = opt.match(/^([A-Z])[.\s:)]/);
+    // Matches A. or i. or vii.
+    const match = opt.match(/^([A-Z|a-z|ivx]+)[.\s:)]/i);
     return match ? match[1] : opt;
   });
 }
@@ -350,17 +349,7 @@ function convertQuestionGroup(group, passageContent) {
       break;
     }
 
-    case 'matching_paragraphs': {
-      const paragraphLetters = extractParagraphLetters(passageContent);
 
-      block.questions = group.questions.map((q) => ({
-        id: String(q.number),
-        text: q.question,
-      }));
-      block.options = paragraphLetters; // For legacy fallback
-      block.columnOptions = paragraphLetters; // For radio_matrix rendering
-      break;
-    }
 
     case 'multiple_choice_single': {
       // Each question has its own options
@@ -399,44 +388,53 @@ function convertQuestionGroup(group, passageContent) {
       break;
     }
 
+    case 'matching':
+    case 'matching_drag':
     case 'matching_features':
-    case 'matching_information': {
-      // Sometimes options are provided in the question data (e.g. matching_features with people)
+    case 'matching_information':
+    case 'matching_paragraphs': {
       const firstQ = group.questions[0];
-      let optionLetters = group.options || (firstQ?.options ? extractOptionLetters(firstQ.options) : extractParagraphLetters(passageContent));
-      
-      block.questions = group.questions.map((q) => ({
-        id: String(q.number),
-        text: q.question,
-      }));
-      block.options = optionLetters;
-      
-      // If we have full descriptions (e.g. "A James", "B Cooley"), store them
-      if (group.options) {
-        block.optionDescriptions = group.options;
-      } else if (firstQ?.options) {
-        block.optionDescriptions = firstQ.options;
-      }
-      break;
-    }
+      const rawOptions = group.options || firstQ?.options || [];
 
-    case 'matching': {
-      // Drag-drop matching: questions with drop zones + draggable option items
-      const firstQ = group.questions[0];
-      let optionLetters = group.options || (firstQ?.options ? extractOptionLetters(firstQ.options) : []);
-      
+      // Determine if questions are Paragraphs (Matching Headings style) or Items (Matching Info style)
+      const isParagraphsAsQuestions = group.questions.some(q => q.question.toUpperCase().includes('PARAGRAPH'));
+
+      let colLetters = [];
+      if (isParagraphsAsQuestions && rawOptions.length > 0) {
+        // If questions are Paragraphs, columns should be the Headings (i, ii, iii)
+        colLetters = extractOptionLetters(rawOptions);
+      } else {
+        // Otherwise, columns are usually Paragraphs / Features (A, B, C)
+        colLetters = rawOptions.length > 0
+          ? extractOptionLetters(rawOptions)
+          : extractParagraphLetters(passageContent) || ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+      }
+
       block.questions = group.questions.map((q) => ({
         id: String(q.number),
+        number: q.number,
         text: q.question,
       }));
-      block.options = optionLetters;
-      
-      // Full option descriptions for drag-drop display
-      if (group.options) {
-        block.optionDescriptions = group.options;
-      } else if (firstQ?.options) {
-        block.optionDescriptions = firstQ.options;
+
+      block.options = colLetters;
+      block.columnOptions = colLetters; 
+
+      // Build legend if options contain descriptive text
+      if (rawOptions.length > 0) {
+        const legendObj = {};
+        rawOptions.forEach((opt) => {
+          const m = opt.match(/^([A-Z|a-z|ivx]+)[.\s:)]\s*(.+)/i);
+          if (m) legendObj[m[1]] = m[2].trim();
+        });
+        
+        if (Object.keys(legendObj).length > 0) {
+          block.legend = legendObj;
+        } else {
+          block.optionDescriptions = rawOptions;
+        }
       }
+
+      if (group.legendTitle) block.legendTitle = group.legendTitle;
       break;
     }
 
