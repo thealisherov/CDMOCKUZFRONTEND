@@ -97,7 +97,6 @@ export const translations = {
       quartName: "3 Months Premium",
       quartBadge: "Economical",
       quartPeriod: "for 3 months",
-      quartPerMonth: "≈ 49,667 UZS / mo",
       quartDesc: "Best value for 3 months full access",
       quartBtn: "Get 3 Months",
       quartFeatures: [

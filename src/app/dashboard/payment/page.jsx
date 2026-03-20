@@ -228,7 +228,7 @@ function PaymentContent() {
                 {/* Name */}
                 <div className="absolute bottom-[10%] left-[8%] z-10">
                   <span className="text-[14px] text-white/90 font-bold tracking-[0.2em] uppercase">
-                    ALISHEROV ABDULAZIZ
+                    ALISHEROV AZIZBEK
                   </span>
                 </div>
 
