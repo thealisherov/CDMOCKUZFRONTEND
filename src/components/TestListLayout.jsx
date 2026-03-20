@@ -100,8 +100,16 @@ export default function TestListLayout({ title, description, tests = [], moduleT
       const mapped = typeMap[typeFilter];
       if (mapped) result = result.filter(t => (t.testType || '').toLowerCase().startsWith(mapped));
     }
-    return result;
-  }, [tests, activeTab, searchQuery, levelFilter, typeFilter]);
+
+    // Sort: Free tests first for non-premium users
+    return [...result].sort((a, b) => {
+      if (!user?.isPremium) {
+        if (a.access === "free" && b.access === "premium") return -1;
+        if (a.access === "premium" && b.access === "free") return 1;
+      }
+      return 0;
+    });
+  }, [tests, activeTab, searchQuery, levelFilter, typeFilter, user?.isPremium]);
 
   const freeCount    = tests.filter(t => t.access === "free").length;
   const premiumCount = tests.filter(t => t.access === "premium").length;
