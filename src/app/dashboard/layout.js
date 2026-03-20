@@ -5,7 +5,6 @@ import { Menu, X } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { cn } from "@/lib/utils";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import { LanguageProvider } from "@/components/LanguageContext";
 import { useTheme } from "next-themes"; // Assuming next-themes for useTheme
 
 export default function DashboardLayout({ children }) {
@@ -27,8 +26,7 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <LanguageProvider>
-      <div className="min-h-screen flex" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+    <div className="min-h-screen flex" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
 
         {/* ── Desktop Sidebar ── */}
       <aside
@@ -119,6 +117,5 @@ export default function DashboardLayout({ children }) {
         </div>
       )}
       </div>
-    </LanguageProvider>
   );
 }

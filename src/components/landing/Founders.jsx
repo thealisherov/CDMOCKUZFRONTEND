@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Zap, Award, Code2, Rss } from "lucide-react";
+import { Zap, Award, Code2, Rss, Send, Instagram } from "lucide-react";
 import { useTranslation } from "@/components/LanguageContext";
 
 export default function Founders() {
@@ -19,6 +19,9 @@ export default function Founders() {
       badges: [{ icon: Award, text: t("founders.mkBadge") }],
       accentColor: "#e22d2d",
       bgPattern: "radial-gradient(ellipse at 30% 20%, rgba(226,45,45,0.18) 0%, transparent 60%)",
+      socials: [
+        { icon: Send, url: "https://t.me/Muxammadaliustoz", platform: "Telegram" }
+      ]
     },
     {
       name: "Abdulaziz Alisherov",
@@ -34,6 +37,10 @@ export default function Founders() {
       ],
       accentColor: "oklch(0.48 0.22 270)",
       bgPattern: "radial-gradient(ellipse at 70% 20%, oklch(0.68 0.22 270 / 0.18) 0%, transparent 60%)",
+      socials: [
+        { icon: Send, url: "https://t.me/the_alisherovblog", platform: "Telegram" },
+        { icon: Instagram, url: "https://www.instagram.com/thealisherov_ai/", platform: "Instagram" }
+      ]
     },
   ];
 
@@ -129,12 +136,33 @@ export default function Founders() {
               <div className="flex flex-col gap-4 px-7 pb-7 pt-4">
                 {/* Name + role */}
                 <div>
-                  <h3
-                    className="text-xl font-black leading-tight"
-                    style={{ color: "var(--foreground)" }}
-                  >
-                    {founder.name}
-                  </h3>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3
+                      className="text-xl font-black leading-tight"
+                      style={{ color: "var(--foreground)" }}
+                    >
+                      {founder.name}
+                    </h3>
+                    <div className="flex gap-2">
+                      {founder.socials.map((social, i) => (
+                        <a
+                          key={i}
+                          href={social.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95"
+                          style={{
+                            background: `${founder.accentColor}15`,
+                            color: founder.accentColor,
+                            border: `1px solid ${founder.accentColor}30`,
+                          }}
+                          title={social.platform}
+                        >
+                          <social.icon className={`w-4 h-4 ${social.platform === 'Telegram' ? 'rotate-[-10deg]' : ''}`} />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
                   <p
                     className="text-sm font-semibold mt-1"
                     style={{ color: founder.accentColor }}

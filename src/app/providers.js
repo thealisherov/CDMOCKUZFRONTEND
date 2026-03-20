@@ -2,6 +2,8 @@
 
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "next-themes";
+import { LanguageProvider } from "@/components/LanguageContext";
+import TelegramPromo from "@/components/TelegramPromo";
 
 export function Providers({ children }) {
   return (
@@ -11,9 +13,12 @@ export function Providers({ children }) {
       enableSystem
       disableTransitionOnChange={false}
     >
-      <AuthProvider>
-        {children}
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          {children}
+          <TelegramPromo />
+        </AuthProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

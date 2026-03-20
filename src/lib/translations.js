@@ -252,6 +252,11 @@ export const translations = {
       subDesc: "Get the latest tips and updates.",
       join: "Join",
       rights: "Mega IELTS. All rights reserved.",
+    },
+    promo: {
+      telegramTitle: "Join Our Community!",
+      telegramDesc: "Subscribe to our Telegram channel for the latest news, IELTS tips, and exclusive updates.",
+      telegramBtn: "Subscribe",
     }
   },
   uz: {
@@ -499,6 +504,11 @@ export const translations = {
       subDesc: "Eng so'nggi maslahatlar va yangiliklarni oling.",
       join: "Qo'shilish",
       rights: "Mega IELTS. Barcha huquqlar himoyalangan.",
+    },
+    promo: {
+      telegramTitle: "Jamoamizga Qo'shiling!",
+      telegramDesc: "So'nggi yangiliklar, IELTS foydali maslahatlari va eksklyuziv yangilanishlar uchun Telegram kanalimizga obuna bo'ling.",
+      telegramBtn: "Obuna Bo'lish",
     }
   },
   ru: {
@@ -746,6 +756,11 @@ export const translations = {
       subDesc: "Получайте последние советы и обновления.",
       join: "Подписаться",
       rights: "Mega IELTS. Все права защищены.",
+    },
+    promo: {
+      telegramTitle: "Присоединяйтесь к нам!",
+      telegramDesc: "Подпишитесь на наш Telegram-канал, чтобы получать последние новости, советы по IELTS и эксклюзивные обновления.",
+      telegramBtn: "Подписаться",
     }
   }
 };

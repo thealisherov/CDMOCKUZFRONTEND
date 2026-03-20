@@ -19,10 +19,10 @@ export default function Footer() {
               {t("footer.desc")}
             </p>
             <div className="flex gap-4">
-              <Link href="https://instagram.com" target="_blank" className="text-muted-foreground hover:text-primary transition-colors">
+              <Link href="https://www.instagram.com/megaieltsuz/" target="_blank" className="text-muted-foreground hover:text-primary transition-colors">
                 <Instagram size={20} />
               </Link>
-              <Link href="https://t.me/megaielts" target="_blank" className="text-muted-foreground hover:text-primary transition-colors">
+              <Link href="https://t.me/megaieltsuz" target="_blank" className="text-muted-foreground hover:text-primary transition-colors">
                 <Send size={20} className="rotate-[-10deg]" />
               </Link>
             </div>
