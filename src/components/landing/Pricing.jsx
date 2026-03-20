@@ -36,7 +36,9 @@ export default function Pricing() {
     return {
       ...fallback,
       name: dbPlan.name_en || fallback.name,
-      price: isUSD ? (dbPlan.price_usd !== undefined && dbPlan.price_usd !== null ? `$${dbPlan.price_usd}` : fallback.price) : dbPlan.price_uzs?.toLocaleString(),
+      price: isUSD 
+        ? (dbPlan.price_usd !== undefined && dbPlan.price_usd !== null ? `$${dbPlan.price_usd}` : fallback.price) 
+        : (dbPlan.price_uzs !== undefined && dbPlan.price_uzs !== null ? dbPlan.price_uzs.toLocaleString() : fallback.price),
       features: dbPlan.features || fallback.features,
       notIncluded: dbPlan.not_included || fallback.notIncluded,
       popular: dbPlan.is_popular !== undefined ? dbPlan.is_popular : fallback.popular
@@ -88,7 +90,6 @@ export default function Pricing() {
       price: isUSD ? "$12" : "149 000",
       priceLabel: t("pricing.quartLabel"),
       period: t("pricing.quartPeriod"),
-      perMonth: t("pricing.quartPerMonth"),
       description: t("pricing.quartDesc"),
       accentColor: "#e22d2d",
       accentBg: "rgba(226,45,45,0.07)",
@@ -219,13 +220,13 @@ export default function Pricing() {
                   {/* Price */}
                   <div className="mb-6 pb-6" style={{ borderBottom: "1px solid var(--border)" }}>
                     <div className="flex items-baseline gap-1 flex-wrap">
-                      {tier.price === "0" ? (
-                        <span className="text-4xl font-black" style={{ color: tier.accentColor }}>
-                          {t("pricing.freeLabel")}
-                        </span>
-                      ) : tier.price === "-1" ? (
+                      {tier.price === "-1" || tier.id === "custom" ? (
                         <span className="text-3xl font-black" style={{ color: tier.accentColor }}>
                           {t("pricing.customLabel")}
+                        </span>
+                      ) : tier.price === "0" ? (
+                        <span className="text-4xl font-black" style={{ color: tier.accentColor }}>
+                          {t("pricing.freeLabel")}
                         </span>
                       ) : (
                         <>
