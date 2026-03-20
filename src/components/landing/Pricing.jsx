@@ -9,7 +9,7 @@ import { createClient } from "@/utils/supabase/client";
 export default function Pricing() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [isUSD, setIsUSD] = useState(true);
+  const [isUSD, setIsUSD] = useState(false);
   const [dbPlans, setDbPlans] = useState([]);
   const supabase = createClient();
 

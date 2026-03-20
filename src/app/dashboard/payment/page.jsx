@@ -8,8 +8,8 @@ import { useTranslation } from "@/components/LanguageContext";
 function PaymentContent() {
   const searchParams = useSearchParams();
   const initialPlan = searchParams.get("plan") || "monthly";
-  const initialCurrency = searchParams.get("currency") || "usd";
-  const [isUSD, setIsUSD] = useState(initialCurrency === "usd" || initialCurrency !== "uzs");
+  const initialCurrency = searchParams.get("currency") || "uzs";
+  const [isUSD, setIsUSD] = useState(initialCurrency === "usd" && initialCurrency !== "uzs");
   const [selectedPlan, setSelectedPlan] = useState(initialPlan);
   const [copied, setCopied] = useState(false);
   const { t } = useTranslation();
