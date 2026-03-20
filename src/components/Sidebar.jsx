@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen, Headphones, PenTool, Mic,
   MessageCircle, LogOut, PanelLeftClose, PanelLeftOpen,
-  Zap, Star, Settings, ShieldCheck, Trophy, Sparkles, FileText
+  Zap, Star, Settings, ShieldCheck, Trophy, Sparkles, FileText, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -44,6 +44,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     { name: t("sidebar.comments"),  href: "/dashboard/comments",  icon: MessageCircle, locked: false },
     { name: t("sidebar.leaderboard") || "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy, locked: false },
     { name: t("sidebar.premium"),   href: "/dashboard/premium",   icon: Star,          locked: false, badge: t("sidebar.upgrade") },
+    { name: t("sidebar.profile") || "My Profile", href: "/dashboard/profile", icon: User, locked: false },
   ];
 
   if (user?.user_metadata?.role === "admin") {

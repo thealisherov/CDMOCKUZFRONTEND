@@ -162,6 +162,7 @@ export const translations = {
       premiumAccount: "Premium Account",
       predictions: "Predictions",
       articles: "Articles",
+      profile: "My Profile",
     },
     profile: {
       accountInfo: "Account Info",
@@ -416,6 +417,7 @@ export const translations = {
       premiumAccount: "Premium Akkaunt",
       predictions: "Bashoratlar",
       articles: "Maqolalar",
+      profile: "Mening profilim",
     },
     profile: {
       accountInfo: "Akkaunt ma'lumotlari",
@@ -669,6 +671,7 @@ export const translations = {
       premiumAccount: "Премиум Аккаунт",
       predictions: "Прогнозы",
       articles: "Статьи",
+      profile: "Мой профиль",
     },
     profile: {
       accountInfo: "Данные аккаунта",
