@@ -108,6 +108,21 @@ export default function ReviewTestClient({ testId, attemptId, rawData, moduleTyp
       .catch(() => setLoading(false));
   }, [attemptId]);
 
+  // Security: Prevent copy, cut, paste, and context menu
+  useEffect(() => {
+    const preventAction = (e) => e.preventDefault();
+    document.addEventListener('copy', preventAction);
+    document.addEventListener('cut', preventAction);
+    document.addEventListener('paste', preventAction);
+    document.addEventListener('contextmenu', preventAction);
+    return () => {
+      document.removeEventListener('copy', preventAction);
+      document.removeEventListener('cut', preventAction);
+      document.removeEventListener('paste', preventAction);
+      document.removeEventListener('contextmenu', preventAction);
+    };
+  }, []);
+
   const userAnswers = attempt?.user_answers || {};
   const serverResults = attempt?.server_results || {};
 

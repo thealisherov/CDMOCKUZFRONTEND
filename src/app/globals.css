@@ -130,6 +130,17 @@
 
 .ielts-test-view {
   transition: background-color 0.2s ease, color 0.2s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Allow selection in content where highlighting is needed or text entry is required */
+.ielts-test-view .select-text,
+.ielts-test-view .select-text *,
+.ielts-test-view input,
+.ielts-test-view textarea {
+  user-select: text !important;
+  -webkit-user-select: text !important;
 }
 
 .ielts-test-view *:focus {

@@ -65,6 +65,21 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
     });
   }, []);
 
+  // Security: Prevent copy, cut, paste, and context menu
+  useEffect(() => {
+    const preventAction = (e) => e.preventDefault();
+    document.addEventListener('copy', preventAction);
+    document.addEventListener('cut', preventAction);
+    document.addEventListener('paste', preventAction);
+    document.addEventListener('contextmenu', preventAction);
+    return () => {
+      document.removeEventListener('copy', preventAction);
+      document.removeEventListener('cut', preventAction);
+      document.removeEventListener('paste', preventAction);
+      document.removeEventListener('contextmenu', preventAction);
+    };
+  }, []);
+
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [activeTaskIndex, setActiveTaskIndex] = useState(0);
   const [submitted, setSubmitted] = useState(isReviewMode);

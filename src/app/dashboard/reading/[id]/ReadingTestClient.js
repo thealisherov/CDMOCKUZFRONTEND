@@ -38,6 +38,21 @@ function ReadingTestInner({ id, rawData }) {
     });
   }, []);
 
+  // Security: Prevent copy, cut, paste, and context menu
+  useEffect(() => {
+    const preventAction = (e) => e.preventDefault();
+    document.addEventListener('copy', preventAction);
+    document.addEventListener('cut', preventAction);
+    document.addEventListener('paste', preventAction);
+    document.addEventListener('contextmenu', preventAction);
+    return () => {
+      document.removeEventListener('copy', preventAction);
+      document.removeEventListener('cut', preventAction);
+      document.removeEventListener('paste', preventAction);
+      document.removeEventListener('contextmenu', preventAction);
+    };
+  }, []);
+
   const [userAnswers,   setUserAnswers]   = useState({});
   const [submitted,     setSubmitted]     = useState(false);
   const [showConfirm,   setShowConfirm]   = useState(false);

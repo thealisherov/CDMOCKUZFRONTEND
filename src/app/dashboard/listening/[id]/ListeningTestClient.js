@@ -40,6 +40,21 @@ function ListeningTestInner({ id, rawData }) {
     });
   }, []);
 
+  // Security: Prevent copy, cut, paste, and context menu
+  useEffect(() => {
+    const preventAction = (e) => e.preventDefault();
+    document.addEventListener('copy', preventAction);
+    document.addEventListener('cut', preventAction);
+    document.addEventListener('paste', preventAction);
+    document.addEventListener('contextmenu', preventAction);
+    return () => {
+      document.removeEventListener('copy', preventAction);
+      document.removeEventListener('cut', preventAction);
+      document.removeEventListener('paste', preventAction);
+      document.removeEventListener('contextmenu', preventAction);
+    };
+  }, []);
+
   useDynamicFavicon('/favicon.png');
   const [optionsOpen, setOptionsOpen] = usePersistedState(`opts_listening_${id}`, false);
 
