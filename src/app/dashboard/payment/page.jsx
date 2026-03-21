@@ -21,7 +21,7 @@ function PaymentContent() {
   ];
 
   const handleCopy = () => {
-    navigator.clipboard.writeText("4008410041142312");
+    navigator.clipboard.writeText("4008470041142372");
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
