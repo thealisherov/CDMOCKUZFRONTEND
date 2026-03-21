@@ -60,21 +60,21 @@ const CheckboxMultiple = ({ data, onAnswer, userAnswers = {} }) => {
           const displayOptions = usePerQuestionOptions ? q.fullOptions : (data.options || []);
 
           return (
-            <div key={qListId} className="rounded-xl overflow-hidden" style={{ border: '1.5px solid #d1d5db' }}>
+            <div key={qListId} className="rounded-xl overflow-hidden" style={{ border: '1.5px solid var(--test-border)' }}>
               {/* Question header */}
-              <div className="flex gap-4 px-5 py-4" style={{ background: '#f8fafc', borderBottom: '1px solid #e5e7eb' }}>
+              <div className="flex gap-4 px-5 py-4" style={{ background: 'var(--test-strip-bg)', borderBottom: '1px solid var(--test-border)' }}>
                 <div className="flex-shrink-0">
                   <span
-                    className="inline-flex items-center px-2 justify-center h-[2em] border border-gray-700 text-gray-900 font-bold bg-white select-none"
-                    style={{ minWidth: '2em', fontSize: '1.05em' }}
+                    className="inline-flex items-center px-2 justify-center h-[2em] border font-bold select-none"
+                    style={{ minWidth: '2em', fontSize: '1.05em', backgroundColor: 'var(--test-header-bg)', borderColor: 'var(--test-border)', color: 'var(--test-header-fg)' }}
                   >
                     {numbersLabel}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div
-                    className="pt-1 font-medium text-gray-900 leading-normal [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:my-2"
-                    style={{ fontSize: '1.05em' }}
+                    className="pt-1 font-medium leading-normal [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:my-2"
+                    style={{ fontSize: '1.05em', color: 'var(--test-fg)' }}
                     dangerouslySetInnerHTML={{ __html: q.text }}
                   />
                   {/* Selection badge */}
@@ -96,7 +96,7 @@ const CheckboxMultiple = ({ data, onAnswer, userAnswers = {} }) => {
               </div>
 
               {/* Options */}
-              <div className="px-5 py-4 space-y-2.5" style={{ background: '#fff' }}>
+              <div className="px-5 py-4 space-y-2.5" style={{ background: 'var(--test-bg)' }}>
                 {displayOptions.map((opt) => {
                   const value = usePerQuestionOptions ? extractLetter(opt) : opt;
                   const isChecked = currentSelections.includes(value);
@@ -108,9 +108,9 @@ const CheckboxMultiple = ({ data, onAnswer, userAnswers = {} }) => {
                       className="flex items-start gap-3 cursor-pointer rounded-lg px-3 py-2.5 transition-all duration-150"
                       style={{
                         background: isChecked
-                          ? '#eff6ff'
+                          ? 'var(--opts-highlight)'
                           : isDisabled
-                            ? '#f9fafb'
+                            ? 'var(--test-strip-bg)'
                             : 'transparent',
                         border: isChecked
                           ? '1.5px solid #3b82f6'
@@ -140,7 +140,7 @@ const CheckboxMultiple = ({ data, onAnswer, userAnswers = {} }) => {
                         className="font-medium leading-snug"
                         style={{
                           fontSize: '1.05em',
-                          color: isChecked ? '#1d4ed8' : isDisabled ? '#9ca3af' : '#1f2937',
+                          color: isChecked ? '#3b82f6' : isDisabled ? 'var(--opts-muted)' : 'var(--test-fg)',
                           fontWeight: isChecked ? 600 : 400,
                         }}
                       >

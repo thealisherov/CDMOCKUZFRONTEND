@@ -605,7 +605,7 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
                 <HighlightableContent className="max-w-none leading-relaxed" containerId="writing_prompt">
                   {/* Task instruction text */}
                   {currentTask?.content && currentTask.content.split('\n\n').map((paragraph, idx) => (
-                    <p key={idx} className="text-[16.5px] font-medium leading-[1.85] mb-4" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)' }}>
+                    <p key={idx} className="font-medium leading-[1.85] mb-4" style={{ fontSize: '1em', color: 'var(--test-fg)' }}>
                       {paragraph}
                     </p>
                   ))}
@@ -630,11 +630,12 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
                 {/* Bordered textarea box — resizable vertically, min-height matches screenshot */}
                 <textarea
                   ref={textareaRef}
-                  className="w-full p-4 outline-none leading-relaxed text-[28px]"
+                  className="w-full p-4 outline-none leading-relaxed"
                   style={{
                     background: 'var(--test-panel-bg)',
                     color: 'var(--test-fg)',
-                    fontFamily: 'Georgia, serif',
+                    fontSize: '1em',
+                    fontFamily: 'inherit',
                     border: '1px solid #999',
                     minHeight: '240px',
                     resize: 'none',

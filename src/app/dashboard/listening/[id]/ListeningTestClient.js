@@ -572,10 +572,10 @@ function ListeningTestInner({ id, rawData }) {
                 {(block.title || block.instruction) && (
                   <div className="mb-8">
                     {block.title && !block.title.match(/^(Section|Part) \d+/i) && (
-                      <h3 className="font-bold text-[26px] mb-1">{block.title}</h3>
+                      <h3 className="font-bold mb-1" style={{ fontSize: '1.4em' }}>{block.title}</h3>
                     )}
                     {block.instruction && (
-                      <p className="text-[22px] font-bold opacity-80 leading-snug">{block.instruction}</p>
+                      <p className="font-bold opacity-80 leading-snug" style={{ fontSize: '1.2em' }}>{block.instruction}</p>
                     )}
                   </div>
                 )}

@@ -98,9 +98,9 @@ const DragDropSummary = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) =
       )}
 
       {/* Summary Box with inline drop zones */}
-      <div
-        className="p-6 border rounded-md mb-6 leading-loose text-[17px]"
-        style={{ backgroundColor: 'var(--test-strip-bg)', borderColor: 'var(--test-border)', color: 'var(--test-fg)' }}
+      <div 
+        className="p-6 border rounded-md mb-6 leading-loose"
+        style={{ background: 'var(--opts-bg)', borderColor: 'var(--test-border)', fontSize: '1.05em', color: 'var(--test-fg)' }}
       >
         {parts.map((part, idx) => {
           const match = part.match(/^\{(\d+)\}$/);
@@ -136,11 +136,11 @@ const DragDropSummary = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) =
                 }}
               >
                 {selectedVal ? (
-                  <span className="font-semibold text-[15px]" style={{ color: '#2563eb' }}>
+                  <span className="font-semibold" style={{ color: '#2563eb', fontSize: '0.95em' }}>
                     {selectedWordObj ? selectedWordObj.label : selectedVal}
                   </span>
                 ) : (
-                  <span className="text-[14px] font-medium opacity-50">{gapId}</span>
+                  <span className="font-medium opacity-50" style={{ fontSize: '0.85em' }}>{gapId}</span>
                 )}
               </span>
             );
@@ -174,8 +174,9 @@ const DragDropSummary = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) =
                 draggable={!isUsed}
                 onDragStart={(e) => !isUsed && handleDragStart(e, item)}
                 onDragEnd={() => setDraggedItem(null)}
-                className="px-4 py-2 border rounded shadow-sm text-[15px] select-none transition-all"
+                className="px-4 py-2 border rounded shadow-sm select-none transition-all"
                 style={{
+                  fontSize: '0.95em',
                   backgroundColor: isUsed ? 'transparent' : 'var(--test-input-bg)',
                   borderColor: isUsed ? 'var(--test-border)' : 'var(--test-border)',
                   borderStyle: isUsed ? 'dashed' : 'solid',

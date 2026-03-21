@@ -89,6 +89,7 @@ export function useIELTSTheme() {
     return {
       ...vars,
       fontSize: TEXT_SIZE_MAP[textSize] || '16px',
+      fontFamily: 'Arial, Helvetica, sans-serif',
     };
   }, [contrast, textSize]);
 

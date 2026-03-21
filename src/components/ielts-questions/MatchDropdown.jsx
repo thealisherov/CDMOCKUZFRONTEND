@@ -65,7 +65,7 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1, layout, userAnswers = {
         {/* List Box (e.g. List of Researchers) */}
         {data.optionDescriptions && data.optionDescriptions.length > 0 && (
           <div className={`w-full ${isStacked ? '' : 'lg:w-1/2'} p-6 rounded-md border`} style={{ backgroundColor: 'var(--test-strip-bg)', borderColor: 'var(--test-border)', color: 'var(--test-fg)' }}>
-            <h3 className="text-center font-bold mb-5 text-[18px]" style={{ color: 'var(--test-fg)' }}>
+            <h3 className="text-center font-bold mb-5" style={{ color: 'var(--test-fg)', fontSize: '1.15em' }}>
               List of Options
             </h3>
             <div className="space-y-3">
@@ -109,7 +109,7 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1, layout, userAnswers = {
                     className="flex items-center justify-between min-w-[60px] h-[34px] px-3 border rounded transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500"
                     style={{ backgroundColor: 'var(--test-input-bg)', borderColor: 'var(--test-border)', color: 'var(--test-fg)' }}
                   >
-                    <span className="font-medium leading-none text-[15px]">
+                    <span className="font-medium leading-none" style={{ fontSize: '0.95em' }}>
                       {selected ? selected : globalNum}
                     </span>
                     <svg

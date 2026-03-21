@@ -102,11 +102,11 @@ const FlowChart = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => {
               }}
             >
               {selectedVal ? (
-                <span className="font-semibold text-[15px] text-black text-center" style={{ letterSpacing: '0.2px' }}>
+                <span className="font-semibold text-black text-center" style={{ letterSpacing: '0.2px', fontSize: '0.95em' }}>
                   {selectedWordObj ? selectedWordObj.label : selectedVal}
                 </span>
               ) : (
-                <span className="text-[14px] font-bold text-black text-center w-full">{gapId}</span>
+                <span className="font-bold text-black text-center w-full" style={{ fontSize: '0.85em' }}>{gapId}</span>
               )}
             </span>
           );
@@ -160,7 +160,7 @@ const FlowChart = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => {
               {/* Box */}
               <div 
                 className="w-full px-5 py-4 rounded-[3px] shadow-sm bg-white"
-                style={{ fontSize: '15.5px', lineHeight: '1.6', color: '#000', border: '1px solid #777' }}
+                style={{ fontSize: '1em', lineHeight: '1.6', color: '#000', border: '1px solid #777' }}
               >
                 {renderContentWithGaps(step)}
               </div>
@@ -193,7 +193,7 @@ const FlowChart = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => {
                     draggable={!isUsed}
                     onDragStart={(e) => !isUsed && handleDragStart(e, item)}
                     onDragEnd={() => setDraggedItem(null)}
-                    className={`px-3 py-1 bg-white font-[400] text-[15px] transition-all
+                    className={`px-3 py-1 bg-white font-[400] transition-all
                       ${isUsed 
                         ? 'text-transparent cursor-default opacity-0 invisible' 
                         : 'text-[#333] cursor-grab hover:bg-gray-50'
@@ -202,7 +202,8 @@ const FlowChart = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => {
                     style={{ 
                       userSelect: 'none', 
                       border: '1px solid #ccc',
-                      borderRadius: '3px'
+                      borderRadius: '3px',
+                      fontSize: '0.95em'
                     }}
                   >
                     {item.label}

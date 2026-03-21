@@ -447,7 +447,7 @@ function ReadingTestInner({ id, rawData }) {
                             />
                           </div>
                         )}
-                        <p className="text-[16.5px] font-medium leading-[1.85]" style={{ fontFamily: 'Georgia, serif', color: 'var(--test-fg)' }}>
+                        <p className="font-medium leading-[1.85]" style={{ fontSize: '1em', color: 'var(--test-fg)' }}>
                           {!headingQ && labelFound && (
                             <strong style={{ fontWeight: 900, marginRight: '8px' }}>{sectionMatch[1]}</strong>
                           )}
@@ -473,14 +473,14 @@ function ReadingTestInner({ id, rawData }) {
                     if (block.type === 'match_headings') {
                       return (
                         <div key={block.id} id={`question-${blockStartIndex}`}>
-                          {block.instruction && <p className="text-[22px] font-bold mb-3">{block.instruction}</p>}
+                          {block.instruction && <p className="font-bold mb-3" style={{ fontSize: '1.2em' }}>{block.instruction}</p>}
                           <MatchHeadings data={block} onAnswer={handleBlockAnswers} startIndex={blockStartIndex} userAnswers={userAnswers} />
                         </div>
                       );
                     }
                     return (
                       <div key={block.id} id={`question-${blockStartIndex}`}>
-                        {block.instruction && <p className="text-[22px] font-bold mb-3">{block.instruction}</p>}
+                        {block.instruction && <p className="font-bold mb-3" style={{ fontSize: '1.2em' }}>{block.instruction}</p>}
                         <QuestionRenderer data={block} startIndex={blockStartIndex} onAnswersChange={handleBlockAnswers} userAnswers={userAnswers} layout="stacked" />
                       </div>
                     );
