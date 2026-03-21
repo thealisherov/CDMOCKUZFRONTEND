@@ -200,9 +200,9 @@ function PaymentContent() {
                          fontFamily: "'Courier Prime', 'Courier New', monospace"
                        }}>
                     <span>4008</span>
-                    <span>4100</span>
+                    <span>4700</span>
                     <span>4114</span>
-                    <span>2312</span>
+                    <span>2372</span>
                   </div>
                   
                   {/* Hover Copy Overlay */}
