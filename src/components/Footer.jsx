@@ -8,7 +8,7 @@ export default function Footer() {
   const { t } = useTranslation();
   return (
     <footer className="w-full bg-secondary py-12 md:py-16">
-      <div className="container px-4 md:px-6">
+      <div className="container mx-auto px-4 md:px-6">
         <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-1 select-none">

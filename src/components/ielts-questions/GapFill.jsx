@@ -37,7 +37,7 @@ const GapFill = ({ data, onAnswer, userAnswers = {} }) => {
                         autoComplete="off"
                         spellCheck={false}
                         className="px-1 py-0 h-[1.3em] text-center border border-gray-400 rounded bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all font-semibold text-blue-800 text-[inherit]"
-                        style={{ width: `${minWidth}px` }}
+                        style={{ width: `${minWidth}px`, maxWidth: '230px' }}
                         onChange={(e) => handleInputChange(questionId, e.target.value)}
                       />
                       {!value && (

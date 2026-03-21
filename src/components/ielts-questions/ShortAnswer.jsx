@@ -88,6 +88,7 @@ const ShortAnswer = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => {
                     onChange={(e) => handleChange(questionId, e.target.value)}
                     style={{
                       width: `${inputWidth}px`,
+                      maxWidth: '380px',
                       minWidth: '120px',
                       height: '1.9em',
                       padding: '0 8px',

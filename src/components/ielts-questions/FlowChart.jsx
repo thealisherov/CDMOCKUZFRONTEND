@@ -121,7 +121,7 @@ const FlowChart = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => {
                 autoComplete="off"
                 spellCheck={false}
                 className="px-1 py-0 h-[1.3em] text-center border-b-[2.5px] border-gray-500 bg-transparent focus:border-blue-500 outline-none font-semibold text-blue-800"
-                style={{ width: `${minWidth}px` }}
+                style={{ width: `${minWidth}px`, maxWidth: '230px' }}
                 onChange={(e) => onAnswer(gapId, e.target.value)}
               />
               {!selectedVal && (
