@@ -243,6 +243,8 @@ export const translations = {
       writingDesc: "Choose a task and submit your essay for instant AI evaluation.",
       tasks: "Tasks",
       qs: "Qs",
+      mobileWarningTitle: "Attention!",
+      mobileWarningDesc: "Please log in via a computer or laptop to take this test. Taking the test on a mobile phone is not supported.",
     },
     // Footer
     footer: {
@@ -497,6 +499,8 @@ export const translations = {
       writingDesc: "AI tomonidan oniy baholash uchun inshoni tanlang va topshiring.",
       tasks: "Vazifalar",
       qs: "Savollar",
+      mobileWarningTitle: "Diqqat!",
+      mobileWarningDesc: "Bu testdan o'tish uchun kompyuter yoki noutbuk orqali kiring. Telefon orqali test ishlash imkoni yo'q.",
     },
     footer: {
       desc: "Bizning keng qamrovli platformamiz bilan IELTS imtihonini zabt eting. Mutaxassislar tomonidan jiddiy tayyorgarlik uchun yaratilgan.",
@@ -750,6 +754,8 @@ export const translations = {
       writingDesc: "Выберите задание и отправьте эссе для мгновенной AI-оценки.",
       tasks: "Задания",
       qs: "Вопросы",
+      mobileWarningTitle: "Внимание!",
+      mobileWarningDesc: "Пожалуйста, войдите с компьютера или ноутбука, чтобы пройти этот тест. Работа с тестом через мобильный телефон невозможна.",
     },
     footer: {
       desc: "Сдайте IELTS с помощью нашей платформы. Разработано экспертами специально для вашего успеха.",

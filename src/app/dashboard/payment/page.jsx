@@ -194,7 +194,7 @@ function PaymentContent() {
                   className="absolute top-[52%] left-[6%] right-[6%] z-20 cursor-pointer group"
                   onClick={handleCopy}
                 >
-                  <div className="flex items-center justify-start gap-5 text-[#f5f5f5] text-[26px] tracking-widest font-bold"
+                  <div className="flex items-center justify-start gap-2 sm:gap-5 text-[#f5f5f5] text-xl sm:text-[26px] tracking-widest font-bold"
                        style={{ 
                          textShadow: "1px 1px 2px rgba(0,0,0,0.8)",
                          fontFamily: "'Courier Prime', 'Courier New', monospace"

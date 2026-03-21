@@ -161,6 +161,21 @@ export default function TestListLayout({ title, description, tests = [], moduleT
         </div>
       </div>
 
+      {/* ── Mobile Warning Alert ── */}
+      <div className="block sm:hidden bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-xl p-4 flex gap-3 my-4">
+        <svg className="w-6 h-6 text-red-600 dark:text-red-400 shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <div>
+          <h3 className="text-sm font-bold text-red-800 dark:text-red-300">
+            {t("testList.mobileWarningTitle") || "Diqqat!"}
+          </h3>
+          <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+            {t("testList.mobileWarningDesc") || "Bu testdan o'tish uchun kompyuter yoki noutbuk orqali kiring. Telefon orqali test ishlash imkoni yo'q."}
+          </p>
+        </div>
+      </div>
+
       {/* ── Tabs ── */}
       <div
         className="flex p-1 rounded-xl gap-1"
@@ -363,13 +378,13 @@ function DefaultTestItem({ test, moduleType, meta, t, user }) {
 
   return (
     <div
-      className="group flex items-center justify-between p-5 transition-all duration-200"
+      className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 transition-all duration-200 gap-4 sm:gap-0"
       style={{ background: 'transparent' }}
       onMouseEnter={e => e.currentTarget.style.background = 'var(--muted)'}
       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
     >
       {/* Left — info */}
-      <div className="flex items-center gap-4 flex-1 min-w-0">
+      <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0 w-full">
         {/* Number badge */}
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold text-sm"
@@ -445,7 +460,7 @@ function DefaultTestItem({ test, moduleType, meta, t, user }) {
       </div>
 
       {/* Right — Share + CTA */}
-      <div className="ml-5 shrink-0 flex items-center gap-2">
+      <div className="w-full sm:w-auto sm:ml-5 shrink-0 flex items-center justify-between sm:justify-end gap-2 mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0" style={{ borderColor: 'var(--border)' }}>
         <ShareButton test={test} moduleType={moduleType} />
         {isLocked ? (
           <Link

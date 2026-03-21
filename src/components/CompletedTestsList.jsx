@@ -149,9 +149,9 @@ export default function CompletedTestsList({ moduleType = "reading" }) {
       </div>
 
       {/* Filters + Summary */}
-      <div className="flex flex-wrap gap-4 items-start">
+      <div className="flex flex-col md:flex-row gap-4 items-start">
         {/* Left: Filters */}
-        <div className="space-y-3 min-w-[180px]" style={{ maxWidth: 200 }}>
+        <div className="space-y-3 w-full md:w-[200px]" style={{ maxWidth: '100%' }}>
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: 'var(--muted-foreground)' }} />
@@ -221,7 +221,7 @@ export default function CompletedTestsList({ moduleType = "reading" }) {
               return (
                 <div
                   key={attempt.id}
-                  className="flex items-center justify-between p-4 rounded-xl border transition-all duration-200 hover:shadow-sm"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border transition-all duration-200 hover:shadow-sm gap-4 sm:gap-0"
                   style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
                 >
                   <div className="min-w-0 flex-1 space-y-1.5">
@@ -258,7 +258,7 @@ export default function CompletedTestsList({ moduleType = "reading" }) {
                   {/* Review button */}
                   <a
                     href={`/dashboard/${moduleType}/${attempt.test_numeric_id}/review/${attempt.id}`}
-                    className="ml-4 shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all duration-200"
+                    className="mt-3 sm:mt-0 sm:ml-4 shrink-0 inline-flex items-center justify-center sm:justify-start gap-2 px-4 py-2 w-full sm:w-auto rounded-xl text-sm font-semibold border transition-all duration-200"
                     style={{ borderColor: 'var(--border)', color: 'var(--foreground)', background: 'var(--card)' }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = moduleColor; e.currentTarget.style.color = moduleColor; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--foreground)'; }}

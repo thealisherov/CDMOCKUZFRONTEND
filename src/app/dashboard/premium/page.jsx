@@ -7,8 +7,8 @@ export default function PremiumPage() {
   const { t } = useTranslation();
 
   return (
-    <div className="w-full h-full flex flex-col py-6">
-      <div className="mb-4 pl-4 md:pl-0">
+    <div className="w-full h-full flex flex-col py-6 px-4 md:px-8 max-w-6xl mx-auto">
+      <div className="mb-6">
         <h1 className="text-3xl font-black" style={{ color: 'var(--foreground)' }}>
           {t("premiumPage.title")}
         </h1>

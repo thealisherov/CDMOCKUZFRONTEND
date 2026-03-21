@@ -148,7 +148,7 @@ export default function CommentsPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-3rem)] max-w-[1300px] mx-auto flex flex-col overflow-hidden">
+    <div className="min-h-[calc(100vh-3rem)] h-auto md:h-[calc(100vh-3rem)] max-w-[1300px] mx-auto flex flex-col md:overflow-hidden overflow-visible pb-24 md:pb-6 px-1 md:px-0">
       {/* Header — compact */}
       <div className="shrink-0 mb-4">
         <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">

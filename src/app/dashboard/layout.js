@@ -79,7 +79,7 @@ export default function DashboardLayout({ children }) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6 overflow-hidden relative">
+        <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-hidden relative">
           {children}
         </main>
       </div>

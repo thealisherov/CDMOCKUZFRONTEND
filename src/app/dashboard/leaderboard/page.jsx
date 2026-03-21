@@ -61,7 +61,7 @@ export default function LeaderboardPage() {
   const rest = visibleList.slice(3);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8 pb-12">
+    <div className="max-w-3xl mx-auto space-y-8 pb-12 px-4 sm:px-6">
       {/* Header */}
       <div className="text-center space-y-2">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-full text-xs font-black">
@@ -116,7 +116,7 @@ export default function LeaderboardPage() {
           </div>
           <button 
             onClick={() => router.push('/dashboard/payment')}
-            className="px-6 py-3 bg-white text-indigo-700 rounded-xl font-black text-sm hover:bg-white/90 transition-all shrink-0 flex items-center gap-2"
+            className="w-full sm:w-auto px-6 py-3 bg-white text-indigo-700 rounded-xl font-black text-sm hover:bg-white/90 transition-all shrink-0 flex items-center justify-center gap-2"
           >
             <Star className="w-4 h-4" /> {t("sidebar.premium") || "Premium"}
           </button>
@@ -143,7 +143,7 @@ export default function LeaderboardPage() {
         <div className="p-3 sm:p-4 border-b border-border bg-muted/10">
           <div className="grid grid-cols-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             <div className="col-span-1 text-center">#</div>
-            <div className="col-span-5 sm:col-span-5">{t("leaderboard.studentColumn") || (t("leaderboard.tests") === "Tests" ? "Student" : "O'quvchi")}</div>
+            <div className="col-span-5 sm:col-span-5 truncate">{t("leaderboard.studentColumn") || (t("leaderboard.tests") === "Tests" ? "Student" : "O'quvchi")}</div>
             <div className="col-span-2 text-center">XP</div>
             <div className="col-span-2 text-center hidden sm:block">{t("leaderboard.tests")}</div>
             <div className="col-span-4 sm:col-span-2 text-center">{t("leaderboard.streak")}</div>

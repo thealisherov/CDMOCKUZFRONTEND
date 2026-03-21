@@ -661,6 +661,30 @@ export async function POST(request, { params }) {
 
     // ── Route to Writing Evaluator if type is 'writing' ──
     if (testRow.type === 'writing' || type === 'writing') {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: userData } = await supabase.from('users').select('isPremium').eq('id', user.id).single();
+        const isPremium = userData?.isPremium || false;
+
+        if (!isPremium) {
+          const now = new Date();
+          const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+
+          const { count, error: countError } = await supabase
+            .from('TestAttempts')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('test_type', 'writing')
+            .gte('completed_at', startOfMonth);
+
+          if (!countError && count >= 3) {
+            return NextResponse.json({ 
+              error: "Siz bir oylik bepul 3 marta Writing tekshirish limitidan foydalanib bo'ldingiz. Qayta tekshirtirish uchun Premium versiyaga o'ting!" 
+            }, { status: 403 });
+          }
+        }
+      }
+
       return await checkWritingTest(userAnswers, testRow)
     }
 

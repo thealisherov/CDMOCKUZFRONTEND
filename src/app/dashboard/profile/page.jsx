@@ -107,7 +107,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8 pb-12">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-8 pb-12 pt-4">
       {/* Hero Header */}
       <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-border shadow-sm bg-white dark:bg-gray-900">
         <div className="h-28 sm:h-40 w-full" style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed, #e11d48)' }}>
