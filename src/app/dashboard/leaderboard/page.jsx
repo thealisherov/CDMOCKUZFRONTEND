@@ -7,45 +7,46 @@ import { useTranslation } from "@/components/LanguageContext";
 import { useRouter } from "next/navigation";
 import { Trophy, Flame, Lock, Star, Crown } from "lucide-react";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 export default function LeaderboardPage() {
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { t } = useTranslation();
   const router = useRouter();
   const supabase = createClient();
+  const queryClient = useQueryClient();
 
   const isPremium = user?.isPremium;
 
-  useEffect(() => {
-    fetchLeaderboard();
-  }, []);
-
-  const fetchLeaderboard = async () => {
-    try {
-      setError(null);
+  const { data, error, isLoading } = useQuery({
+    queryKey: ['leaderboard'],
+    queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch("/api/leaderboard", {
         headers: { Authorization: `Bearer ${session?.access_token}` }
       });
       const result = await res.json();
-      
-      if (!res.ok) {
-        setError(result.error || "Failed to load leaderboard");
-        return;
-      }
-      
-      setData(result);
-    } catch (err) {
-      console.error(err);
-      setError("An unexpected error occurred. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (!res.ok) throw new Error(result.error || "Failed to load leaderboard");
+      return result;
+    },
+    staleTime: 60 * 1000, 
+  });
 
-  if (loading) return (
+  // Real-time subscription for leaderboard updates
+  useEffect(() => {
+    const channel = supabase.channel('realtime_leaderboard')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, () => {
+        // Invalidate cache to trigger instant background refetch
+        queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+      })
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, queryClient]);
+
+  if (isLoading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
     </div>
@@ -72,7 +73,7 @@ export default function LeaderboardPage() {
 
       {error && (
         <div className="p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-2xl text-center text-sm font-bold">
-          {error}
+          {error.message || "Xatolik yuz berdi"}
         </div>
       )}
 

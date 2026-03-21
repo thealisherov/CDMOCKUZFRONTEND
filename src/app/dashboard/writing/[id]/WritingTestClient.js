@@ -234,6 +234,12 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
     setEvalError(null);
   }, [clearNotes, timerKey, notesKey]);
 
+  useEffect(() => {
+    return () => {
+      clearAllTestData();
+    };
+  }, [clearAllTestData]);
+
   const handleRetry = () => { clearAllTestData(); };
   const handleExit = useCallback(() => { clearAllTestData(); router.push('/dashboard/writing'); }, [clearAllTestData, router]);
   // Timer expired: just submit current essays (don't clear first!)

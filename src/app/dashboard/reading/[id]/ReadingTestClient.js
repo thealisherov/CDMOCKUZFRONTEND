@@ -161,6 +161,12 @@ function ReadingTestInner({ id, rawData }) {
     setEvalError(null);
   }, [clearNotes, timerKey, notesKey]);
 
+  useEffect(() => {
+    return () => {
+      clearAllTestData();
+    };
+  }, [clearAllTestData]);
+
   const handleSubmit = async () => { 
     setSubmitted(true);
     setShowConfirm(false);
@@ -393,7 +399,13 @@ function ReadingTestInner({ id, rawData }) {
             <div className="h-full overflow-y-auto" style={{ background: 'var(--test-panel-bg)', color: 'var(--test-fg)' }}>
               {currentPassage?.image && (
                 <div className="px-6 py-4">
-                  <img src={currentPassage.image} alt="Passage visual" className="w-full rounded border border-gray-200 shadow-md" />
+                  <img 
+                    src={currentPassage.image} 
+                    alt="Passage visual" 
+                    loading="lazy" 
+                    decoding="async" 
+                    className="w-full rounded border border-gray-200 shadow-md" 
+                  />
                 </div>
               )}
               {currentPassage?.title && !currentPassage.title.match(/^(Reading )?Passage \d+/i) && (

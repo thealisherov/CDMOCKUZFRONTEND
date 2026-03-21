@@ -121,6 +121,12 @@ function ListeningTestInner({ id, rawData }) {
     setEvalError(null);
   }, [clearNotes, timerKey, notesKey, audioKey, clearAnswers, clearSubmitted, clearActivePart, id]);
 
+  useEffect(() => {
+    return () => {
+      clearAllTestData();
+    };
+  }, [clearAllTestData]);
+
   const allSections = useMemo(() => rawData?.sections || [], [rawData]);
 
   const parts = useMemo(() => {
