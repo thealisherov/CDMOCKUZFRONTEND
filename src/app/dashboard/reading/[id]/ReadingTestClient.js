@@ -441,8 +441,8 @@ function ReadingTestInner({ id, rawData }) {
                       if (matchHeadingsBlock?.questions) {
                         headingQ = matchHeadingsBlock.questions.find(q => {
                           const qt = q.text.toUpperCase();
-                          // "Section 1" deb qidiradi yoki agar rasmdek bo'lsa "1" yoki "A"
-                          return qt === labelFound || qt.includes(labelFound);
+                          // "Section A" -> matching "A"
+                          return qt === labelFound || qt === `SECTION ${labelFound}` || qt === `PARAGRAPH ${labelFound}` || new RegExp(`\\b${labelFound}\\b`).test(qt);
                         });
                       }
 
