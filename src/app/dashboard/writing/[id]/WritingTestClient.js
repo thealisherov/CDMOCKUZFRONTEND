@@ -65,9 +65,13 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
     });
   }, []);
 
-  // Security: Prevent copy, cut, paste, and context menu
+  // Security: Prevent copy, cut, paste, and context menu outside textarea
   useEffect(() => {
-    const preventAction = (e) => e.preventDefault();
+    const preventAction = (e) => {
+      if (e.target.tagName === 'TEXTAREA') return;
+      e.preventDefault();
+    };
+    
     document.addEventListener('copy', preventAction);
     document.addEventListener('cut', preventAction);
     document.addEventListener('paste', preventAction);

@@ -145,7 +145,7 @@ const HighlightableContent = memo(function HighlightableContent({
         const mark = document.createElement('mark');
         mark.setAttribute('data-note-id', note.id);
         mark.style.cssText =
-          'background:var(--test-note-bg,#dbeafe);color:inherit;border-bottom:2px solid var(--test-note-accent,#3b82f6);padding:0 1px;border-radius:2px;cursor:pointer;user-select:text;-webkit-user-select:text;';
+          'background:var(--test-note-bg,#dbeafe);color:var(--test-note-fg,inherit);border-bottom:2px solid var(--test-note-accent,#3b82f6);padding:0 1px;border-radius:2px;cursor:pointer;user-select:text;-webkit-user-select:text;';
 
         mark.addEventListener('click', () => {
           if (window.getSelection()?.isCollapsed) setIsSidebarOpen(true);
@@ -241,6 +241,7 @@ const HighlightableContent = memo(function HighlightableContent({
       }
       const mark = document.createElement('mark');
       mark.className = 'highlight'; // Must have .highlight class in CSS
+      mark.style.cssText = 'background-color: var(--test-hl-bg, #ffff00); color: var(--test-hl-fg, #000000);';
       try {
         range.surroundContents(mark);
       } catch (e) {
@@ -287,6 +288,7 @@ const HighlightableContent = memo(function HighlightableContent({
           if (textToWrap.nodeValue.trim()) {
             const mark = document.createElement('mark');
             mark.className = 'highlight';
+            mark.style.cssText = 'background-color: var(--test-hl-bg, #ffff00); color: var(--test-hl-fg, #000000);';
             textToWrap.parentNode.insertBefore(mark, textToWrap);
             mark.appendChild(textToWrap);
           }

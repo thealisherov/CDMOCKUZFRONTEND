@@ -428,7 +428,7 @@ function ReadingTestInner({ id, rawData }) {
                     const matchHeadingsBlock = currentBlocks.find(b => b.type === 'match_headings');
                     
                     // 1. Labelni aniqlash (Section 1, Paragraph A, yoki shunchaki A)
-                    const sectionMatch = trimmed.match(/^(Section\s+(\d+|[A-ZIVX]+)|Paragraph\s+([A-Z]|\d+)|([A-Z])(?:\.|\s))\s*([\s\S]*)$/i);
+                    const sectionMatch = trimmed.match(/^(Section\s+(?:\d+|[A-ZIVX]+)|Paragraph\s+(?:[A-Z]|\d+)|[A-Z](?=\.|\n|\r|\t|  |$))[\.\s]*([\s\S]*)$/i);
                     
                     let headingQ = null;
                     let displayContent = trimmed;
@@ -436,7 +436,7 @@ function ReadingTestInner({ id, rawData }) {
 
                     if (sectionMatch) {
                       labelFound = (sectionMatch[1] || '').trim().toUpperCase();
-                      const contentAfterLabel = sectionMatch[5]?.trim();
+                      const contentAfterLabel = sectionMatch[2]?.trim();
 
                       if (matchHeadingsBlock?.questions) {
                         headingQ = matchHeadingsBlock.questions.find(q => {
