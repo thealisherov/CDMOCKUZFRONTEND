@@ -437,6 +437,7 @@ function ReadingTestInner({ id, rawData }) {
                     if (sectionMatch) {
                       labelFound = (sectionMatch[1] || '').trim().toUpperCase();
                       const contentAfterLabel = sectionMatch[2]?.trim();
+                      displayContent = contentAfterLabel;
 
                       if (matchHeadingsBlock?.questions) {
                         headingQ = matchHeadingsBlock.questions.find(q => {
@@ -444,11 +445,6 @@ function ReadingTestInner({ id, rawData }) {
                           // "Section A" -> matching "A"
                           return qt === labelFound || qt === `SECTION ${labelFound}` || qt === `PARAGRAPH ${labelFound}` || new RegExp(`\\b${labelFound}\\b`).test(qt);
                         });
-                      }
-
-                      // Agar drop zone chiqsa, labelni matndan o'chirib tashlaymiz
-                      if (headingQ) {
-                        displayContent = contentAfterLabel;
                       }
                     }
 
@@ -465,7 +461,7 @@ function ReadingTestInner({ id, rawData }) {
                           </div>
                         )}
                         <p className="font-medium leading-[1.85]" style={{ fontSize: '1em', color: 'var(--test-fg)' }}>
-                          {!headingQ && labelFound && (
+                          {labelFound && (
                             <strong style={{ fontWeight: 900, marginRight: '8px' }}>{sectionMatch[1]}</strong>
                           )}
                           {displayContent}
