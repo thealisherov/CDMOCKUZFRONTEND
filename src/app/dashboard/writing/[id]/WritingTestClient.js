@@ -206,7 +206,12 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
       }
 
       if (!res.ok) {
-        throw new Error('Server returned ' + res.status);
+        let actualError = 'Server returned ' + res.status;
+        try {
+          const errData = await res.json();
+          if (errData?.error) actualError = errData.error;
+        } catch { /* ignore JSON parse error */ }
+        throw new Error(actualError);
       }
       const data = await res.json();
       if (data.error) throw new Error(data.error);

@@ -8,6 +8,9 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import OpenAI from 'openai'
 
+// Increase Vercel serverless function timeout to 60 seconds (useful for OpenAI API calls)
+export const maxDuration = 60;
+
 // Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
