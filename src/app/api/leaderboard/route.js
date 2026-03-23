@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 
 const supabaseAdmin = createAdminClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 'fake'
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
 export async function GET(req) {
@@ -17,22 +17,22 @@ export async function GET(req) {
     }
 
     // Fetch ALL users via admin client
-    const { data: usersData, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
+    let usersData = [];
+    const { data: publicUsers, error: usersError } = await supabaseAdmin.from('users').select('*');
     
     if (usersError) {
-      console.error('[Leaderboard API] listUsers error:', usersError);
-      // Fallback: If listUsers fails (maybe missing key), we can only show the current user or an empty list
+      console.error('[Leaderboard API] users fetch error:', usersError);
       return NextResponse.json({ 
-        error: 'Could not fetch users list. Check SUPABASE_SERVICE_ROLE_KEY in production.',
+        error: 'Could not fetch users list from database.',
         leaderboard: [],
         currentUser: null 
       }, { status: 500 });
     }
 
-    const users = usersData.users;
+    usersData = publicUsers || [];
 
     // Filter out admins — only students in leaderboard
-    const students = users.filter(u => u.user_metadata?.role !== 'admin');
+    const students = usersData.filter(u => u.role !== 'admin');
 
     // Fetch all user_stats
     const { data: allStats } = await supabaseAdmin
@@ -49,9 +49,9 @@ export async function GET(req) {
       const stats = statsMap[u.id] || {};
       return {
         user_id: u.id,
-        full_name: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Unknown',
+        full_name: u.full_name || u.email?.split('@')[0] || 'Unknown',
         email: u.email,
-        avatar_url: u.user_metadata?.avatar_url || null,
+        avatar_url: u.avatar_url || null, // if added in future
         xp: stats.xp || 0,
         tests_taken: stats.tests_taken || 0,
         correct_answers: stats.correct_answers || 0,

@@ -91,6 +91,39 @@ export async function POST(request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // UPDATE OR INSERT user_stats for Leaderboard
+    try {
+      const { data: existingStats } = await supabase
+        .from('user_stats')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const earnedXp = 10 + (correct_count || 0) * 2; // For example: 10 XP just for taking it, +2 per correct
+
+      if (existingStats) {
+        await supabase.from('user_stats').update({
+          tests_taken: (existingStats.tests_taken || 0) + 1,
+          correct_answers: (existingStats.correct_answers || 0) + (correct_count || 0),
+          xp: (existingStats.xp || 0) + earnedXp,
+          total_time_seconds: (existingStats.total_time_seconds || 0) + (time_spent_seconds || 0),
+          last_active_date: new Date().toISOString()
+        }).eq('user_id', user.id);
+      } else {
+        await supabase.from('user_stats').insert([{
+          user_id: user.id,
+          tests_taken: 1,
+          correct_answers: correct_count || 0,
+          xp: earnedXp,
+          total_time_seconds: time_spent_seconds || 0,
+          last_active_date: new Date().toISOString(),
+          daily_streak: 1
+        }]);
+      }
+    } catch (statsErr) {
+      console.error('[API /api/attempts] user_stats error (non-fatal):', statsErr);
+    }
+
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     console.error('[API /api/attempts] Unexpected error:', err);
