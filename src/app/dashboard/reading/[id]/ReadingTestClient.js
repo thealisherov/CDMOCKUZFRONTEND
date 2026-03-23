@@ -161,11 +161,16 @@ function ReadingTestInner({ id, rawData }) {
     setEvalError(null);
   }, [clearNotes, timerKey, notesKey]);
 
+  const clearAllTestDataRef = useRef(clearAllTestData);
+  useEffect(() => {
+    clearAllTestDataRef.current = clearAllTestData;
+  }, [clearAllTestData]);
+
   useEffect(() => {
     return () => {
-      clearAllTestData();
+      clearAllTestDataRef.current();
     };
-  }, [clearAllTestData]);
+  }, []);
 
   const handleSubmit = async () => { 
     setSubmitted(true);

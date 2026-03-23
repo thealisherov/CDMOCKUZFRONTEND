@@ -121,11 +121,16 @@ function ListeningTestInner({ id, rawData }) {
     setEvalError(null);
   }, [clearNotes, timerKey, notesKey, audioKey, clearAnswers, clearSubmitted, clearActivePart, id]);
 
+  const clearAllTestDataRef = useRef(clearAllTestData);
+  useEffect(() => {
+    clearAllTestDataRef.current = clearAllTestData;
+  }, [clearAllTestData]);
+
   useEffect(() => {
     return () => {
-      clearAllTestData();
+      clearAllTestDataRef.current();
     };
-  }, [clearAllTestData]);
+  }, []);
 
   const allSections = useMemo(() => rawData?.sections || [], [rawData]);
 
@@ -527,7 +532,12 @@ function ListeningTestInner({ id, rawData }) {
             {savedAudioPos > 0 ? 'Click Resume to continue.' : 'To continue, click Play.'}
           </p>
           <button
-            onClick={() => setIsStarted(true)}
+            onClick={() => {
+              setIsStarted(true);
+              if (audioPlayerRef.current && audioPlayerRef.current.playAudio) {
+                audioPlayerRef.current.playAudio();
+              }
+            }}
             style={{
               display: 'flex', alignItems: 'center', gap: 10,
               backgroundColor: '#0d0d0d', color: '#ffffff',

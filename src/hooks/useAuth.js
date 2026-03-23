@@ -50,7 +50,7 @@ export function AuthProvider({ children }) {
       password,
     });
     if (error) throw error;
-    router.push("/dashboard");
+    window.location.href = "/dashboard";
     return data;
   };
 
@@ -85,7 +85,7 @@ export function AuthProvider({ children }) {
     });
 
     if (error) throw error;
-    router.push("/dashboard");
+    window.location.href = "/dashboard";
     return data;
   };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 /**
  * useState + localStorage persistence.
@@ -39,12 +39,14 @@ export function usePersistedState(key, initialValue) {
     }
   }, [state, key]);
 
-  const clear = () => {
-    setState(initialValue);
+  const initialValueRef = useRef(initialValue);
+  
+  const clear = useCallback(() => {
+    setState(initialValueRef.current);
     if (key) {
       try { localStorage.removeItem(key); } catch { /* ignore */ }
     }
-  };
+  }, [key]);
 
   return [state, setState, clear];
 }

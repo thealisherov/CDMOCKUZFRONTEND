@@ -36,7 +36,7 @@ const AudioPlayer = forwardRef(function AudioPlayer({ src, playSignal, storageKe
     }, 1000);
   }, [storageKey, stopSaving]);
 
-  // Expose stop & reset method to parent via ref
+  // Expose stop & reset method and playAudio to parent via ref
   useImperativeHandle(ref, () => ({
     stopAndReset: () => {
       const audio = audioRef.current;
@@ -49,7 +49,25 @@ const AudioPlayer = forwardRef(function AudioPlayer({ src, playSignal, storageKe
         try { localStorage.removeItem(storageKey); } catch { /* ignore */ }
       }
     },
-  }), [stopSaving, storageKey]);
+    playAudio: () => {
+      const audio = audioRef.current;
+      if (audio) {
+        if (storageKey) {
+          try {
+            const saved = localStorage.getItem(storageKey);
+            if (saved !== null) {
+              const t = parseFloat(saved);
+              if (!isNaN(t) && t > 0) {
+                audio.currentTime = t;
+              }
+            }
+          } catch { /* ignore */ }
+        }
+        audio.play().catch(err => console.warn("Audio play:", err));
+        startSaving();
+      }
+    }
+  }), [stopSaving, storageKey, startSaving]);
 
   // When playSignal becomes true: restore saved position, then play
   useEffect(() => {
