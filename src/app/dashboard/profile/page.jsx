@@ -11,6 +11,7 @@ import {
   BookOpen, CheckCircle2, Timer, Camera,
   Trophy, Target, Zap, CreditCard, TrendingUp, Lock
 } from "lucide-react";
+import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
   const { user: authUser } = useAuth();
@@ -73,8 +74,9 @@ export default function ProfilePage() {
         ...prev,
         user: { ...prev.user, user_metadata: { ...prev.user.user_metadata, avatar_url: data.avatar_url } }
       }));
+      toast.success("Avatar updated!");
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setUploading(false);
     }

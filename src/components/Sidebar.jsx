@@ -35,16 +35,16 @@ export default function Sidebar({ collapsed, onToggle }) {
   }, []);
 
   const navigation = [
-    { name: t("sidebar.reading"),   href: "/dashboard/reading",   icon: BookOpen,      locked: false },
-    { name: t("sidebar.listening"), href: "/dashboard/listening", icon: Headphones,    locked: false },
-    { name: t("sidebar.writing"),   href: "/dashboard/writing",   icon: PenTool,       locked: false },
-    { name: t("sidebar.speaking"),  href: "#",                    icon: Mic,           locked: true, badge: t("sidebar.soon") },
-    { name: t("sidebar.predictions") || "Predictions", href: "#", icon: Sparkles,      locked: true, badge: t("sidebar.soon") },
-    { name: t("sidebar.articles") || "Articles",       href: "#", icon: FileText,      locked: true, badge: t("sidebar.soon") },
-    { name: t("sidebar.comments"),  href: "/dashboard/comments",  icon: MessageCircle, locked: false },
-    { name: t("sidebar.leaderboard") || "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy, locked: false },
-    { name: t("sidebar.premium"),   href: "/dashboard/premium",   icon: Star,          locked: false, badge: t("sidebar.upgrade") },
-    { name: t("sidebar.profile") || "My Profile", href: "/dashboard/profile", icon: User, locked: false },
+    { name: "Reading",     href: "/dashboard/reading",   icon: BookOpen,      locked: false },
+    { name: "Listening",   href: "/dashboard/listening", icon: Headphones,    locked: false },
+    { name: "Writing",     href: "/dashboard/writing",   icon: PenTool,       locked: false },
+    { name: "Speaking",    href: "#",                    icon: Mic,           locked: true, badge: "Soon" },
+    { name: "Predictions", href: "#",                    icon: Sparkles,      locked: true, badge: "Soon" },
+    { name: "Articles",    href: "#",                    icon: FileText,      locked: true, badge: "Soon" },
+    { name: "Comments",    href: "/dashboard/comments",  icon: MessageCircle, locked: false },
+    { name: "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy,    locked: false },
+    { name: "Premium",     href: "/dashboard/premium",   icon: Star,          locked: false, badge: "Upgrade" },
+    { name: "Profile",     href: "/dashboard/profile",   icon: User,          locked: false },
   ];
 
   if (user?.user_metadata?.role === "admin") {
@@ -137,7 +137,7 @@ export default function Sidebar({ collapsed, onToggle }) {
             className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest"
             style={{ color: 'oklch(0.55 0.04 270)' }}
           >
-            {t("sidebar.modules") || "Modules"}
+            Modules
           </p>
         )}
 
@@ -244,7 +244,7 @@ export default function Sidebar({ collapsed, onToggle }) {
             )}
             <button
               onClick={() => setShowSettings(!showSettings)}
-              title={t("sidebar.settings", { defaultValue: "Settings" })}
+              title="Settings"
               className={cn(
                 "flex items-center justify-center h-9 w-9 rounded-xl transition-all",
                 showSettings ? "bg-primary/10 text-primary" : "hover:bg-[oklch(0.72_0.2_270/_0.12)]"
@@ -255,7 +255,7 @@ export default function Sidebar({ collapsed, onToggle }) {
             </button>
             <button
               onClick={logout}
-              title={t("sidebar.signOut", { defaultValue: "Sign Out" })}
+              title="Sign Out"
               className="flex items-center justify-center h-9 w-9 rounded-xl transition-all hover:bg-red-500/10 text-red-500"
             >
               <LogOut className="h-4 w-4 pointer-events-none" />
@@ -280,10 +280,10 @@ export default function Sidebar({ collapsed, onToggle }) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[12px] font-semibold truncate" style={{ color: 'var(--sidebar-foreground)' }}>
-                  {user?.user_metadata?.full_name || user?.email?.split('@')[0] || t("sidebar.student")}
+                  {user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Student"}
                 </p>
                 <p className="text-[10px] truncate" style={{ color: 'oklch(0.55 0.04 270)' }}>
-                  {user?.isPremium ? t("sidebar.premiumAccount") || "Premium Account" : t("sidebar.freePlan")}
+                  {user?.isPremium ? "Premium Account" : "Free Plan"}
                 </p>
               </div>
             </div>
@@ -293,7 +293,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                 className="mx-1 mb-2 p-2 rounded-xl border flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200 shadow-sm"
                 style={{ background: 'oklch(0.5 0.0 0 / 0.03)', borderColor: 'var(--sidebar-border)' }}
               >
-                <span className="text-xs font-semibold pl-1" style={{ color: 'var(--sidebar-foreground)' }}>{t("sidebar.settings", { defaultValue: "Settings" })}</span>
+                <span className="text-xs font-semibold pl-1" style={{ color: 'var(--sidebar-foreground)' }}>Settings</span>
                 <div className="flex gap-2">
                   <LanguageSelector position="top" />
                   <ThemeToggle />
@@ -309,7 +309,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                   showSettings ? "bg-primary/10 text-primary" : "hover:bg-[oklch(0.72_0.2_270/_0.12)]"
                 )}
                 style={!showSettings ? { color: 'var(--sidebar-foreground)', opacity: 0.6 } : {}}
-                title={t("sidebar.settings", { defaultValue: "Settings" })}
+                title="Settings"
               >
                 <Settings className="h-4 w-4 pointer-events-none" />
               </button>
@@ -320,7 +320,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                 style={{ opacity: 0.8 }}
               >
                 <LogOut className="h-4 w-4 pointer-events-none" />
-                <span className="hidden sm:inline">{t("sidebar.signOut")}</span>
+                <span className="hidden sm:inline">Sign Out</span>
               </button>
             </div>
           </>

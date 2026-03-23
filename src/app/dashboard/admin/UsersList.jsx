@@ -5,7 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { Search, UserPlus, Shield, X, Check, DollarSign, Wallet, ExternalLink } from "lucide-react";
+import { Search, UserPlus, Shield, X, Check, DollarSign, Wallet, ExternalLink, AlertTriangle } from "lucide-react";
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function UsersList() {
   const router = useRouter();
@@ -79,15 +80,17 @@ export default function UsersList() {
       setUsers(users.map(u => u.id === selectedUser.id ? updatedUser : u));
       setSelectedUser(null);
       setPremiumForm({ months: 1, currency: 'UZS', amount: '' });
-      alert("Premium status assigned successfully!");
+      toast.success("Premium status assigned successfully!");
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 
-  const revokePremium = async (userId) => {
-    if (!confirm("Are you sure you want to revoke premium access?")) return;
-    
+  const [userToRevoke, setUserToRevoke] = useState(null);
+
+  const revokePremium = async () => {
+    if (!userToRevoke) return;
+    const userId = userToRevoke.id;
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(`/api/admin/users/${userId}`, {
@@ -104,8 +107,11 @@ export default function UsersList() {
       }
       const updatedUser = await res.json();
       setUsers(users.map(u => u.id === userId ? updatedUser : u));
+      toast.success("Premium access revoked");
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
+    } finally {
+      setUserToRevoke(null);
     }
   };
 
@@ -191,7 +197,7 @@ export default function UsersList() {
                             </button>
                             {isPremium && (
                                 <button 
-                                    onClick={() => revokePremium(u.id)}
+                                    onClick={() => setUserToRevoke(u)}
                                     className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                     title="Revoke Access"
                                 >
@@ -293,6 +299,35 @@ export default function UsersList() {
                  <Check className="w-5 h-5" /> Activate Premium Now
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Revoke Confirm Dialog */}
+      {userToRevoke && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-border animate-in zoom-in-95 p-6 text-center space-y-4">
+             <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 flex items-center justify-center mx-auto mb-2">
+                 <AlertTriangle className="w-6 h-6" />
+             </div>
+             <h3 className="font-bold text-lg">Revoke Premium?</h3>
+             <p className="text-sm text-muted-foreground">
+               Are you sure you want to revoke premium access for <br/> <strong>{userToRevoke.email}</strong>?
+             </p>
+             <div className="flex gap-3 pt-4">
+                <button 
+                  onClick={() => setUserToRevoke(null)}
+                  className="flex-1 py-3 bg-muted text-muted-foreground font-bold rounded-xl hover:bg-muted/80 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={revokePremium}
+                  className="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-200 dark:shadow-none"
+                >
+                  Revoke
+                </button>
+             </div>
           </div>
         </div>
       )}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Save, Plus, Trash2, Edit3, CheckCircle, Package, Star, Crown, Sparkles } from "lucide-react";
+import toast from 'react-hot-toast';
 
 export default function PricingEditor() {
   const [plans, setPlans] = useState([]);
@@ -37,9 +38,9 @@ export default function PricingEditor() {
       if (error) throw error;
       setPlans(plans.map(p => p.id === id ? { ...p, ...updates } : p));
       setEditingId(null);
-      alert("Plan updated!");
+      toast.success("Plan updated!");
     } catch (err) {
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 
