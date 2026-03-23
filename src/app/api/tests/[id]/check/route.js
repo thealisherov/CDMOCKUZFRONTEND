@@ -661,31 +661,53 @@ export async function POST(request, { params }) {
 
     // ── Route to Writing Evaluator if type is 'writing' ──
     if (testRow.type === 'writing' || type === 'writing') {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Safely get the user
+      let user = null;
+      try {
+        const authResult = await supabase.auth.getUser();
+        user = authResult?.data?.user || null;
+      } catch (authErr) {
+        console.warn('[Writing] Could not get auth user:', authErr.message);
+      }
+
       if (user) {
-        const { data: userData } = await supabase.from('users').select('isPremium').eq('id', user.id).single();
-        const isPremium = userData?.isPremium || false;
+        try {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', user.id)
+            .single();
 
-        if (!isPremium) {
-          const now = new Date();
-          const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+          const userRole = userData?.role || 'student';
+          // admin va premium uchun cheksiz tekshirish
+          const isUnlimited = userRole === 'admin' || userRole === 'premium';
 
-          const { count, error: countError } = await supabase
-            .from('TestAttempts')
-            .select('id', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('test_type', 'writing')
-            .gte('completed_at', startOfMonth);
+          if (!isUnlimited) {
+            const MONTHLY_LIMIT = 3;
+            const now = new Date();
+            const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
 
-          if (!countError && count >= 3) {
-            return NextResponse.json({ 
-              error: "Siz bir oylik bepul 3 marta Writing tekshirish limitidan foydalanib bo'ldingiz. Qayta tekshirtirish uchun Premium versiyaga o'ting!" 
-            }, { status: 403 });
+            const { count, error: countError } = await supabase
+              .from('TestAttempts')
+              .select('id', { count: 'exact', head: true })
+              .eq('user_id', user.id)
+              .eq('test_type', 'writing')
+              .gte('completed_at', startOfMonth);
+
+            if (!countError && count >= MONTHLY_LIMIT) {
+              return NextResponse.json({
+                error: 'WRITING_LIMIT_EXCEEDED',
+                usedCount: count,
+                monthlyLimit: MONTHLY_LIMIT,
+              }, { status: 403 });
+            }
           }
+        } catch (limitErr) {
+          console.warn('[Writing] Limit check failed (non-fatal):', limitErr.message);
         }
       }
 
-      return await checkWritingTest(userAnswers, testRow)
+      return await checkWritingTest(userAnswers, testRow);
     }
 
     // ── Reading / Listening Evaluation ──

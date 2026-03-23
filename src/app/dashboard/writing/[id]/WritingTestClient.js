@@ -15,6 +15,7 @@ import NotesSidebar from '@/components/ielts/NotesSidebar';
 import { useDynamicFavicon } from '@/hooks/useDynamicFavicon';
 import { createClient } from '@/utils/supabase/client';
 import toast, { Toaster } from 'react-hot-toast';
+import WritingLimitModal from '@/components/WritingLimitModal';
 
 /**
  * Word counter
@@ -95,6 +96,10 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
   const [evaluationResult, setEvaluationResult] = useState(initialEvaluation);
   const [evalError, setEvalError] = useState(null);
   const [savedAttemptId, setSavedAttemptId] = useState(null);
+
+  // Writing limit modal
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [limitUsedCount, setLimitUsedCount] = useState(3);
 
   const timerKey = `timer_writing_${id}`;
   const notesKey = `notes_writing_${id}`;
@@ -186,6 +191,19 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userAnswers: essays, type: 'writing' }),
       });
+
+      // Handle writing limit (403)
+      if (res.status === 403) {
+        const errData = await res.json();
+        if (errData?.error === 'WRITING_LIMIT_EXCEEDED') {
+          setSubmitted(false);
+          setShowConfirm(false);
+          setIsEvaluating(false);
+          setLimitUsedCount(errData.usedCount ?? 3);
+          setShowLimitModal(true);
+          return;
+        }
+      }
 
       if (!res.ok) {
         throw new Error('Server returned ' + res.status);
@@ -744,6 +762,13 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
         onTextSizeChange={setTextSize}
       />
       <NotesSidebar />
+
+      {/* Writing limit exceeded modal */}
+      <WritingLimitModal
+        isOpen={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
+        usedCount={limitUsedCount}
+      />
     </div>
   );
 }
