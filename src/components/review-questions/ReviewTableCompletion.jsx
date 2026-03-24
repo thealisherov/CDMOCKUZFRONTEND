@@ -107,6 +107,17 @@ export default function ReviewTableCompletion({ data, userAnswers = {}, correctA
           line-height: 1.5;
           vertical-align: middle;
         }
+        .styled-table-wrapper b {
+          font-weight: 700;
+        }
+        .styled-table-wrapper ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        .styled-table-wrapper li {
+          margin: 0;
+        }
       `}</style>
     </div>
   );

@@ -18,7 +18,7 @@ import IELTSOptionsModal from '@/components/ielts/IELTSOptionsModal';
 import { useIELTSTheme } from '@/hooks/useIELTSTheme';
 import { NotesProvider, useNotes } from '@/components/NotesContext';
 import NotesSidebar from '@/components/ielts/NotesSidebar';
-
+import { usePersistedState } from '@/hooks/usePersistedState';
 
 // Inner component that can access NotesContext
 function ReadingTestInner({ id, rawData }) {
@@ -53,7 +53,7 @@ function ReadingTestInner({ id, rawData }) {
     };
   }, []);
 
-  const [userAnswers,   setUserAnswers]   = useState({});
+  const [userAnswers,   setUserAnswers, clearAnswers]   = usePersistedState(`answers_reading_${id}`, {});
   const [submitted,     setSubmitted]     = useState(false);
   const [showConfirm,   setShowConfirm]   = useState(false);
   const [activePassage, setActivePassage] = useState(0);
@@ -151,7 +151,7 @@ function ReadingTestInner({ id, rawData }) {
     // Notes/highlights (both context state and localStorage)
     clearNotes();
     try { localStorage.removeItem(notesKey); } catch { /* */ }
-    // Answers & progress
+    clearAnswers();
     setUserAnswers({});
     setSubmitted(false);
     setActivePassage(0);
@@ -159,19 +159,8 @@ function ReadingTestInner({ id, rawData }) {
     setShowConfirm(false);
     setServerResult(null);
     setEvalError(null);
-  }, [clearNotes, timerKey, notesKey]);
-
-  const clearAllTestDataRef = useRef(clearAllTestData);
-  useEffect(() => {
-    clearAllTestDataRef.current = clearAllTestData;
-  }, [clearAllTestData]);
-
-  useEffect(() => {
-    return () => {
-      clearAllTestDataRef.current();
-    };
-  }, []);
-
+  }, [clearNotes, timerKey, notesKey, clearAnswers]);
+  // Unmount clearing logic removed so refreshing doesn't erase user answers
   const handleSubmit = async () => { 
     setSubmitted(true);
     setShowConfirm(false);
@@ -428,16 +417,20 @@ function ReadingTestInner({ id, rawData }) {
                     const matchHeadingsBlock = currentBlocks.find(b => b.type === 'match_headings');
                     
                     // 1. Labelni aniqlash (Section 1, Paragraph A, yoki shunchaki A)
-                    const sectionMatch = trimmed.match(/^(Section\s+(?:\d+|[A-ZIVX]+)|Paragraph\s+(?:[A-Z]|\d+)|[A-Z](?=\.|\n|\r|\t|  |$))[\.\s]*([\s\S]*)$/i);
+                    // Support leading HTML tags like <img> or <br/> before the label
+                    const sectionMatch = trimmed.match(/^((?:<[^>]+>\s*)*)(Section\s+(?:\d+|[A-ZIVX]+)|Paragraph\s+(?:[A-Z]|\d+)|[A-Z](?=\.|\n|\r|\t|  |$))[\.\s]*([\s\S]*)$/i);
                     
                     let headingQ = null;
                     let displayContent = trimmed;
                     let labelFound = "";
 
                     if (sectionMatch) {
-                      labelFound = (sectionMatch[1] || '').trim().toUpperCase();
-                      const contentAfterLabel = sectionMatch[2]?.trim();
-                      displayContent = contentAfterLabel;
+                      const leadingTags = sectionMatch[1] || '';
+                      const labelText = sectionMatch[2] || '';
+                      labelFound = labelText.trim().toUpperCase();
+                      const contentAfterLabel = sectionMatch[3]?.trim();
+                      
+                      displayContent = leadingTags + contentAfterLabel;
 
                       if (matchHeadingsBlock?.questions) {
                         headingQ = matchHeadingsBlock.questions.find(q => {
@@ -462,9 +455,9 @@ function ReadingTestInner({ id, rawData }) {
                         )}
                         <p className="font-medium leading-[1.85]" style={{ fontSize: '1em', color: 'var(--test-fg)' }}>
                           {labelFound && (
-                            <strong style={{ fontWeight: 900, marginRight: '8px' }}>{sectionMatch[1]}</strong>
+                            <strong style={{ fontWeight: 900, marginRight: '8px' }} dangerouslySetInnerHTML={{ __html: sectionMatch[2] }} />
                           )}
-                          {displayContent}
+                          <span dangerouslySetInnerHTML={{ __html: displayContent }} />
                         </p>
                       </div>
                     );

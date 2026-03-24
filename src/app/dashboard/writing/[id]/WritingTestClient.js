@@ -16,6 +16,7 @@ import { useDynamicFavicon } from '@/hooks/useDynamicFavicon';
 import { createClient } from '@/utils/supabase/client';
 import toast, { Toaster } from 'react-hot-toast';
 import WritingLimitModal from '@/components/WritingLimitModal';
+import { usePersistedState } from '@/hooks/usePersistedState';
 
 /**
  * Word counter
@@ -89,7 +90,7 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
   const [activeTaskIndex, setActiveTaskIndex] = useState(0);
   const [submitted, setSubmitted] = useState(isReviewMode);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [essays, setEssays] = useState(initialEssays);
+  const [essays, setEssays, clearEssays] = usePersistedState(`answers_writing_${id}`, initialEssays);
 
   // AI Evaluation states
   const [isEvaluating, setIsEvaluating] = useState(false);
@@ -252,6 +253,7 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
     try { localStorage.removeItem(timerKey); } catch { /* */ }
     clearNotes();
     try { localStorage.removeItem(notesKey); } catch { /* */ }
+    clearEssays();
     setEssays({});
     setSubmitted(false);
     setActiveTaskIndex(0);
@@ -259,13 +261,9 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
     setShowConfirm(false);
     setEvaluationResult(null);
     setEvalError(null);
-  }, [clearNotes, timerKey, notesKey]);
+  }, [clearNotes, timerKey, notesKey, clearEssays]);
 
-  useEffect(() => {
-    return () => {
-      clearAllTestData();
-    };
-  }, [clearAllTestData]);
+  // Removed unmount clearAllTestData so refreshing the page preserves the currently entered essay
 
   const handleRetry = () => { clearAllTestData(); };
   const handleExit = useCallback(() => { clearAllTestData(); router.push('/dashboard/writing'); }, [clearAllTestData, router]);

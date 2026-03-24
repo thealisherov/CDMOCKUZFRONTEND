@@ -121,16 +121,7 @@ function ListeningTestInner({ id, rawData }) {
     setEvalError(null);
   }, [clearNotes, timerKey, notesKey, audioKey, clearAnswers, clearSubmitted, clearActivePart, id]);
 
-  const clearAllTestDataRef = useRef(clearAllTestData);
-  useEffect(() => {
-    clearAllTestDataRef.current = clearAllTestData;
-  }, [clearAllTestData]);
-
-  useEffect(() => {
-    return () => {
-      clearAllTestDataRef.current();
-    };
-  }, []);
+  // Removed unmount clearAllTestData so refreshing doesn't clear answers
 
   const allSections = useMemo(() => rawData?.sections || [], [rawData]);
 

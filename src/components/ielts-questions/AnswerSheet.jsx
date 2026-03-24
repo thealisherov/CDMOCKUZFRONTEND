@@ -103,6 +103,15 @@ const AnswerSheet = ({ userAnswers = {}, testData = [], onRetry, onExit, moduleT
         });
       }
     });
+
+    // Sort questions numerically to prevent unordered display due to text formatting
+    questions.sort((a, b) => {
+      const numA = parseInt(a.id, 10);
+      const numB = parseInt(b.id, 10);
+      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+      return String(a.id).localeCompare(String(b.id));
+    });
+
     return questions;
   }, [testData, serverEvaluation]);
 

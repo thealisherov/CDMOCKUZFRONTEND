@@ -97,12 +97,13 @@ const TableCompletion = ({ data, onAnswer, userAnswers = {} }) => {
           font-weight: 700;
         }
         .styled-table-wrapper ul {
-          list-style: none;
-          padding: 0;
-          margin: 0;
+          list-style: disc outside none;
+          padding-left: 20px;
+          margin: 10px 0;
         }
         .styled-table-wrapper li {
-          margin: 0;
+          margin: 5px 0;
+          display: list-item;
         }
       `}</style>
     </div>

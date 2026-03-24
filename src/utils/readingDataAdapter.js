@@ -24,6 +24,8 @@ function generateBlockId(groupType) {
 function mapGroupType(groupType) {
   switch (groupType) {
     case 'summary_completion':
+    case 'sentence_completion':
+    case 'note_completion':
       return 'gap_fill';
 
     case 'flowchart':
@@ -124,8 +126,16 @@ function buildTableOrGapContent(group) {
     return html;
   }
 
-  // Fallback: Smart Grouping for label-based question rows
-  return buildSmartTable(group.questions);
+  // Fallback 1: Convert structural lists into 2-column tables First!
+  const listTable = tryBuildListTable(group.questions);
+  if (listTable) return listTable;
+
+  // Fallback 2: Smart Grouping for label-based question rows without <ul>
+  const smartTable = buildSmartTable(group.questions);
+  if (smartTable) return smartTable;
+
+  // Ultimate fallback
+  return buildGapFillContent(group.questions);
 }
 
 /**
@@ -167,7 +177,7 @@ function buildSmartTable(questions) {
   if (currentBlock) blocks.push(currentBlock);
 
   const headers = Array.from(columnHeaders);
-  if (headers.length === 0) return buildGapFillContent(questions);
+  if (headers.length === 0) return null;
 
   let html = '';
   const firstTitle = blocks[0]?.title;
@@ -201,6 +211,124 @@ function buildSmartTable(questions) {
     }
   });
 
+  html += '</table>';
+  return html;
+}
+
+/**
+ * Attempt to build a 2-column table from a text containing <ul> lists.
+ * This handles the common IELTS "Notes/Table Completion" where notes are bulleted under categories.
+ */
+function tryBuildListTable(questions) {
+  let content = buildGapFillContent(questions);
+  
+  if (!content.includes('<ul')) return null;
+
+  // Extract possible title at the very beginning
+  let title = '';
+  const titleMatch = content.match(/^\s*<b>(.*?)<\/b>(?:<br\s*\/?>\s*)*/i);
+  if (titleMatch) {
+    title = titleMatch[1];
+    content = content.replace(titleMatch[0], '').trim();
+  }
+
+  const parts = [];
+  let htmlIter = content;
+  while (true) {
+     const startIdx = htmlIter.indexOf('<ul');
+     if (startIdx === -1) {
+        if (htmlIter) parts.push(htmlIter, '');
+        break;
+     }
+     const preamble = htmlIter.substring(0, startIdx);
+     htmlIter = htmlIter.substring(startIdx);
+     
+     let open = 0;
+     let endIdx = -1;
+     let i = 0;
+     while (i < htmlIter.length) {
+        if (htmlIter.substring(i, i+3).toLowerCase() === '<ul') {
+           open++;
+           i += 3;
+        } else if (htmlIter.substring(i, i+5).toLowerCase() === '</ul>') {
+           open--;
+           if (open === 0) {
+              endIdx = i + 5;
+              break;
+           }
+           i += 5;
+        } else {
+           i++;
+        }
+     }
+     if (endIdx === -1) {
+        parts.push(preamble, htmlIter); 
+        break;
+     }
+     
+     const ulContent = htmlIter.substring(0, endIdx); 
+     const match = ulContent.match(/^<ul[^>]*>(.*)<\/ul>$/is);
+     const inner = match ? match[1] : ulContent;
+     parts.push(preamble, inner);
+     htmlIter = htmlIter.substring(endIdx);
+  }
+
+  if (parts.length < 2 || (parts.length === 2 && !parts[1])) return null; // No list found
+
+  let html = '';
+  if (title && title.length > 3) {
+    html += `<h3 class="text-center font-bold mb-4 uppercase tracking-wide">${title}</h3>`;
+  }
+  
+  html += '<table class="ielts-data-table">';
+  
+  for (let i = 0; i < parts.length; i += 2) {
+    let preamble = parts[i].trim();
+    let listContent = parts[i+1];
+    
+    if (!preamble && !listContent) continue;
+    
+    let col1 = preamble;
+    let col2Text = '';
+    
+    // Clean up trailing <br/> from preamble
+    col1 = col1.replace(/(<br\s*\/?>\s*)+$/, '').trim();
+    
+    // Heuristic: If preamble has ". " and ":", the part after ". " might be the header for the list in column 2.
+    if (col1.includes('. ') && col1.includes(':')) {
+       const lastDotIdx = col1.lastIndexOf('. ');
+       if (lastDotIdx > 0) {
+          const possibleIntro = col1.substring(lastDotIdx + 2).trim();
+          if (possibleIntro.includes(':') || possibleIntro.toLowerCase().includes('for example')) {
+             col1 = col1.substring(0, lastDotIdx + 1).trim();
+             col2Text = possibleIntro;
+          }
+       }
+    }
+    
+    html += '<tr>';
+    
+    const isCol1ShortLabel = col1.length > 0 && ((col1.length < 50 && !col1.includes('{')) || col1.trim().endsWith(':'));
+    const col1Html = isCol1ShortLabel ? `<b>${col1}</b>` : col1;
+    
+    if (col2Text || listContent) {
+       html += `<td style="vertical-align: top; width: 35%;">${col1Html}</td>`;
+       html += `<td style="vertical-align: top; width: 65%;">`;
+       if (col2Text) {
+           const isCol2ShortLabel = (col2Text.length < 50 && !col2Text.includes('{')) || col2Text.trim().endsWith(':');
+           const col2Html = isCol2ShortLabel ? `<b>${col2Text}</b>` : col2Text;
+           html += `<div style="margin-bottom: 8px;">${col2Html}</div>`;
+       }
+       if (listContent) html += `<ul>${listContent}</ul>`;
+       html += `</td>`;
+    } else {
+       // Just a single column row
+       html += `<td colspan="2" style="vertical-align: top;">${col1Html}</td>`;
+    }
+    
+    html += '</tr>';
+  }
+  
   html += '</table>';
   return html;
 }
@@ -281,14 +409,33 @@ function convertQuestionGroup(group, passageContent) {
   };
 
   switch (group.groupType) {
-    case 'summary_completion': {
+    case 'summary_completion':
+    case 'sentence_completion':
+    case 'note_completion': {
       block.content = buildGapFillContent(group.questions);
       break;
     }
 
     case 'flowchart':
     case 'flow_chart':
-    case 'flowchart_completion':
+    case 'flowchart_completion': {
+      let content = buildGapFillContent(group.questions);
+      // convert list formats or explicitly broken lines to flow chart steps
+      if (content.includes('<li') || content.includes('<br')) {
+        content = content.replace(/<\/?ul[^>]*>/gi, '');
+        content = content.replace(/<li[^>]*>/gi, '').replace(/<\/li>/gi, '\n');
+        content = content.replace(/<br\s*\/?>\s*<br\s*\/?>/gi, '\n');
+        content = content.replace(/<br\s*\/?>/gi, '\n');
+        content = content.split('\n').map(s => s.trim()).filter(Boolean).join('\n');
+      }
+      block.content = content;
+      const firstQ = group.questions[0];
+      if (group.options || firstQ?.options) {
+        block.options = group.options || firstQ.options;
+      }
+      break;
+    }
+
     case 'table':
     case 'table_completion': {
       block.content = buildTableOrGapContent(group);
@@ -308,6 +455,7 @@ function convertQuestionGroup(group, passageContent) {
 
       block.questions = group.questions.map((q) => ({
         id: String(q.number),
+        number: q.number,
         text: q.question,
       }));
       break;
@@ -316,6 +464,7 @@ function convertQuestionGroup(group, passageContent) {
     case 'yes_no_not_given': {
       block.questions = group.questions.map((q) => ({
         id: String(q.number),
+        number: q.number,
         text: q.question,
       }));
       block.options = ['YES', 'NO', 'NOT GIVEN'];
@@ -325,6 +474,7 @@ function convertQuestionGroup(group, passageContent) {
     case 'true_false_not_given': {
       block.questions = group.questions.map((q) => ({
         id: String(q.number),
+        number: q.number,
         text: q.question,
       }));
       block.options = ['TRUE', 'FALSE', 'NOT GIVEN'];
@@ -340,6 +490,7 @@ function convertQuestionGroup(group, passageContent) {
 
       block.questions = group.questions.map((q) => ({
         id: String(q.number),
+        number: q.number,
         text: q.question,
       }));
       block.options = optionLetters;
@@ -444,6 +595,17 @@ function convertQuestionGroup(group, passageContent) {
       block.headings = firstQ?.options || [];
       block.questions = group.questions.map((q) => ({
         id: String(q.number),
+        number: q.number,
+        text: q.question,
+      }));
+      break;
+    }
+
+    case 'short_answer':
+    case 'short_answers': {
+      block.questions = group.questions.map((q) => ({
+        id: String(q.number),
+        number: q.number,
         text: q.question,
       }));
       break;
@@ -453,6 +615,7 @@ function convertQuestionGroup(group, passageContent) {
       // Fallback: try to build as true_false
       block.questions = group.questions.map((q) => ({
         id: String(q.number),
+        number: q.number,
         text: q.question,
       }));
       block.options = group.questions[0]?.options
