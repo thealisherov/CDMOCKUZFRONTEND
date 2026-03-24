@@ -1,30 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import TestListLayout from "@/components/TestListLayout";
 import { useTranslation } from "@/components/LanguageContext";
+import { useRealtimeTests } from "@/hooks/useRealtimeTests";
 
 export default function ReadingPage() {
   const { t } = useTranslation();
-  const [tests, setTests] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchTests() {
-      try {
-        const res = await fetch("/api/tests?type=reading");
-        if (res.ok) {
-          const data = await res.json();
-          setTests(data);
-        }
-      } catch (err) {
-        console.error("Reading testlarni yuklashda xatolik:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchTests();
-  }, []);
+  const { tests, loading } = useRealtimeTests("reading");
 
   if (loading) {
     return (

@@ -391,9 +391,19 @@ function extractParagraphLetters(passageContent) {
  * Convert a single questionGroup to an internal block.
  */
 function convertQuestionGroup(group, passageContent) {
+  // Preserve the original groupType before any instruction-based overrides
+  const originalType = group.groupType;
+  const knownCompletionTypes = [
+    'note_completion', 'sentence_completion', 'form_completion', 'summary_completion',
+  ];
+
   if (group.instruction && /flow-?chart/i.test(group.instruction)) {
     group.groupType = 'flow_chart';
-  } else if (group.instruction && /table/i.test(group.instruction)) {
+  } else if (
+    group.instruction && /table/i.test(group.instruction) &&
+    !knownCompletionTypes.includes(originalType) &&
+    group.questions.some(q => q.question.includes('|'))
+  ) {
     group.groupType = 'table_completion';
   }
 

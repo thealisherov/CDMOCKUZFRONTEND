@@ -21,6 +21,29 @@ export default function UsersList() {
 
   useEffect(() => {
     fetchUsers();
+
+    // ── Real-time polling every 15 seconds ──
+    const interval = setInterval(() => {
+      fetchUsers();
+    }, 15000);
+
+    // ── Supabase Realtime: listen to payments table for instant refresh ──
+    const channel = supabase
+      .channel('admin-users-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'payments' },
+        () => {
+          console.log('[Admin] Payment change detected, refreshing users...');
+          fetchUsers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -130,8 +153,16 @@ export default function UsersList() {
             className="w-full pl-10 pr-4 py-2 bg-muted/50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
           />
         </div>
-        <div className="text-sm font-medium text-muted-foreground">
-            Displaying {filteredUsers.length} of {users.length} users
+        <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+              Live
+            </span>
+            <span>·</span>
+            <span>{filteredUsers.length} of <strong>{users.length}</strong> users</span>
         </div>
       </div>
 

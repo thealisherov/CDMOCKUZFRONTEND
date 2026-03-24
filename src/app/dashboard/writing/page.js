@@ -1,30 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import TestListLayout from "@/components/TestListLayout";
 import { useTranslation } from "@/components/LanguageContext";
+import { useRealtimeTests } from "@/hooks/useRealtimeTests";
 
 export default function WritingPage() {
   const { t } = useTranslation();
-  const [tests, setTests] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchTests() {
-      try {
-        const res = await fetch("/api/tests?type=writing");
-        if (res.ok) {
-          const data = await res.json();
-          setTests(data);
-        }
-      } catch (err) {
-        console.error("Writing testlarni yuklashda xatolik:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchTests();
-  }, []);
+  const { tests, loading } = useRealtimeTests("writing");
 
   if (loading) {
     return (

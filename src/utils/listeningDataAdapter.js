@@ -232,9 +232,22 @@ function extractOptionLetters(options) {
  * Convert a single questionGroup into an internal block.
  */
 function convertQuestionGroup(group, partNumber, partTitle) {
+  // Preserve the original groupType before any instruction-based overrides
+  const originalType = group.groupType;
+  const knownCompletionTypes = [
+    'note_completion', 'sentence_completion', 'form_completion', 'summary_completion',
+  ];
+
   if (group.instruction && /flow-?chart/i.test(group.instruction)) {
     group.groupType = 'flow_chart';
-  } else if (group.instruction && /table/i.test(group.instruction)) {
+  } else if (
+    group.instruction && /table/i.test(group.instruction) &&
+    !knownCompletionTypes.includes(originalType) &&
+    group.questions.some(q => q.question.includes('|'))
+  ) {
+    // Only override to table_completion if:
+    // 1. The original type is NOT a known completion type (note/sentence/form/summary)
+    // 2. The questions actually contain pipe separators indicating tabular data
     group.groupType = 'table_completion';
   }
 

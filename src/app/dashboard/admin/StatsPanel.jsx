@@ -17,6 +17,37 @@ export default function StatsPanel() {
 
   useEffect(() => {
     fetchStats();
+
+    // ── Real-time polling every 20 seconds ──
+    const interval = setInterval(() => {
+      fetchStats();
+    }, 20000);
+
+    // ── Supabase Realtime: listen to Tests + payments tables ──
+    const channel = supabase
+      .channel('admin-stats-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'Tests' },
+        () => {
+          console.log('[Admin Stats] Tests table changed, refreshing...');
+          fetchStats();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'payments' },
+        () => {
+          console.log('[Admin Stats] Payments changed, refreshing...');
+          fetchStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, [dateRange, customRange]);
 
   const fetchStats = async () => {
@@ -50,7 +81,16 @@ export default function StatsPanel() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h2 className="text-lg font-bold">Platform Overview</h2>
+        <h2 className="text-lg font-bold flex items-center gap-2">
+          Platform Overview
+          <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            Live
+          </span>
+        </h2>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex bg-muted/50 p-1 rounded-xl">
             {["7d", "30d", "all", "custom"].map((r) => (

@@ -1,30 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import TestListLayout from "@/components/TestListLayout";
 import { useTranslation } from "@/components/LanguageContext";
+import { useRealtimeTests } from "@/hooks/useRealtimeTests";
 
 export default function ListeningPage() {
   const { t } = useTranslation();
-  const [tests, setTests] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchTests() {
-      try {
-        const res = await fetch("/api/tests?type=listening");
-        if (res.ok) {
-          const data = await res.json();
-          setTests(data);
-        }
-      } catch (err) {
-        console.error("Listening testlarni yuklashda xatolik:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchTests();
-  }, []);
+  const { tests, loading } = useRealtimeTests("listening");
 
   if (loading) {
     return (
