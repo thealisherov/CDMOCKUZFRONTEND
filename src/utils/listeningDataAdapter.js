@@ -434,16 +434,25 @@ export function adaptListeningData(rawData) {
       if (group.image) {
         block.image = group.image;
       } else if (part.image) {
-        // If part image exists, attach it to the appropriate group:
-        // 1. Map/plan labeling groups get priority (image = map)
-        // 2. Otherwise first group in the part gets the image (diagram alongside questions)
+        // Determine which group should get the part-level image:
+        // 1. Map/plan labeling groups (image = map)
+        // 2. Groups with "diagram" or "label" in instruction (image = diagram)
+        // 3. Fallback: first group only
         const hasMapGroup = groups.some(g => ['map_labeling', 'plan_labeling'].includes(g.groupType));
+        const hasDiagramGroup = groups.some(g => /diagram|label/i.test(g.instruction || ''));
+        const isDiagramGroup = /diagram|label/i.test(group.instruction || '');
+
         if (hasMapGroup) {
           if (['map_labeling', 'plan_labeling'].includes(group.groupType)) {
             block.image = part.image;
           }
+        } else if (hasDiagramGroup) {
+          // Attach image only to the group that mentions diagram/label
+          if (isDiagramGroup) {
+            block.image = part.image;
+          }
         } else if (groupIdx === 0) {
-          // Attach image only to the FIRST group to avoid duplicate rendering
+          // Fallback: attach to first group
           block.image = part.image;
         }
       }
