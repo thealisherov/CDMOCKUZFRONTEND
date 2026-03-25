@@ -107,6 +107,7 @@ function buildTableOrGapContent(group) {
     // Attempt to build a structural table from |
     let html = '<table class="ielts-data-table">';
     group.questions.forEach((q, idx) => {
+      if (q.question.trim() === '#hidden#' || q.question.trim() === '') return;
       let rowText = replaceGapPlaceholders(q.question, q.number);
       const cols = rowText.split('|').map(c => c.trim());
       
