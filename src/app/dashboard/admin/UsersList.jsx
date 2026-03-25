@@ -167,10 +167,10 @@ export default function UsersList() {
       </div>
 
       <div className="bg-white dark:bg-black/20 rounded-2xl border border-border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-auto" style={{ maxHeight: '70vh' }}>
           <table className="w-full text-sm text-left">
             <thead>
-              <tr className="bg-muted/30 text-muted-foreground text-[11px] uppercase tracking-wider font-bold">
+              <tr className="bg-muted/30 text-muted-foreground text-[11px] uppercase tracking-wider font-bold sticky top-0 z-10" style={{ background: 'var(--muted, #f5f5f5)' }}>
                 <th className="px-6 py-4">User</th>
                 <th className="px-6 py-4 text-center">Plan</th>
                 <th className="px-6 py-4">Expiry Date</th>
