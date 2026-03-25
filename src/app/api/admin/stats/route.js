@@ -22,12 +22,20 @@ export async function GET(req) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    // 1. Get total users and premium users
-    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.listUsers();
-    if (userError) throw userError;
+    // 1. Get total users and premium users across all pages
+    let allUsers = [];
+    let page = 1;
+    let hasMore = true;
+    while (hasMore) {
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+      if (error) throw error;
+      allUsers = allUsers.concat(data.users);
+      if (data.users.length < 1000) hasMore = false;
+      else page++;
+    }
 
-    const totalUsers = userData.users.length;
-    const premiumUsers = userData.users.filter(u => 
+    const totalUsers = allUsers.length;
+    const premiumUsers = allUsers.filter(u => 
       u.user_metadata?.premium_until && new Date(u.user_metadata.premium_until) > new Date()
     ).length;
 
