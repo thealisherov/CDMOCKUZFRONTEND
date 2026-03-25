@@ -57,9 +57,9 @@ export default async function WritingPage() {
         type: row.type,
         title: d.title || `Test ${index + 1}`,
         description:
-          d.testFormat === "full_test" || d.testType === "full_test"
+          d.testFormat === "full_test" || (!d.testFormat && (!d.testType || d.testType === "full_test"))
             ? "Task 1 & Task 2 · 2 Tasks"
-            : d.description || "",
+            : d.description || `${(d.testFormat || d.testType || "Task").replace('_', ' ').replace(/\\b\\w/g, l => l.toUpperCase())} · ${d.totalQuestions || 1} Task`,
         duration: d.timer || 60,
         level: d.level || "medium",
         testType: d.testFormat || d.testType || "full_test",

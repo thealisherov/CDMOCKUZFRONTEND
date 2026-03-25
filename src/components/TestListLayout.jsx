@@ -17,17 +17,13 @@ const MODULE_META = {
   writing:   { icon: PenTool,    color: "oklch(0.6 0.2 60)",    glow: "oklch(0.6 0.2 60 / 0.2)",    bg: "oklch(0.6 0.2 60 / 0.07)",    label: "Writing" },
 };
 
-const LEVEL_STYLE = {
-  easy:   { dot: "oklch(0.55 0.16 145)", text: "oklch(0.45 0.14 145)", bg: "oklch(0.55 0.16 145 / 0.1)",  border: "oklch(0.55 0.16 145 / 0.25)", label: "Easy" },
-  medium: { dot: "oklch(0.72 0.17 80)",  text: "oklch(0.58 0.15 80)",  bg: "oklch(0.72 0.17 80 / 0.1)",   border: "oklch(0.72 0.17 80 / 0.25)",  label: "Medium" },
-  hard:   { dot: "oklch(0.55 0.22 25)",  text: "oklch(0.45 0.2 25)",   bg: "oklch(0.55 0.22 25 / 0.1)",   border: "oklch(0.55 0.22 25 / 0.25)",  label: "Hard" },
-};
-
 const TEST_TYPE_LABEL = {
   full_test: "Full Test",
   section_1: "Section 1", section_2: "Section 2",
   section_3: "Section 3", section_4: "Section 4",
-  part_1: "Part 1", part_2: "Part 2", part_3: "Part 3",
+  part_1: "Part 1", part_2: "Part 2", part_3: "Part 3", part_4: "Part 4",
+  passage_1: "Passage 1", passage_2: "Passage 2", passage_3: "Passage 3",
+  task_1: "Task 1", task_2: "Task 2",
 };
 
 function FilterDropdown({ options, value, onChange, t }) {
@@ -56,18 +52,12 @@ export default function TestListLayout({ title, description, tests = [], moduleT
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  const LEVEL_OPTIONS = [
-    { val: "All Levels", label: t("testList.allLevels") },
-    { val: "Easy", label: t("testList.easy") },
-    { val: "Medium", label: t("testList.medium") },
-    { val: "Hard", label: t("testList.hard") }
-  ];
-
   const TYPE_OPTIONS = [
-    { val: "All Types", label: t("testList.allTypes") },
-    { val: "Full Test", label: t("testList.fullTest") },
-    { val: "Section", label: t("testList.section") },
-    { val: "Part", label: t("testList.part") }
+    { val: "All Types", label: t("testList.allTypes", { defaultValue: "All Types" }) },
+    { val: "Full Test", label: t("testList.fullTest", { defaultValue: "Full Test" }) },
+    { val: "Part / Section", label: "Part / Section" },
+    { val: "Passage", label: "Passage" },
+    { val: "Task", label: "Task" }
   ];
 
   const TAB_OPTIONS = [
@@ -78,7 +68,6 @@ export default function TestListLayout({ title, description, tests = [], moduleT
 
   const [activeTab,    setActiveTab]    = useState("all");
   const [searchQuery,  setSearchQuery]  = useState("");
-  const [levelFilter,  setLevelFilter]  = useState("All Levels");
   const [typeFilter,   setTypeFilter]   = useState("All Types");
 
   const meta = MODULE_META[moduleType] || MODULE_META.reading;
@@ -92,13 +81,19 @@ export default function TestListLayout({ title, description, tests = [], moduleT
       const q = searchQuery.toLowerCase();
       result = result.filter(t => t.title.toLowerCase().includes(q));
     }
-    if (levelFilter !== "All Levels") {
-      result = result.filter(t => (t.level || t.difficulty || '').toLowerCase() === levelFilter.toLowerCase());
-    }
     if (typeFilter !== "All Types") {
-      const typeMap = { "Full Test": "full_test", "Section": "section", "Part": "part" };
+      const typeMap = { 
+        "Full Test": "full_test", 
+        "Part / Section": ["section", "part"], 
+        "Passage": "passage",
+        "Task": "task"
+      };
       const mapped = typeMap[typeFilter];
-      if (mapped) result = result.filter(t => (t.testType || '').toLowerCase().startsWith(mapped));
+      if (Array.isArray(mapped)) {
+        result = result.filter(t => mapped.some(m => (t.testType || '').toLowerCase().startsWith(m)));
+      } else if (mapped) {
+        result = result.filter(t => (t.testType || '').toLowerCase().startsWith(mapped));
+      }
     }
 
     // Sort: Free tests first for non-premium users
@@ -109,7 +104,7 @@ export default function TestListLayout({ title, description, tests = [], moduleT
       }
       return 0;
     });
-  }, [tests, activeTab, searchQuery, levelFilter, typeFilter, user?.isPremium]);
+  }, [tests, activeTab, searchQuery, typeFilter, user?.isPremium]);
 
   const freeCount    = tests.filter(t => t.access === "free").length;
   const premiumCount = tests.filter(t => t.access === "premium").length;
@@ -241,7 +236,6 @@ export default function TestListLayout({ title, description, tests = [], moduleT
         {/* Filter icon */}
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 shrink-0" style={{ color: 'var(--muted-foreground)' }} />
-          <FilterDropdown options={LEVEL_OPTIONS} value={levelFilter} onChange={setLevelFilter} t={t} />
           <FilterDropdown options={TYPE_OPTIONS}  value={typeFilter}  onChange={setTypeFilter}  t={t} />
         </div>
       </div>
@@ -253,13 +247,13 @@ export default function TestListLayout({ title, description, tests = [], moduleT
             ? t("testList.allTestsCount").replace("count", tests.length)
             : t("testList.filteredTestsCount").replace("filtered", filteredTests.length).replace("total", tests.length)}
         </h2>
-        {(searchQuery || levelFilter !== "All Levels" || typeFilter !== "All Types") && (
+        {(searchQuery || typeFilter !== "All Types") && (
           <button
-            onClick={() => { setSearchQuery(""); setLevelFilter("All Levels"); setTypeFilter("All Types"); }}
+            onClick={() => { setSearchQuery(""); setTypeFilter("All Types"); }}
             className="text-xs px-2 py-0.5 rounded-full font-medium transition-colors"
             style={{ color: meta.color, background: meta.bg }}
           >
-            {t("testList.clearFilters")}
+            {t("testList.clearFilters", { defaultValue: "Clear filters" })}
           </button>
         )}
       </div>
@@ -371,9 +365,6 @@ function ShareButton({ test, moduleType }) {
 }
 
 function DefaultTestItem({ test, moduleType, meta, t, user }) {
-  const levelKey   = (test.level || test.difficulty || '').toLowerCase();
-  const levelStyle = LEVEL_STYLE[levelKey] || {};
-  
   const isLocked = test.access === "premium" && !user?.isPremium;
 
   return (
@@ -438,15 +429,6 @@ function DefaultTestItem({ test, moduleType, meta, t, user }) {
 
           {/* Meta row */}
           <div className="flex items-center gap-4 text-[12px]" style={{ color: 'var(--muted-foreground)' }}>
-            {levelKey && levelStyle.label && (
-              <span
-                className="flex items-center gap-1.5 font-semibold px-2 py-0.5 rounded-full"
-                style={{ background: levelStyle.bg, color: levelStyle.text, border: `1px solid ${levelStyle.border}` }}
-              >
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: levelStyle.dot }} />
-                {levelStyle.label}
-              </span>
-            )}
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3" /> {test.duration} {t("testList.min")}
             </span>

@@ -57,9 +57,9 @@ export default async function ListeningPage() {
         type: row.type,
         title: d.title || `Test ${index + 1}`,
         description:
-          d.testFormat === "full_test" || d.testType === "full_test"
+          d.testFormat === "full_test" || (!d.testFormat && (!d.testType || d.testType === "full_test"))
             ? "4-Section Listening · 40 Questions"
-            : d.description || "",
+            : d.description || `${(d.testFormat || d.testType || "Part").replace('_', ' ').replace(/\\b\\w/g, l => l.toUpperCase())} · ${d.totalQuestions || 10} Questions`,
         duration: d.timer || 40,
         level: d.level || "medium",
         testType: d.testFormat || d.testType || "full_test",
