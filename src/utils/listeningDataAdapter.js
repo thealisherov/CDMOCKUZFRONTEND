@@ -61,12 +61,23 @@ function mapGroupType(groupType) {
 }
 
 /**
+ * Helper to replace underscores (and optional preceding question numbers) with {N}.
+ * Matches 3 or more underscores to support 3, 6, 10 underscore blanks.
+ */
+function replaceGapPlaceholders(questionStr, qNumber) {
+  if (!questionStr) return '';
+  const numRegex = new RegExp(`(?:<(?:b|strong)[^>]*>\\s*)?0*${qNumber}(?:\\s*<\\/(?:b|strong)>)?\\s*[\\.\\)]?\\s*_{3,}`, 'gi');
+  let result = questionStr.replace(numRegex, `{${qNumber}}`);
+  return result.replace(/_{3,}/g, `{${qNumber}}`);
+}
+
+/**
  * Build the gap_fill content string from questions with ______ blanks.
  */
 function buildGapFillContent(questions) {
   let content = '';
   questions.forEach((q, idx) => {
-    let questionText = q.question.replace(/______/g, `{${q.number}}`);
+    let questionText = replaceGapPlaceholders(q.question, q.number);
     // Convert hardcoded arrows to structural newline breaks for FlowChart blocks
     questionText = questionText.replace(/(<br\s*\/?>)?\s*↓\s*(<br\s*\/?>)?/g, '\n');
     content += questionText;
@@ -96,7 +107,7 @@ function buildTableOrGapContent(group) {
     // Attempt to build a structural table from |
     let html = '<table class="ielts-data-table">';
     group.questions.forEach((q, idx) => {
-      let rowText = q.question.replace(/______/g, `{${q.number}}`);
+      let rowText = replaceGapPlaceholders(q.question, q.number);
       const cols = rowText.split('|').map(c => c.trim());
       
       html += '<tr>';
@@ -128,7 +139,7 @@ function buildSmartTable(questions) {
   let currentBlock = null;
 
   questions.forEach((q) => {
-    const qText = q.question.replace(/______/g, `{${q.number}}`);
+    const qText = replaceGapPlaceholders(q.question, q.number);
     const pieces = qText.split(/<br\s*\/?>|<li>|<\/li>|<ul>|<\/ul>/).filter(p => {
       const clean = p.replace(/<[^>]*>/g, '').trim();
       return clean !== '' && clean !== '↓';

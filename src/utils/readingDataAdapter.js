@@ -71,6 +71,20 @@ function mapGroupType(groupType) {
 }
 
 /**
+ * Helper to replace underscores (and optional preceding question numbers) with {N}.
+ * Matches 3 or more underscores to support 3, 6, 10 underscore blanks.
+ */
+function replaceGapPlaceholders(questionStr, qNumber) {
+  if (!questionStr) return '';
+  // Remove the question number if it immediately precedes the underscores
+  // E.g., "<b>11</b> ______" -> "{11}", "11. _________" -> "{11}"
+  const numRegex = new RegExp(`(?:<(?:b|strong)[^>]*>\\s*)?0*${qNumber}(?:\\s*<\\/(?:b|strong)>)?\\s*[\\.\\)]?\\s*_{3,}`, 'gi');
+  let result = questionStr.replace(numRegex, `{${qNumber}}`);
+  // Replace any remaining sequences of 3 or more underscores
+  return result.replace(/_{3,}/g, `{${qNumber}}`);
+}
+
+/**
  * Build the gap_fill content string for summary_completion questions.
  * E.g. questions with blanks {1}, {2}, etc.
  */
@@ -78,8 +92,8 @@ function buildGapFillContent(questions) {
   // Combine the questions into a single content block with {N} placeholders
   let content = '';
   questions.forEach((q, idx) => {
-    // Replace the blank indicator (______) with the numbered placeholder
-    let questionText = q.question.replace(/______/g, `{${q.number}}`);
+    // Replace the blank indicator with the numbered placeholder
+    let questionText = replaceGapPlaceholders(q.question, q.number);
     // Convert hardcoded arrows to structural newline breaks for FlowChart blocks
     questionText = questionText.replace(/(<br\s*\/?>)?\s*↓\s*(<br\s*\/?>)?/g, '\n');
     content += questionText;
@@ -111,7 +125,7 @@ function buildTableOrGapContent(group) {
   if (hasSeparators) {
     let html = '<table class="ielts-data-table">';
     group.questions.forEach((q, idx) => {
-      let rowText = q.question.replace(/______/g, `{${q.number}}`);
+      let rowText = replaceGapPlaceholders(q.question, q.number);
       const cols = rowText.split('|').map(c => c.trim());
       
       html += '<tr>';
@@ -150,7 +164,7 @@ function buildSmartTable(questions) {
   let currentBlock = null;
 
   questions.forEach((q) => {
-    const qText = q.question.replace(/______/g, `{${q.number}}`);
+    const qText = replaceGapPlaceholders(q.question, q.number);
     const pieces = qText.split(/<br\s*\/?>|<li>|<\/li>|<ul>|<\/ul>/).filter(p => {
       const clean = p.replace(/<[^>]*>/g, '').trim();
       return clean !== '' && clean !== '↓';

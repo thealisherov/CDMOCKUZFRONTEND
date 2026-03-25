@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import parse, { domToReact } from 'html-react-parser';
 
 /**
  * DragDropSummary — Controlled component.
@@ -89,6 +90,79 @@ const DragDropSummary = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) =
   // Which values are currently used in any gap
   const usedValues = new Set(allGapIds.map(id => userAnswers[id]).filter(Boolean));
 
+  const options = {
+    replace: (domNode) => {
+      if (domNode.type === 'text') {
+        const text = domNode.data;
+        if (/\{\d+\}/.test(text)) {
+          const parts = text.split(/(\{\d+\})/g);
+          return (
+            <React.Fragment>
+              {parts.map((part, idx) => {
+                const match = part.match(/^\{(\d+)\}$/);
+                if (match) {
+                  const gapId = match[1];
+                  const selectedVal = userAnswers[gapId] || '';
+                  const selectedWordObj = wordOptions.find(w => w.value === selectedVal);
+                  const isHovered = dragOverGap === gapId;
+
+                  return (
+                    <span
+                      key={idx}
+                      onDrop={(e) => handleDrop(e, gapId)}
+                      onDragOver={(e) => handleDragOver(e, gapId)}
+                      onDragLeave={handleDragLeave}
+                      onClick={() => selectedVal && handleRemove(gapId)}
+                      title={selectedVal ? 'Click to remove' : 'Drag a word here'}
+                      className="inline-flex items-center justify-center min-w-[110px] h-8 mx-1 px-3 align-middle cursor-pointer transition-all select-none rounded"
+                      style={{
+                        border: selectedVal
+                          ? '2px solid #2563eb'
+                          : isHovered
+                            ? '2px solid #60a5fa'
+                            : '2px dashed var(--test-border)',
+                        backgroundColor: isHovered
+                          ? 'rgba(37, 99, 235, 0.08)'
+                          : selectedVal
+                            ? 'rgba(37, 99, 235, 0.06)'
+                            : 'var(--test-bg)',
+                        opacity: 1,
+                        transform: isHovered ? 'scale(1.04)' : 'scale(1)',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {selectedVal ? (
+                        <span className="font-semibold" style={{ color: '#2563eb', fontSize: '0.95em' }}>
+                          {selectedWordObj ? selectedWordObj.label : selectedVal}
+                        </span>
+                      ) : (
+                        <span className="font-medium opacity-50" style={{ fontSize: '0.85em' }}>{gapId}</span>
+                      )}
+                    </span>
+                  );
+                }
+
+                if (part.includes('\n')) {
+                  return (
+                    <span key={idx}>
+                      {part.split('\n').map((line, i, arr) => (
+                        <React.Fragment key={i}>
+                          {line}
+                          {i < arr.length - 1 && <br />}
+                        </React.Fragment>
+                      ))}
+                    </span>
+                  );
+                }
+                return <span key={idx}>{part}</span>;
+              })}
+            </React.Fragment>
+          );
+        }
+      }
+    }
+  };
+
   return (
     <div className="mb-8 font-sans">
       {data.instruction && (
@@ -99,62 +173,10 @@ const DragDropSummary = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) =
 
       {/* Summary Box with inline drop zones */}
       <div 
-        className="p-6 border rounded-md mb-6 leading-loose"
+        className="p-6 border rounded-md mb-6 leading-loose [&_ul]:pl-6 [&_ul]:list-disc [&_ul]:my-2 [&_li]:mb-2"
         style={{ background: 'var(--opts-bg)', borderColor: 'var(--test-border)', fontSize: '1.05em', color: 'var(--test-fg)' }}
       >
-        {parts.map((part, idx) => {
-          const match = part.match(/^\{(\d+)\}$/);
-          if (match) {
-            const gapId = match[1];
-            const selectedVal = userAnswers[gapId] || '';
-            const selectedWordObj = wordOptions.find(w => w.value === selectedVal);
-            const isHovered = dragOverGap === gapId;
-
-            return (
-              <span
-                key={idx}
-                onDrop={(e) => handleDrop(e, gapId)}
-                onDragOver={(e) => handleDragOver(e, gapId)}
-                onDragLeave={handleDragLeave}
-                onClick={() => selectedVal && handleRemove(gapId)}
-                title={selectedVal ? 'Click to remove' : 'Drag a word here'}
-                className="inline-flex items-center justify-center min-w-[110px] h-8 mx-1 px-3 align-middle cursor-pointer transition-all select-none rounded"
-                style={{
-                  border: selectedVal
-                    ? '2px solid #2563eb'
-                    : isHovered
-                      ? '2px solid #60a5fa'
-                      : '2px dashed var(--test-border)',
-                  backgroundColor: isHovered
-                    ? 'rgba(37, 99, 235, 0.08)'
-                    : selectedVal
-                      ? 'rgba(37, 99, 235, 0.06)'
-                      : 'var(--test-bg)',
-                  opacity: 1,
-                  transform: isHovered ? 'scale(1.04)' : 'scale(1)',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                {selectedVal ? (
-                  <span className="font-semibold" style={{ color: '#2563eb', fontSize: '0.95em' }}>
-                    {selectedWordObj ? selectedWordObj.label : selectedVal}
-                  </span>
-                ) : (
-                  <span className="font-medium opacity-50" style={{ fontSize: '0.85em' }}>{gapId}</span>
-                )}
-              </span>
-            );
-          }
-
-          return (
-            <span
-              key={idx}
-              dangerouslySetInnerHTML={{
-                __html: part.replace(/\n\n/g, '<br/><br/>').replace(/\n/g, ' ')
-              }}
-            />
-          );
-        })}
+        {parse(fullText, options)}
       </div>
 
       {/* Draggable Word Bank */}
