@@ -118,7 +118,7 @@ function PaymentContent() {
                   dangerouslySetInnerHTML={{
                     __html: t("payment.step2Inst3").replace(
                       "<AdminLink>", 
-                      '<a href="https://t.me/ai_studioru" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-bold hover:underline">'
+                      '<a href="https://t.me/megaielts_admin" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-bold hover:underline">'
                     ).replace("</AdminLink>", "</a>")
                   }}
                 />
@@ -126,7 +126,7 @@ function PaymentContent() {
             </ul>
             
             <a 
-              href="https://t.me/ai_studioru" 
+              href="https://t.me/megaielts_admin" 
               target="_blank" 
               rel="noopener noreferrer"
               className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-white transition-all hover:opacity-90 active:scale-[0.98]"
