@@ -44,6 +44,23 @@ export async function GET(req) {
       statsMap[s.user_id] = s;
     });
 
+    // Fetch auth users metadata for avatar URLs (Google OAuth, etc.)
+    let authAvatarMap = {};
+    try {
+      const { data: { users: authUsers } } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+      if (authUsers) {
+        authUsers.forEach(au => {
+          const meta = au.user_metadata || {};
+          if (meta.avatar_url || meta.picture) {
+            authAvatarMap[au.id] = meta.avatar_url || meta.picture;
+          }
+        });
+      }
+    } catch (e) {
+      // If admin.listUsers fails (no service role key), skip
+      console.warn('[Leaderboard] Could not fetch auth user metadata for avatars:', e.message);
+    }
+
     // Build leaderboard: ALL students, with stats or defaults
     const leaderboard = students.map(u => {
       const stats = statsMap[u.id] || {};
@@ -51,7 +68,7 @@ export async function GET(req) {
         user_id: u.id,
         full_name: u.full_name || u.email?.split('@')[0] || 'Unknown',
         email: u.email,
-        avatar_url: u.avatar_url || null, // if added in future
+        avatar_url: u.avatar_url || authAvatarMap[u.id] || null,
         xp: stats.xp || 0,
         tests_taken: stats.tests_taken || 0,
         correct_answers: stats.correct_answers || 0,

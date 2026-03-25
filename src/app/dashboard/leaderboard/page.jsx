@@ -35,6 +35,22 @@ export default async function LeaderboardPage() {
         statsMap[s.user_id] = s;
       });
 
+      // Fetch auth users metadata for avatar URLs (Google OAuth, custom uploads)
+      let authAvatarMap = {};
+      try {
+        const { data: { users: authUsers } } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+        if (authUsers) {
+          authUsers.forEach(au => {
+            const meta = au.user_metadata || {};
+            if (meta.avatar_url || meta.picture) {
+              authAvatarMap[au.id] = meta.avatar_url || meta.picture;
+            }
+          });
+        }
+      } catch {
+        // If admin.listUsers fails, skip
+      }
+
       // Build leaderboard
       const leaderboard = students.map((u) => {
         const stats = statsMap[u.id] || {};
@@ -43,7 +59,7 @@ export default async function LeaderboardPage() {
           full_name:
             u.full_name || u.email?.split("@")[0] || "Unknown",
           email: u.email,
-          avatar_url: u.avatar_url || null,
+          avatar_url: u.avatar_url || authAvatarMap[u.id] || null,
           xp: stats.xp || 0,
           tests_taken: stats.tests_taken || 0,
           correct_answers: stats.correct_answers || 0,
