@@ -90,7 +90,7 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
   const [activeTaskIndex, setActiveTaskIndex] = useState(0);
   const [submitted, setSubmitted] = useState(isReviewMode);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [essays, setEssays, clearEssays] = usePersistedState(`answers_writing_${id}`, initialEssays);
+  const [essays, setEssays, clearEssays] = usePersistedState(isReviewMode ? null : `answers_writing_${id}`, initialEssays);
 
   // AI Evaluation states
   const [isEvaluating, setIsEvaluating] = useState(false);
