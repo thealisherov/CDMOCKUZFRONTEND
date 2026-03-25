@@ -27,6 +27,7 @@ function mapGroupType(groupType) {
     case 'sentence_completion':
     case 'form_completion':
     case 'summary_completion':
+    case 'short_answer':
       return 'gap_fill';
 
     case 'flowchart':
@@ -235,7 +236,7 @@ function convertQuestionGroup(group, partNumber, partTitle) {
   // Preserve the original groupType before any instruction-based overrides
   const originalType = group.groupType;
   const knownCompletionTypes = [
-    'note_completion', 'sentence_completion', 'form_completion', 'summary_completion',
+    'note_completion', 'sentence_completion', 'form_completion', 'summary_completion', 'short_answer',
   ];
 
   if (group.instruction && /flow-?chart/i.test(group.instruction)) {
@@ -268,6 +269,7 @@ function convertQuestionGroup(group, partNumber, partTitle) {
     case 'sentence_completion':
     case 'form_completion':
     case 'summary_completion':
+    case 'short_answer':
     case 'flowchart':
     case 'flow_chart':
     case 'flowchart_completion':
@@ -432,14 +434,16 @@ export function adaptListeningData(rawData) {
       if (group.image) {
         block.image = group.image;
       } else if (part.image) {
-        // If part image exists, and we have a map or plan group, attach it there 
-        // to render side-by-side. Otherwise default to the first group.
+        // If part image exists, attach it to the appropriate group:
+        // 1. Map/plan labeling groups get priority (image = map)
+        // 2. Otherwise first group in the part gets the image (diagram alongside questions)
         const hasMapGroup = groups.some(g => ['map_labeling', 'plan_labeling'].includes(g.groupType));
         if (hasMapGroup) {
           if (['map_labeling', 'plan_labeling'].includes(group.groupType)) {
             block.image = part.image;
           }
-        } else if (groupIdx === 0) {
+        } else {
+          // Attach image to ALL groups in this part so diagram shows alongside questions
           block.image = part.image;
         }
       }
