@@ -187,9 +187,18 @@ export default function UsersList() {
                   <tr key={u.id} className="hover:bg-muted/5 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 flex items-center justify-center font-bold text-xs uppercase">
-                          {meta.full_name?.substring(0, 2) || u.email?.substring(0, 2)}
-                        </div>
+                        {(meta.avatar_url || meta.picture) ? (
+                          <img
+                            src={meta.avatar_url || meta.picture}
+                            alt={meta.full_name || u.email}
+                            className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 flex items-center justify-center font-bold text-xs uppercase flex-shrink-0">
+                            {meta.full_name?.substring(0, 2) || u.email?.substring(0, 2)}
+                          </div>
+                        )}
                         <div className="flex flex-col">
                           <span className="font-bold flex items-center gap-1.5">
                               {meta.full_name || 'N/A'}
