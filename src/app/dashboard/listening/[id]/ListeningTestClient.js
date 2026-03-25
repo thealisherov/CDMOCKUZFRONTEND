@@ -562,7 +562,7 @@ function ListeningTestInner({ id, rawData }) {
         <HighlightableContent containerId="listening_content">
           {visibleSections.map((block) => {
             const blockStart = getStartIndex(block.id);
-            const isSideBySide = block.image && (block.type === 'radio_matrix' || block.type === 'true_false');
+            const isSideBySide = !!block.image;
 
             return (
               <div key={block.id} className="mb-14">
