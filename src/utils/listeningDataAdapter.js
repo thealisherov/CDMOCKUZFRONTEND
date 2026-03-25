@@ -123,7 +123,15 @@ function buildTableOrGapContent(group) {
   }
 
   // Fallback: Smart Grouping for label-based question rows (e.g. Test 8 style)
-  return buildSmartTable(group.questions);
+  const smartHtml = buildSmartTable(group.questions);
+  
+  // Safety check: Ensure no questions were lost in the smart table extraction
+  const missingPlaceholder = group.questions.some(q => !smartHtml.includes(`{${q.number}}`));
+  if (missingPlaceholder || smartHtml === '') {
+    return buildGapFillContent(group.questions);
+  }
+  
+  return smartHtml;
 }
 
 /**

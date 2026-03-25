@@ -142,11 +142,17 @@ function buildTableOrGapContent(group) {
 
   // Fallback 1: Convert structural lists into 2-column tables First!
   const listTable = tryBuildListTable(group.questions);
-  if (listTable) return listTable;
+  if (listTable) {
+    const missingPlaceholder = group.questions.some(q => !listTable.includes(`{${q.number}}`));
+    if (!missingPlaceholder) return listTable;
+  }
 
   // Fallback 2: Smart Grouping for label-based question rows without <ul>
   const smartTable = buildSmartTable(group.questions);
-  if (smartTable) return smartTable;
+  if (smartTable) {
+    const missingPlaceholder = group.questions.some(q => !smartTable.includes(`{${q.number}}`));
+    if (!missingPlaceholder) return smartTable;
+  }
 
   // Ultimate fallback
   return buildGapFillContent(group.questions);
