@@ -28,6 +28,21 @@ const nextConfig = {
   poweredByHeader: false,
   // Strict React mode for better performance
   reactStrictMode: true,
+  // Redirect dead/removed pages
+  async redirects() {
+    return [
+      {
+        source: '/test-demo',
+        destination: '/',
+        permanent: true, // 301 — tells Google to de-index
+      },
+      {
+        source: '/test-demo/:path*',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
