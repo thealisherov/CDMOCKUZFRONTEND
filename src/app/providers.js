@@ -3,9 +3,14 @@
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "@/components/LanguageContext";
-import TelegramPromo from "@/components/TelegramPromo";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
+
+// Lazy load TelegramPromo — it's not critical for initial render
+const TelegramPromo = dynamic(() => import("@/components/TelegramPromo"), {
+  ssr: false,
+});
 
 export function Providers({ children }) {
   const [queryClient] = useState(() => new QueryClient({

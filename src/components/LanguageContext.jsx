@@ -1,13 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { translations } from "@/lib/translations";
 
 const LanguageContext = createContext(null);
 
 export function LanguageProvider({ children }) {
-  const [lang, setLang] = useState("en"); // Default is English
-  const [mounted, setMounted] = useState(false);
+  const [lang, setLang] = useState("en"); // Default is English — renders immediately
 
   useEffect(() => {
     // Check localStorage for saved preference on mount
@@ -15,42 +14,45 @@ export function LanguageProvider({ children }) {
     if (saved && ["en", "uz", "ru"].includes(saved)) {
       setLang(saved);
     }
-    setMounted(true);
   }, []);
 
-  const changeLanguage = (newLang) => {
+  const changeLanguage = useCallback((newLang) => {
     setLang(newLang);
     localStorage.setItem("mega_ielts_lang", newLang);
-  };
+  }, []);
 
-  const t = (key, params = {}) => {
+  const t = useCallback((key, params = {}) => {
     const keys = key.split(".");
     let value = translations[lang];
     for (const k of keys) {
       if (value && value[k] !== undefined) {
         value = value[k];
       } else {
-        return key; // Fallback to key if missing
+        return typeof params === "string" ? params : key; // Fallback to default or key
       }
     }
     
     // Support interpolation: ex. t("key", { count: 5 })
-    if (typeof value === "string") {
+    if (typeof value === "string" && typeof params === "object") {
       Object.keys(params).forEach((paramKey) => {
         value = value.replace(new RegExp(paramKey, "g"), params[paramKey]);
       });
     }
     
     return value;
-  };
+  }, [lang]);
 
-  // Only render children after mount to ensure same HTML hydration
-  if (!mounted) {
-    return <div className="min-h-screen" />; // empty skeleton to prevent hydration mismatch
-  }
+  const contextValue = useMemo(() => ({
+    lang,
+    setLang: changeLanguage,
+    t
+  }), [lang, changeLanguage, t]);
 
+  // Render children immediately — no mount blocker!
+  // English is used as default, so content is visible from the first paint.
+  // When localStorage lang is different, it will re-render seamlessly.
   return (
-    <LanguageContext.Provider value={{ lang, setLang: changeLanguage, t }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );

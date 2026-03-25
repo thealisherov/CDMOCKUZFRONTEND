@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Check, X, Zap, Star, Crown, Sparkles, Globe } from "lucide-react";
 import { useTranslation } from "@/components/LanguageContext";
 import { useRouter } from "next/navigation";
@@ -11,14 +11,10 @@ export default function Pricing() {
   const router = useRouter();
   const [isUSD, setIsUSD] = useState(false);
   const [dbPlans, setDbPlans] = useState([]);
-  const supabase = createClient();
 
-  useEffect(() => {
-    fetchPlans();
-  }, []);
-
-  const fetchPlans = async () => {
+  const fetchPlans = useCallback(async () => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase.from('pricing_plans').select('*').order('created_at');
       if (error) throw error;
       if (data && data.length > 0) {
@@ -27,7 +23,11 @@ export default function Pricing() {
     } catch (err) {
       console.error("Error fetching dynamic pricing:", err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchPlans();
+  }, [fetchPlans]);
 
   const getTierData = (id, fallback) => {
     const dbPlan = dbPlans.find(p => p.id === id);

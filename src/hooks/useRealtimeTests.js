@@ -4,16 +4,16 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 
 /**
- * useRealtimeTests — fetches test list from /api/tests and subscribes
- * to Supabase Realtime so the list updates automatically whenever a
- * row is inserted, updated, or deleted in the "Tests" table.
+ * useRealtimeTests — accepts optional pre-fetched initial data from server,
+ * falls back to client fetch, and subscribes to Supabase Realtime for live updates.
  *
  * @param {string} type - "reading" | "listening" | "writing"
+ * @param {Array} initialData - Pre-fetched tests from server component (optional)
  * @returns {{ tests: Array, loading: boolean, error: string|null }}
  */
-export function useRealtimeTests(type) {
-  const [tests, setTests] = useState([]);
-  const [loading, setLoading] = useState(true);
+export function useRealtimeTests(type, initialData = null) {
+  const [tests, setTests] = useState(initialData || []);
+  const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState(null);
 
   // Fetch (or re-fetch) the full test list via the API route
@@ -36,8 +36,10 @@ export function useRealtimeTests(type) {
   }, [type]);
 
   useEffect(() => {
-    // 1. Initial fetch
-    fetchTests();
+    // 1. Only fetch if no initial data was provided
+    if (!initialData) {
+      fetchTests();
+    }
 
     // 2. Subscribe to Supabase Realtime on the "Tests" table
     const supabase = createClient();
@@ -50,27 +52,21 @@ export function useRealtimeTests(type) {
           event: "*",            // INSERT, UPDATE, DELETE
           schema: "public",
           table: "Tests",
-          // Only listen for changes matching our type
           filter: `type=eq.${type}`,
         },
         (payload) => {
           console.log(`[Realtime] ${type} tests changed:`, payload.eventType);
-          // Re-fetch the full list so we get correct position-based IDs,
-          // user attempts info, and proper metadata extraction
+          // Re-fetch the full list to get fresh data
           fetchTests();
         }
       )
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          console.log(`[Realtime] Subscribed to ${type} test changes`);
-        }
-      });
+      .subscribe();
 
     // 3. Cleanup on unmount
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [type, fetchTests]);
+  }, [type, fetchTests, initialData]);
 
   return { tests, loading, error };
 }

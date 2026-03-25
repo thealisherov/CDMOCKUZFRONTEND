@@ -106,7 +106,9 @@ export default function Founders() {
                     alt={founder.name}
                     fill
                     className="object-cover object-top"
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    sizes="(max-width: 768px) 100vw, 400px"
+                    priority
+                    quality={75}
                   />
                 ) : (
                   /* Initials avatar styled like a real photo placeholder */

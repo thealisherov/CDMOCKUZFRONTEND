@@ -259,12 +259,24 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-*,
-*::before,
-*::after {
+/* Targeted transitions — only on interactive elements for performance */
+a,
+button,
+input,
+select,
+textarea,
+[role="button"],
+.transition-colors,
+.transition-all {
   transition-property: background-color, border-color, color, fill, stroke, box-shadow, opacity;
   transition-duration: 0.2s;
   transition-timing-function: ease;
+}
+
+/* Theme switch transition — only on major containers */
+.sidebar-root,
+[data-theme-transition] {
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .no-transition *,
