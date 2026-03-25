@@ -442,8 +442,8 @@ export function adaptListeningData(rawData) {
           if (['map_labeling', 'plan_labeling'].includes(group.groupType)) {
             block.image = part.image;
           }
-        } else {
-          // Attach image to ALL groups in this part so diagram shows alongside questions
+        } else if (groupIdx === 0) {
+          // Attach image only to the FIRST group to avoid duplicate rendering
           block.image = part.image;
         }
       }

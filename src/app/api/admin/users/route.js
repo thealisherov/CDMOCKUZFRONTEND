@@ -18,14 +18,23 @@ export async function GET(req) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Fetch all users
-    const { data, error } = await supabaseAdmin.auth.admin.listUsers();
+    // Fetch ALL users (Supabase defaults to 50 per page, so we must paginate)
+    let allUsers = [];
+    let page = 1;
+    const perPage = 1000;
     
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    while (true) {
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      allUsers = allUsers.concat(data.users);
+      // If we got fewer than perPage, we've reached the last page
+      if (data.users.length < perPage) break;
+      page++;
     }
     
-    return NextResponse.json(data.users);
+    return NextResponse.json(allUsers);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
