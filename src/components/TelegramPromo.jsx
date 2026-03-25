@@ -12,11 +12,16 @@ export default function TelegramPromo() {
   const [isClosed, setIsClosed] = useState(false);
 
   useEffect(() => {
-    // Check if user has already closed the promo in this session or permanently
-    const dismissed = localStorage.getItem("telegram-promo-dismissed");
+    // Check if user has already closed the promo in this given expiry time
+    const dismissed = localStorage.getItem("telegram-promo-dismissed-v2");
     if (dismissed) {
-      setIsClosed(true);
-      return;
+      const expiry = parseInt(dismissed, 10);
+      if (new Date().getTime() < expiry) {
+        setIsClosed(true);
+        return;
+      } else {
+        localStorage.removeItem("telegram-promo-dismissed-v2");
+      }
     }
 
     const timerDuration = user ? 3000 : 5000;
@@ -30,9 +35,9 @@ export default function TelegramPromo() {
   const handleClose = () => {
     setIsVisible(false);
     setIsClosed(true);
-    // Suppress for 7 days
-    const expiry = new Date().getTime() + 7 * 24 * 60 * 60 * 1000;
-    localStorage.setItem("telegram-promo-dismissed", expiry.toString());
+    // Suppress for 3 days
+    const expiry = new Date().getTime() + 3 * 24 * 60 * 60 * 1000;
+    localStorage.setItem("telegram-promo-dismissed-v2", expiry.toString());
   };
 
   if (isClosed && !isVisible) return null;
