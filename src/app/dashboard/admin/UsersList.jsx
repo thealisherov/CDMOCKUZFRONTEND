@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { Search, UserPlus, Shield, X, Check, DollarSign, Wallet, ExternalLink, AlertTriangle } from "lucide-react";
+import { Search, UserPlus, Shield, X, Check, DollarSign, Wallet, ExternalLink, AlertTriangle, Trash2 } from "lucide-react";
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function UsersList() {
@@ -14,7 +14,9 @@ export default function UsersList() {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [filterRole, setFilterRole] = useState("all");
   const [selectedUser, setSelectedUser] = useState(null); // For Premium Modal
+  const [userToDelete, setUserToDelete] = useState(null);
   const [premiumForm, setPremiumForm] = useState({ months: 1, currency: 'UZS', amount: '' });
   const { user: currentUser } = useAuth();
   const supabase = createClient();
@@ -49,12 +51,22 @@ export default function UsersList() {
   useEffect(() => {
     const term = search.toLowerCase();
     setFilteredUsers(
-      users.filter(u => 
-        u.email?.toLowerCase().includes(term) || 
-        u.user_metadata?.full_name?.toLowerCase().includes(term)
-      )
+      users.filter(u => {
+        const matchesSearch = u.email?.toLowerCase().includes(term) || 
+                              u.user_metadata?.full_name?.toLowerCase().includes(term);
+        if (!matchesSearch) return false;
+
+        const meta = u.user_metadata || {};
+        const isAdmin = meta.role === "admin";
+        const isPremium = meta.premium_until && new Date(meta.premium_until) > new Date();
+
+        if (filterRole === "admin") return isAdmin;
+        if (filterRole === "premium") return isPremium && !isAdmin;
+        if (filterRole === "free") return !isPremium && !isAdmin;
+        return true;
+      })
     );
-  }, [search, users]);
+  }, [search, users, filterRole]);
 
   const fetchUsers = async () => {
     try {
@@ -138,31 +150,71 @@ export default function UsersList() {
     }
   };
 
+  const deleteUser = async () => {
+    if (!userToDelete) return;
+    const userId = userToDelete.id;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`
+        }
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Delete failed");
+      }
+      setUsers(users.filter(u => u.id !== userId));
+      setFilteredUsers(filteredUsers.filter(u => u.id !== userId));
+      toast.success("User deleted successfully!");
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setUserToDelete(null);
+    }
+  };
+
   if (loading) return <div className="p-10 text-center animate-pulse text-muted-foreground">Loading user database...</div>;
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white dark:bg-black/20 p-4 rounded-2xl border border-border">
-        <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input 
-            type="text"
-            placeholder="Search by name or email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-muted/50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-          />
+      <div className="flex flex-col w-full gap-4 bg-white dark:bg-black/20 p-4 rounded-2xl border border-border">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center w-full">
+            <div className="relative w-full sm:max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input 
+                type="text"
+                placeholder="Search name or email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 opacity-90 border border-border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+              />
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-2">
+               {[{id: 'all', label: 'All Users'}, {id: 'admin', label: 'Admins'}, {id: 'premium', label: 'Premium'}, {id: 'free', label: 'Free'}].map(f => (
+                 <button
+                    key={f.id}
+                    onClick={() => setFilterRole(f.id)}
+                    className={`px-3 py-1.5 rounded-lg text-[11px] uppercase tracking-wider font-bold transition-all border \${filterRole === f.id ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200 dark:shadow-none' : 'bg-transparent text-muted-foreground border-border hover:bg-muted/50 hover:text-foreground'}`}
+                 >
+                    {f.label}
+                 </button>
+               ))}
+            </div>
         </div>
-        <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
+        
+        <div className="flex items-center justify-end gap-3 text-xs font-medium text-muted-foreground border-t border-border/50 pt-3">
             <span className="flex items-center gap-1.5">
-              <span className="relative flex h-2.5 w-2.5">
+              <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              Live
+              Live Database
             </span>
             <span>·</span>
-            <span>{filteredUsers.length} of <strong>{users.length}</strong> users</span>
+            <span>Showing <strong className="text-foreground">{filteredUsers.length}</strong> of {users.length} users</span>
         </div>
       </div>
 
@@ -244,6 +296,13 @@ export default function UsersList() {
                                     <X className="w-4 h-4" />
                                 </button>
                             )}
+                            <button 
+                                onClick={() => setUserToDelete(u)}
+                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-1"
+                                title="Delete User"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
                         </div>
                     </td>
                   </tr>
@@ -366,6 +425,36 @@ export default function UsersList() {
                   className="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-200 dark:shadow-none"
                 >
                   Revoke
+                </button>
+             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirm Dialog */}
+      {userToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-900 w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-border animate-in zoom-in-95 p-6 text-center space-y-4">
+             <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 flex items-center justify-center mx-auto mb-2">
+                 <Trash2 className="w-6 h-6" />
+             </div>
+             <h3 className="font-bold text-lg">Delete User?</h3>
+             <p className="text-sm text-muted-foreground">
+               Are you sure you want to permanently delete <br/> <strong>{userToDelete.email}</strong>?
+               <br/>This action cannot be undone.
+             </p>
+             <div className="flex gap-3 pt-4">
+                <button 
+                  onClick={() => setUserToDelete(null)}
+                  className="flex-1 py-3 bg-muted text-muted-foreground font-bold rounded-xl hover:bg-muted/80 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={deleteUser}
+                  className="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-200 dark:shadow-none"
+                >
+                  Delete
                 </button>
              </div>
           </div>

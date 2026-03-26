@@ -102,12 +102,30 @@ export async function POST(request) {
       const earnedXp = 10 + (correct_count || 0) * 2; // For example: 10 XP just for taking it, +2 per correct
 
       if (existingStats) {
+        let newStreak = existingStats.daily_streak || 1;
+        if (existingStats.last_active_date) {
+            const lastDate = new Date(existingStats.last_active_date);
+            const today = new Date();
+            // Compare normalized calendar days (ignoring hours)
+            const utcLast = Date.UTC(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
+            const utcToday = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+            const diffDays = Math.floor((utcToday - utcLast) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 1) {
+                newStreak += 1;
+            } else if (diffDays >= 2) {
+                newStreak = 1;
+            }
+            // if diffDays === 0, do nothing
+        }
+
         await supabase.from('user_stats').update({
           tests_taken: (existingStats.tests_taken || 0) + 1,
           correct_answers: (existingStats.correct_answers || 0) + (correct_count || 0),
           xp: (existingStats.xp || 0) + earnedXp,
           total_time_seconds: (existingStats.total_time_seconds || 0) + (time_spent_seconds || 0),
-          last_active_date: new Date().toISOString()
+          last_active_date: new Date().toISOString(),
+          daily_streak: newStreak
         }).eq('user_id', user.id);
       } else {
         await supabase.from('user_stats').insert([{

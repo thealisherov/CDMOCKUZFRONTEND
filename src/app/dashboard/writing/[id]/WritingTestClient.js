@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, ArrowLeft, Send, Trophy, Check, X, Target, BarChart3, RotateCcw, LogOut, MessageSquare, FileText } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Send, Trophy, Check, X, Target, BarChart3, RotateCcw, LogOut, MessageSquare, FileText, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Timer from '@/components/Timer';
 import ResizableSplitPane from '@/components/ResizableSplitPane';
@@ -70,6 +70,7 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
   // Security: Prevent copy, cut, paste, and context menu outside textarea
   useEffect(() => {
     const preventAction = (e) => {
+      if (isReviewMode) return;
       if (e.target.tagName === 'TEXTAREA') return;
       e.preventDefault();
     };
@@ -84,7 +85,7 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
       document.removeEventListener('paste', preventAction);
       document.removeEventListener('contextmenu', preventAction);
     };
-  }, []);
+  }, [isReviewMode]);
 
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [activeTaskIndex, setActiveTaskIndex] = useState(0);
@@ -317,7 +318,7 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
                </div>
             </div>
           ) : evaluationResult ? (
-            <div style={{ maxWidth: 860, margin: '0 auto', padding: '0px 16px 48px', fontFamily: 'Inter, system-ui, sans-serif' }}>
+            <div id="writing-result-container" style={{ maxWidth: 860, margin: '0 auto', padding: '0px 16px 48px', fontFamily: 'Inter, system-ui, sans-serif' }}>
               
               {/* ── SCORE HERO CARD ── */}
               <div style={{
@@ -522,7 +523,65 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
               </div>
 
               {/* ── ACTION BUTTONS ── */}
-              <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <div data-html2canvas-ignore="true" style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                <button
+                  onClick={async (e) => {
+                    const btn = e.currentTarget;
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = 'Yuklanmoqda...';
+                    btn.disabled = true;
+                    try {
+                      const html2canvas = (await import('html2canvas')).default;
+                      const jsPDF = (await import('jspdf')).default;
+                      
+                      const element = document.getElementById('writing-result-container');
+                      if (element) {
+                        const origBg = element.style.background;
+                        element.style.background = '#ffffff';
+                        const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false });
+                        element.style.background = origBg;
+                        
+                        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                        const pdf = new jsPDF('p', 'mm', 'a4');
+                        const pdfWidth = pdf.internal.pageSize.getWidth();
+                        const pageHeight = pdf.internal.pageSize.getHeight();
+                        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                        let heightLeft = pdfHeight;
+                        let position = 0;
+
+                        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+                        heightLeft -= pageHeight;
+
+                        while (heightLeft > 0) {
+                          position = heightLeft - pdfHeight;
+                          pdf.addPage();
+                          pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+                          heightLeft -= pageHeight;
+                        }
+
+                        pdf.save(`writing_result_${id}.pdf`);
+                      }
+                    } catch (err) {
+                      console.error('PDF generation error', err);
+                      alert('PDF yaratishda xatolik yuz berdi');
+                    } finally {
+                      btn.innerHTML = originalText;
+                      btn.disabled = false;
+                    }
+                  }}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    padding: '12px 28px', borderRadius: 10,
+                    border: '2px solid #10b981', background: '#fff',
+                    color: '#10b981', fontSize: 14, fontWeight: 700,
+                    cursor: 'pointer', transition: 'all 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#10b981'; e.currentTarget.style.color = '#fff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#10b981'; }}
+                >
+                  <Download style={{ width: 16, height: 16 }} />
+                  PDF formati
+                </button>
                 <button
                   onClick={handleRetry}
                   style={{

@@ -39,8 +39,32 @@ export function AuthProvider({ children }) {
       }
     );
 
+    // Initial check completed
+    let channel = null;
+
+    // Listen to changes in the 'payments' table to automatically refresh session for Premium status
+    const setupRealtimePremium = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (userId) {
+        channel = supabase
+          .channel('premium-updates')
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'payments', filter: `user_id=eq.${userId}` },
+            async () => {
+              console.log('[Auth] Payment detected, refreshing session for premium...');
+              await supabase.auth.refreshSession();
+            }
+          )
+          .subscribe();
+      }
+    };
+    setupRealtimePremium();
+
     return () => {
       subscription.unsubscribe();
+      if (channel) supabase.removeChannel(channel);
     };
   }, []);
 

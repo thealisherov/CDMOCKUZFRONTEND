@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import { cn } from "@/lib/utils";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTheme } from "next-themes"; // Assuming next-themes for useTheme
+import StreakModal from "@/components/StreakModal";
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -116,6 +117,9 @@ export default function DashboardLayout({ children }) {
           </div>
         </div>
       )}
+
+      {/* Global Modals */}
+      <StreakModal />
       </div>
   );
 }

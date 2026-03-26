@@ -109,3 +109,30 @@ export async function GET(req, { params }) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
+export async function DELETE(req, { params }) {
+  try {
+    const { userId } = await params;
+
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) return NextResponse.json({ error: 'Missing auth header' }, { status: 401 });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user: adminUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
+
+    if (authError || adminUser?.user_metadata?.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    }
+
+    const { data, error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+
+    if (error) {
+      console.error("Delete user failed:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, message: 'User deleted successfully' });
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
