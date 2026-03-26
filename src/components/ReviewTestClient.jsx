@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import parse from 'html-react-parser';
 import { ArrowLeft, RotateCcw, Play, Pause, Volume2, SkipBack, SkipForward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import TestNavigator from '@/components/TestNavigator';
@@ -522,8 +523,6 @@ function ReviewQuestionBlock({ block, startIndex, userAnswers, correctAnswersMap
 
 // ── Review GapFill ──
 function ReviewGapFill({ data, userAnswers, correctAnswersMap, showCorrect }) {
-  const parse = require('html-react-parser').default;
-
   const options = {
     replace: (domNode) => {
       if (domNode.type === 'text') {
