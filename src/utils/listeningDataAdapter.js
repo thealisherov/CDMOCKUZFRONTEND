@@ -149,7 +149,7 @@ function buildSmartTable(questions) {
 
   questions.forEach((q) => {
     const qText = replaceGapPlaceholders(q.question, q.number);
-    const pieces = qText.split(/<br\s*\/?>|<li>|<\/li>|<ul>|<\/ul>/).filter(p => {
+    const pieces = qText.split(/<br\s*\/?>|<li>|<\/li>|<ul>|<\/ul>|\n/).filter(p => {
       const clean = p.replace(/<[^>]*>/g, '').trim();
       return clean !== '' && clean !== '↓';
     });
@@ -422,6 +422,11 @@ function convertQuestionGroup(group, partNumber, partTitle) {
  */
 export function adaptListeningData(rawData) {
   if (!rawData) return null;
+
+  // Universally clean cite artifacts from the entire JSON literal
+  let cleanDataTemplate = JSON.stringify(rawData);
+  cleanDataTemplate = cleanDataTemplate.replace(/\[cite[^\]]*\]/ig, '');
+  rawData = JSON.parse(cleanDataTemplate);
 
   // Reset block counter
   _blockCounter = 0;

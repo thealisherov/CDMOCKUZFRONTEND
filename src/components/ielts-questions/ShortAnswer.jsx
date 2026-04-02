@@ -74,7 +74,7 @@ const ShortAnswer = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => {
                 style={{ fontSize: '1.05em', color: 'var(--test-fg, #111)' }}
               >
                 {/* Question text */}
-                <span dangerouslySetInnerHTML={{ __html: q.text }} />
+                <span dangerouslySetInnerHTML={{ __html: q.text ? q.text.replace(/\[cite[^\]]*\]/ig, '') : '' }} />
 
                 {/* Answer input box — IELTS CD style: small box at end of question */}
                 <span className="relative inline-flex items-center" style={{ verticalAlign: 'baseline' }}>

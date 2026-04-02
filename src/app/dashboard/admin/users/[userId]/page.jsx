@@ -13,7 +13,9 @@ import {
   History, 
   CheckCircle2, 
   Clock,
-  ExternalLink
+  ExternalLink,
+  Wallet,
+  DollarSign
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 

@@ -70,11 +70,13 @@ const GapFill = ({ data, onAnswer, userAnswers = {} }) => {
     }
   };
 
+  const cleanContent = data.content ? data.content.replace(/\[cite[^\]]*\]/ig, '').replace(/\n/g, '<br/>') : '';
+
   return (
     <div className="mb-8 font-sans">
       <div className="space-y-3 leading-loose text-gray-800 ielts-html-content">
         <div className="leading-[2.5] [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-3 [&_li]:mb-2 [&_li]:mt-1">
-          {parse(data.content, options)}
+          {parse(cleanContent, options)}
         </div>
       </div>
       <style jsx global>{`

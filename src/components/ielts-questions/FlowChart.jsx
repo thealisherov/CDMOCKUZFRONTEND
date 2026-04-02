@@ -10,7 +10,8 @@ const FlowChart = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => {
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverGap, setDragOverGap] = useState(null);
 
-  const fullText = data.content || '';
+  const parsedContent = data.content ? data.content.replace(/\[cite[^\]]*\]/ig, '') : '';
+  const fullText = parsedContent;
   // Each line corresponds to one logical step in the flowchart
   const steps = fullText.split('\n').filter(s => s.trim() !== '');
 

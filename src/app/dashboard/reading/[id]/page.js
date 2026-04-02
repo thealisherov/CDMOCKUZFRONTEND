@@ -58,6 +58,13 @@ async function loadTestData(testId) {
   }
 }
 
+import { generateTestMetadata } from '@/utils/seoTestMetadata';
+
+export async function generateMetadata({ params }) {
+  const resolvedParams = await Promise.resolve(params);
+  return generateTestMetadata({ id: resolvedParams?.id, type: 'reading' });
+}
+
 export default async function ReadingTestPage({ params }) {
   const resolvedParams = await Promise.resolve(params);
   const id = resolvedParams?.id;

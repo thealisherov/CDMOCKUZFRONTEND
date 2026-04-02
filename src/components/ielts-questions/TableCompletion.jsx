@@ -58,11 +58,13 @@ const TableCompletion = ({ data, onAnswer, userAnswers = {} }) => {
     }
   };
 
+  const cleanContent = data.content ? data.content.replace(/\[cite[^\]]*\]/ig, '').replace(/\n/g, '<br/>') : '';
+
   return (
     <div className="mb-10 ielts-table-container">
       <div className="overflow-x-auto">
         <div className="inline-block min-w-full align-middle styled-table-wrapper">
-          {parse(data.content, options)}
+          {parse(cleanContent, options)}
         </div>
       </div>
 
