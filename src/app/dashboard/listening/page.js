@@ -1,6 +1,8 @@
 import { createClient } from "@/utils/supabase/server";
 import ListeningClient from "./ListeningClient";
 
+export const dynamic = 'force-dynamic';
+
 export default async function ListeningPage() {
   let initialTests = [];
 

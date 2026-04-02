@@ -1,6 +1,8 @@
 import { createClient } from "@/utils/supabase/server";
 import ReadingClient from "./ReadingClient";
 
+export const dynamic = 'force-dynamic';
+
 export default async function ReadingPage() {
   let initialTests = [];
 

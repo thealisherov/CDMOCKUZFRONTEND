@@ -188,16 +188,25 @@ export default function UsersList() {
                 placeholder="Search name or email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 opacity-90 border border-border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
               />
             </div>
             
-            <div className="flex flex-wrap items-center gap-2">
-               {[{id: 'all', label: 'All Users'}, {id: 'admin', label: 'Admins'}, {id: 'premium', label: 'Premium'}, {id: 'free', label: 'Free'}].map(f => (
+            <div className="flex flex-wrap items-center gap-1.5 bg-gray-100 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10">
+               {[
+                 {id: 'all', label: 'All'},
+                 {id: 'admin', label: 'Admins'},
+                 {id: 'premium', label: 'Premium'},
+                 {id: 'free', label: 'Free'}
+               ].map(f => (
                  <button
                     key={f.id}
                     onClick={() => setFilterRole(f.id)}
-                    className={`px-3 py-1.5 rounded-lg text-[11px] uppercase tracking-wider font-bold transition-all border \${filterRole === f.id ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200 dark:shadow-none' : 'bg-transparent text-muted-foreground border-border hover:bg-muted/50 hover:text-foreground'}`}
+                    className={`px-3 py-1.5 rounded-lg text-[11px] uppercase tracking-wider font-bold transition-all ${
+                      filterRole === f.id
+                        ? 'bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white shadow-sm'
+                        : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
                  >
                     {f.label}
                  </button>

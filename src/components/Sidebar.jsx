@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen, Headphones, PenTool, Mic,
   MessageCircle, LogOut, PanelLeftClose, PanelLeftOpen,
-  Zap, Star, Settings, ShieldCheck, Trophy, Sparkles, FileText, User
+  Zap, Star, Settings, ShieldCheck, Trophy, Sparkles, FileText, User, X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -253,76 +253,121 @@ export default function Sidebar({ collapsed, onToggle }) {
             >
               <Settings className="h-4 w-4 pointer-events-none" />
             </button>
-            <button
-              onClick={logout}
-              title="Sign Out"
-              className="flex items-center justify-center h-9 w-9 rounded-xl transition-all hover:bg-red-500/10 text-red-500"
-            >
-              <LogOut className="h-4 w-4 pointer-events-none" />
-            </button>
+            {user ? (
+              <button
+                onClick={logout}
+                title="Sign Out"
+                className="flex items-center justify-center h-9 w-9 rounded-xl transition-all hover:bg-red-500/10 text-red-500"
+              >
+                <LogOut className="h-4 w-4 pointer-events-none" />
+              </button>
+            ) : (
+              <Link href="/login" title="Log In" className="flex items-center justify-center h-9 w-9 rounded-xl transition-all hover:bg-primary/10 text-primary">
+                <User className="h-4 w-4 pointer-events-none" />
+              </Link>
+            )}
           </div>
         ) : (
             <>
-            {/* User block */}
-            <div
-              onClick={() => router.push('/dashboard/profile')}
-              className="group flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 cursor-pointer transition-all hover:bg-[oklch(0.72_0.2_270/_0.12)]"
-              style={{
-                background: 'oklch(0.72 0.2 270 / 0.08)',
-                border: '1px solid var(--sidebar-border)',
-              }}
-            >
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold text-xs text-white"
-                style={{ background: 'linear-gradient(135deg, #e22d2d, oklch(0.68 0.22 270))' }}
-              >
-                {user?.user_metadata?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[12px] font-semibold truncate" style={{ color: 'var(--sidebar-foreground)' }}>
-                  {user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Student"}
-                </p>
-                <p className="text-[10px] truncate" style={{ color: 'oklch(0.55 0.04 270)' }}>
-                  {user?.isPremium ? "Premium Account" : "Free Plan"}
-                </p>
-              </div>
-            </div>
+            {user ? (
+              <>
+                <div
+                  onClick={() => router.push('/dashboard/profile')}
+                  className="group flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 cursor-pointer transition-all hover:bg-[oklch(0.72_0.2_270/_0.12)]"
+                  style={{
+                    background: 'oklch(0.72 0.2 270 / 0.08)',
+                    border: '1px solid var(--sidebar-border)',
+                  }}
+                >
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold text-xs text-white"
+                    style={{ background: 'linear-gradient(135deg, #e22d2d, oklch(0.68 0.22 270))' }}
+                  >
+                    {user?.user_metadata?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12px] font-semibold truncate" style={{ color: 'var(--sidebar-foreground)' }}>
+                      {user?.user_metadata?.full_name || user?.email?.split('@')[0]}
+                    </p>
+                    <p className="text-[10px] truncate" style={{ color: 'oklch(0.55 0.04 270)' }}>
+                      {user?.isPremium ? "Premium Account" : "Free Plan"}
+                    </p>
+                  </div>
+                </div>
 
-            {showSettings && (
-              <div
-                className="mx-1 mb-2 p-2 rounded-xl border flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200 shadow-sm"
-                style={{ background: 'oklch(0.5 0.0 0 / 0.03)', borderColor: 'var(--sidebar-border)' }}
-              >
-                <span className="text-xs font-semibold pl-1" style={{ color: 'var(--sidebar-foreground)' }}>Settings</span>
-                <div className="flex gap-2">
-                  <LanguageSelector position="top" />
-                  <ThemeToggle />
+                {showSettings && (
+                  <div
+                    className="mx-1 mb-2 p-2 rounded-xl border flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200 shadow-sm"
+                    style={{ background: 'oklch(0.5 0.0 0 / 0.03)', borderColor: 'var(--sidebar-border)' }}
+                  >
+                    <span className="text-xs font-semibold pl-1" style={{ color: 'var(--sidebar-foreground)' }}>Settings</span>
+                    <div className="flex gap-2">
+                      <LanguageSelector position="top" />
+                      <ThemeToggle />
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between px-1 mt-1">
+                  <button
+                    onClick={() => setShowSettings(!showSettings)}
+                    className={cn(
+                      "flex items-center justify-center p-2 rounded-xl transition-all",
+                      showSettings ? "bg-primary/10 text-primary" : "hover:bg-[oklch(0.72_0.2_270/_0.12)]"
+                    )}
+                    style={!showSettings ? { color: 'var(--sidebar-foreground)', opacity: 0.6 } : {}}
+                    title="Settings"
+                  >
+                    <Settings className="h-4 w-4 pointer-events-none" />
+                  </button>
+
+                  <button
+                    onClick={logout}
+                    className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all hover:bg-red-500/10 text-red-500 hover:text-red-700"
+                    style={{ opacity: 0.8 }}
+                  >
+                    <LogOut className="h-4 w-4 pointer-events-none" />
+                    <span className="hidden sm:inline">Sign Out</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col gap-2 relative">
+                {showSettings && (
+                  <div className="mb-2 p-2 rounded-xl border flex flex-col items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200 shadow-sm" style={{ background: 'oklch(0.5 0.0 0 / 0.03)', borderColor: 'var(--sidebar-border)' }}>
+                    <div className="flex w-full items-center justify-between px-1">
+                      <span className="text-xs font-semibold" style={{ color: 'var(--sidebar-foreground)' }}>Settings</span>
+                      <button onClick={() => setShowSettings(false)} className="text-muted-foreground hover:text-primary"><X size={14}/></button>
+                    </div>
+                    <div className="flex gap-2 w-full justify-center">
+                      <LanguageSelector position="top" />
+                      <ThemeToggle />
+                    </div>
+                  </div>
+                )}
+                
+                <Link href="/login">
+                  <button className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all hover:bg-primary/10 text-primary border border-primary/20 bg-primary/5">
+                    <User className="h-4 w-4" />
+                    <span>Log In / Sign Up</span>
+                  </button>
+                </Link>
+
+                <div className="flex items-center justify-center mt-1">
+                  <button
+                    onClick={() => setShowSettings(!showSettings)}
+                    className={cn(
+                      "flex items-center justify-center p-2 rounded-xl transition-all",
+                      showSettings ? "bg-primary/10 text-primary" : "hover:bg-[oklch(0.72_0.2_270/_0.12)]"
+                    )}
+                    style={!showSettings ? { color: 'var(--sidebar-foreground)', opacity: 0.6 } : {}}
+                    title="Settings"
+                  >
+                    <Settings className="h-4 w-4 pointer-events-none" />
+                  </button>
                 </div>
               </div>
             )}
-
-            <div className="flex items-center justify-between px-1 mt-1">
-              <button
-                onClick={() => setShowSettings(!showSettings)}
-                className={cn(
-                  "flex items-center justify-center p-2 rounded-xl transition-all",
-                  showSettings ? "bg-primary/10 text-primary" : "hover:bg-[oklch(0.72_0.2_270/_0.12)]"
-                )}
-                style={!showSettings ? { color: 'var(--sidebar-foreground)', opacity: 0.6 } : {}}
-                title="Settings"
-              >
-                <Settings className="h-4 w-4 pointer-events-none" />
-              </button>
-
-              <button
-                onClick={logout}
-                className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all hover:bg-red-500/10 text-red-500 hover:text-red-700"
-                style={{ opacity: 0.8 }}
-              >
-                <LogOut className="h-4 w-4 pointer-events-none" />
-                <span className="hidden sm:inline">Sign Out</span>
-              </button>
-            </div>
           </>
         )}
       </div>

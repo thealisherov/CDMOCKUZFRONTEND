@@ -1,0 +1,17 @@
+SUCCESS
+{
+  "id": "north-star-camping-equipment-customer-order",
+  "audio": "https://pub-359de657d62948868dbf1b069ed70702.r2.dev/Other%20Paid%20listenings/NorthStarCamping.mp3",
+  "level": "medium",
+  "parts": [
+    {
+      "image": null,
+      "partNumber": 1,
+      "questionRange": "1-10",
+      "questionGroups": [
+        {
+          "groupType": "note_completion",
+          "questions": [
+            {
+              "number": 1,
+              "question": "<b>North Star Camping Equipment Customer Ord

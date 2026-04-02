@@ -1,6 +1,8 @@
 import { createClient } from "@/utils/supabase/server";
 import WritingClient from "./WritingClient";
 
+export const dynamic = 'force-dynamic';
+
 export default async function WritingPage() {
   let initialTests = [];
 

@@ -446,7 +446,7 @@ function DefaultTestItem({ test, moduleType, meta, t, user }) {
         <ShareButton test={test} moduleType={moduleType} />
         {isLocked ? (
           <Link
-            href="/dashboard/payment"
+            href={!user ? "/login" : "/dashboard/payment"}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
             style={{
               background: 'oklch(0.72 0.17 80 / 0.08)',
