@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import parse from 'html-react-parser';
 import { ArrowLeft, RotateCcw, Play, Pause, Volume2, SkipBack, SkipForward } from 'lucide-react';
