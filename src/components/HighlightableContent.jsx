@@ -120,9 +120,11 @@ const HighlightableContent = memo(function HighlightableContent({
   const notes = notesCtx?.notes || [];
   const addNote = notesCtx?.addNote || (() => {});
   const setIsSidebarOpen = notesCtx?.setIsSidebarOpen || (() => {});
+  // Prefix from context ensures all highlights are under this test's namespace
+  const highlightPrefix = notesCtx?.highlightPrefix || 'highlights_main_';
 
-  // ── Highlights: stored in localStorage, NOT in React state ──
-  const hlStorageKey = `highlights_${containerId}`;
+  // ── Highlights: stored in localStorage, uniquely keyed per containerId ──
+  const hlStorageKey = `${highlightPrefix}${containerId}`;
 
   const loadHighlights = useCallback(() => {
     try {

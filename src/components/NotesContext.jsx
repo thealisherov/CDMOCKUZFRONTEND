@@ -6,6 +6,8 @@ const NotesContext = createContext(null);
 
 export function NotesProvider({ testId, children }) {
   const storageKey = testId ? `notes_${testId}` : 'notes_global';
+  // All highlight keys for this test will start with this prefix
+  const highlightPrefix = testId ? `highlights_${testId}_` : 'highlights_main_';
 
   const [notes, setNotes] = useState(() => {
     if (typeof window === 'undefined') return [];
@@ -79,6 +81,20 @@ export function NotesProvider({ testId, children }) {
     setNotes([]);
   }, []);
 
+  // Clear all highlights for this test from localStorage
+  const clearHighlights = useCallback(() => {
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(highlightPrefix)) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+    } catch { /* ignore */ }
+  }, [highlightPrefix]);
+
   const value = {
     notes,
     isSidebarOpen,
@@ -88,6 +104,8 @@ export function NotesProvider({ testId, children }) {
     deleteNote,
     addHighlight,
     clearNotes,
+    clearHighlights,
+    highlightPrefix,
   };
 
   return (

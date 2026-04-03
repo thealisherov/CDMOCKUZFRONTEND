@@ -23,7 +23,7 @@ import { usePersistedState } from '@/hooks/usePersistedState';
 // Inner component that can access NotesContext
 function ReadingTestInner({ id, rawData }) {
   const router  = useRouter();
-  const { clearNotes } = useNotes();
+  const { clearNotes, clearHighlights } = useNotes();
 
   // Swap favicon while test is open
   useDynamicFavicon('/favicon.png');
@@ -148,9 +148,11 @@ function ReadingTestInner({ id, rawData }) {
   const clearAllTestData = useCallback(() => {
     // Timer
     try { localStorage.removeItem(timerKey); } catch { /* */ }
-    // Notes/highlights (both context state and localStorage)
+    // Notes (both context state and localStorage)
     clearNotes();
     try { localStorage.removeItem(notesKey); } catch { /* */ }
+    // Highlights (all passages)
+    clearHighlights();
     clearAnswers();
     setUserAnswers({});
     setSubmitted(false);
@@ -159,7 +161,7 @@ function ReadingTestInner({ id, rawData }) {
     setShowConfirm(false);
     setServerResult(null);
     setEvalError(null);
-  }, [clearNotes, timerKey, notesKey, clearAnswers]);
+  }, [clearNotes, clearHighlights, timerKey, notesKey, clearAnswers]);
   // Unmount clearing logic removed so refreshing doesn't erase user answers
   const handleSubmit = async () => { 
     setSubmitted(true);
@@ -409,7 +411,7 @@ function ReadingTestInner({ id, rawData }) {
               )}
 
               <div className="px-6 pt-6 pb-32">
-                <HighlightableContent className="max-w-none leading-relaxed" containerId="reading_passage">
+                <HighlightableContent className="max-w-none leading-relaxed" containerId={`passage_${activePassage}`}>
                   {(currentPassage?.text || currentPassage?.content || '').split('\n\n').map((paragraph, idx) => {
                     const trimmed = paragraph.trim();
                     if (!trimmed) return null;

@@ -27,7 +27,7 @@ import { createClient } from '@/utils/supabase/client';
 // Inner component that can access the NotesContext
 function ListeningTestInner({ id, rawData }) {
   const router = useRouter();
-  const { clearNotes } = useNotes();
+  const { clearNotes, clearHighlights } = useNotes();
   const audioPlayerRef = useRef(null);
 
   const { contrast, setContrast, textSize, setTextSize, getWrapperStyle } = useIELTSTheme();
@@ -102,9 +102,11 @@ function ListeningTestInner({ id, rawData }) {
     }
     // Timer
     try { localStorage.removeItem(timerKey); } catch { /* */ }
-    // Notes/highlights (both context state and localStorage)
+    // Notes (both context state and localStorage)
     clearNotes();
     try { localStorage.removeItem(notesKey); } catch { /* */ }
+    // Highlights (all parts)
+    clearHighlights();
     // Answers & progress
     clearAnswers();
     clearSubmitted();
@@ -119,7 +121,7 @@ function ListeningTestInner({ id, rawData }) {
     try { localStorage.removeItem(`cq_listening_${id}`); } catch { /* */ }
     setServerResult(null);
     setEvalError(null);
-  }, [clearNotes, timerKey, notesKey, audioKey, clearAnswers, clearSubmitted, clearActivePart, id]);
+  }, [clearNotes, clearHighlights, timerKey, notesKey, audioKey, clearAnswers, clearSubmitted, clearActivePart, id]);
 
   // Removed unmount clearAllTestData so refreshing doesn't clear answers
 
@@ -559,7 +561,7 @@ function ListeningTestInner({ id, rawData }) {
     {/* ═══ MAIN CONTENT ═══ */}
     <div className="flex-1 overflow-y-auto pb-24" style={{ background: 'var(--test-panel-bg)', color: 'var(--test-fg)' }}>
       <div className="w-full px-6 lg:px-10 pt-4 py-8 max-w-[1600px]">
-        <HighlightableContent containerId="listening_content">
+        <HighlightableContent containerId={`listening_part_${activePartIndex}`}>
           {visibleSections.map((block) => {
             const blockStart = getStartIndex(block.id);
             const isSideBySide = !!block.image;

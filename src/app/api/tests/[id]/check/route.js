@@ -16,7 +16,45 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
 })
 
-// IELTS Listening/Reading band score mapping
+// IELTS Listening band score — exact lookup table
+function calculateListeningBand(score) {
+  if (score >= 39) return '9.0'
+  if (score >= 37) return '8.5'
+  if (score >= 35) return '8.0'
+  if (score >= 32) return '7.5'
+  if (score >= 30) return '7.0'
+  if (score >= 26) return '6.5'
+  if (score >= 23) return '6.0'
+  if (score >= 18) return '5.5'
+  if (score >= 16) return '5.0'
+  if (score >= 13) return '4.5'
+  if (score >= 11) return '4.0'
+  if (score >= 8)  return '3.5'
+  if (score >= 6)  return '3.0'
+  if (score >= 4)  return '2.5'
+  return '2.0'
+}
+
+// IELTS Reading band score — exact lookup table
+function calculateReadingBand(score) {
+  if (score >= 39) return '9.0'
+  if (score >= 37) return '8.5'
+  if (score >= 35) return '8.0'
+  if (score >= 33) return '7.5'
+  if (score >= 30) return '7.0'
+  if (score >= 27) return '6.5'
+  if (score >= 23) return '6.0'
+  if (score >= 19) return '5.5'
+  if (score >= 15) return '5.0'
+  if (score >= 13) return '4.5'
+  if (score >= 10) return '4.0'
+  if (score >= 8)  return '3.5'
+  if (score >= 6)  return '3.0'
+  if (score >= 4)  return '2.5'
+  return '2.0'
+}
+
+// Generic fallback (for unknown types)
 function calculateBand(score, total) {
   const percentage = (score / total) * 100
   if (percentage >= 97) return '9.0'
@@ -34,6 +72,7 @@ function calculateBand(score, total) {
   if (percentage >= 15) return '3.0'
   return '2.5'
 }
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // EXTRACT ANSWERS
@@ -125,22 +164,45 @@ function setsEqual(setA, setB) {
   return a.every((v, i) => v === b[i])
 }
 
+function normalizeHeadingAnswer(ans) {
+  // Extract the leading roman numeral or letter from strings like "v. Some heading text" or "iii) heading"
+  if (!ans) return '';
+  const match = String(ans).trim().match(/^([ivxlcdmIVXLCDM]+|[a-zA-Z])[.\s):]/);
+  if (match) return match[1].toLowerCase();
+  return String(ans).trim().toLowerCase();
+}
+
 function isCorrect(userAnswer, correctData) {
   if (!correctData) return false
-  const uAnswer = String(userAnswer || '').trim().toLowerCase()
-  if (!uAnswer) return false
-  if (correctData.isMulti && Array.isArray(correctData.answer)) {
-    return correctData.answer.some(a => String(a).trim().toLowerCase() === uAnswer)
+  const uRaw = String(userAnswer || '').trim()
+  if (!uRaw) return false
+
+  // Try both raw lower and heading-normalized forms
+  const uAnswer = uRaw.toLowerCase()
+  const uNormalized = normalizeHeadingAnswer(uRaw)
+
+  const matchesAnswer = (correctRaw) => {
+    const cLower = String(correctRaw || '').trim().toLowerCase()
+    if (!cLower) return false
+    if (uAnswer === cLower) return true
+    if (uNormalized === cLower) return true
+    // Also try normalizing the correct answer (in case stored as full text too)
+    const cNormalized = normalizeHeadingAnswer(correctRaw)
+    if (uNormalized === cNormalized) return true
+    if (uAnswer === cNormalized) return true
+    return false
   }
-  const mainAnswer = String(correctData.answer || '').trim().toLowerCase()
-  if (uAnswer === mainAnswer) return true
+
+  if (correctData.isMulti && Array.isArray(correctData.answer)) {
+    return correctData.answer.some(a => matchesAnswer(a))
+  }
+  if (matchesAnswer(correctData.answer)) return true
   if (correctData.alternatives && correctData.alternatives.length > 0) {
-    return correctData.alternatives.some(alt =>
-      String(alt).trim().toLowerCase() === uAnswer
-    )
+    return correctData.alternatives.some(alt => matchesAnswer(alt))
   }
   return false
 }
+
 
 /**
  * Convert an image URL into a format OpenAI can process.
@@ -762,7 +824,15 @@ export async function POST(request, { params }) {
       }
     })
 
-    const band = calculateBand(score, total)
+    const testType = testRow.type || type || ''
+    let band
+    if (testType === 'listening') {
+      band = calculateListeningBand(score)
+    } else if (testType === 'reading') {
+      band = calculateReadingBand(score)
+    } else {
+      band = calculateBand(score, total)
+    }
 
     return NextResponse.json({ score, total, band, results })
   } catch (err) {
