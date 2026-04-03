@@ -135,7 +135,6 @@ export default function Header() {
               <Link href="/dashboard/reading" className="text-sm hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>Reading</Link>
               <Link href="/dashboard/listening" className="text-sm hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>Listening</Link>
               <Link href="/dashboard/writing" className="text-sm hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>Writing</Link>
-              <Link href="/dashboard/speaking" className="text-sm hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>Speaking</Link>
             </div>
           </div>
           <div className="flex flex-col gap-2 mt-2">
