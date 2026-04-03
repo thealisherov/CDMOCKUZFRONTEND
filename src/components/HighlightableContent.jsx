@@ -38,7 +38,7 @@ function restoreRange(container, start, end) {
   return foundStart && stop ? range : null;
 }
 
-/* ─── Inline "Add Note / Highlight / Erase" Toolbar ─── */
+/* ─── Inline \"Add Note / Highlight / Erase\" Toolbar ─── */
 const NoteToolbar = memo(function NoteToolbar({ position, onAddNote, onHighlight, onEraser }) {
   if (!position) return null;
 
@@ -61,7 +61,6 @@ const NoteToolbar = memo(function NoteToolbar({ position, onAddNote, onHighlight
         onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
       >
-        {/* Sticky note icon */}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M15.5 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V8.5L15.5 3z" />
           <polyline points="14,3 14,8 21,8" />
@@ -103,6 +102,7 @@ const NoteToolbar = memo(function NoteToolbar({ position, onAddNote, onHighlight
 
 /**
  * HighlightableContent — wraps content to enable Highlighting, Erasing, and Note creation.
+ * Highlights are persisted to localStorage keyed by containerId so they survive re-renders.
  */
 const HighlightableContent = memo(function HighlightableContent({
   children,
@@ -113,13 +113,72 @@ const HighlightableContent = memo(function HighlightableContent({
   const [toolbarPos, setToolbarPos] = useState(null);
   const [rangeOffsets, setRangeOffsets] = useState(null);
   const contentRef = useRef(null);
+  // Track whether the DOM is ready (first render complete)
+  const domReadyRef = useRef(false);
 
   const notesCtx = useNotes();
   const notes = notesCtx?.notes || [];
   const addNote = notesCtx?.addNote || (() => {});
   const setIsSidebarOpen = notesCtx?.setIsSidebarOpen || (() => {});
 
-  /* ── Apply / re-apply note marks whenever `notes` changes ── */
+  // ── Highlights: stored in localStorage, NOT in React state ──
+  const hlStorageKey = `highlights_${containerId}`;
+
+  const loadHighlights = useCallback(() => {
+    try {
+      const saved = localStorage.getItem(hlStorageKey);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  }, [hlStorageKey]);
+
+  const saveHighlights = useCallback((highlights) => {
+    try {
+      localStorage.setItem(hlStorageKey, JSON.stringify(highlights));
+    } catch { /* ignore */ }
+  }, [hlStorageKey]);
+
+  // ── Re-apply all highlights from localStorage to DOM ──
+  const applyHighlights = useCallback(() => {
+    const el = contentRef.current;
+    if (!el) return;
+
+    // Remove existing highlight marks first
+    el.querySelectorAll('mark.highlight').forEach((mark) => {
+      const parent = mark.parentNode;
+      if (!parent) return;
+      while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+      parent.removeChild(mark);
+    });
+    el.normalize();
+
+    const highlights = loadHighlights();
+    if (highlights.length === 0) return;
+
+    // Sort descending by start offset to avoid offset shift during DOM mutations
+    const sorted = [...highlights].sort((a, b) => b.start - a.start);
+
+    sorted.forEach((hl) => {
+      try {
+        const range = restoreRange(el, hl.start, hl.end);
+        if (!range) return;
+        const mark = document.createElement('mark');
+        mark.className = 'highlight';
+        mark.setAttribute('data-hl-id', hl.id);
+        mark.style.cssText = 'background-color: var(--test-hl-bg, #ffff00); color: var(--test-hl-fg, #000000);';
+        try {
+          range.surroundContents(mark);
+        } catch {
+          const frag = range.extractContents();
+          mark.appendChild(frag);
+          range.insertNode(mark);
+        }
+      } catch { /* silently skip */ }
+    });
+  }, [loadHighlights]);
+
+  // ── Apply / re-apply note marks whenever `notes` changes ──
   const applyNoteMarks = useCallback(() => {
     const el = contentRef.current;
     if (!el) return;
@@ -127,6 +186,7 @@ const HighlightableContent = memo(function HighlightableContent({
     // 1. Remove existing note marks
     el.querySelectorAll('mark[data-note-id]').forEach((mark) => {
       const parent = mark.parentNode;
+      if (!parent) return;
       while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
       parent.removeChild(mark);
     });
@@ -158,19 +218,33 @@ const HighlightableContent = memo(function HighlightableContent({
           mark.appendChild(frag);
           range.insertNode(mark);
         }
-      } catch {
-        /* silently skip */
-      }
+      } catch { /* silently skip */ }
     });
   }, [notes, containerId, setIsSidebarOpen]);
 
-  useEffect(() => { applyNoteMarks(); }, [applyNoteMarks, children]);
+  // ── Apply both highlights + notes after DOM is painted ──
+  // Use a ref flag so we never apply before the DOM is ready
+  const applyAll = useCallback(() => {
+    // Apply notes first (lower priority), then highlights on top
+    applyNoteMarks();
+    applyHighlights();
+  }, [applyNoteMarks, applyHighlights]);
+
+  // On every render (children change), reapply both after DOM settles
+  useEffect(() => {
+    // Use rAF so DOM paint is complete before we walk it
+    const id = requestAnimationFrame(() => {
+      domReadyRef.current = true;
+      applyAll();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [applyAll, children]);
 
   useEffect(() => {
-    const h = () => applyNoteMarks();
+    const h = () => { if (domReadyRef.current) applyAll(); };
     window.addEventListener('NOTES_UPDATED', h);
     return () => window.removeEventListener('NOTES_UPDATED', h);
-  }, [applyNoteMarks]);
+  }, [applyAll]);
 
   /* ── Selection handler ── */
   const handleSelectionChange = useCallback(() => {
@@ -225,126 +299,72 @@ const HighlightableContent = memo(function HighlightableContent({
     setIsSidebarOpen(true);
   }, [rangeOffsets, addNote, containerId, setIsSidebarOpen]);
 
-  /* ── Highlight Logic ── */
+  /* ── Highlight Logic — persist to localStorage, reapply ── */
   const handleHighlight = useCallback(() => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
 
     const range = selection.getRangeAt(0);
-    
-    // If selected text is within a single node
-    if (range.startContainer === range.endContainer && range.startContainer.nodeType === Node.TEXT_NODE) {
-      if (!range.startContainer.nodeValue.substring(range.startOffset, range.endOffset).trim()) {
-         selection.removeAllRanges();
-         setToolbarPos(null);
-         return;
-      }
-      const mark = document.createElement('mark');
-      mark.className = 'highlight'; // Must have .highlight class in CSS
-      mark.style.cssText = 'background-color: var(--test-hl-bg, #ffff00); color: var(--test-hl-fg, #000000);';
-      try {
-        range.surroundContents(mark);
-      } catch (e) {
-        console.error('Highlight failed:', e);
-      }
-    } else {
-      // Cross-boundary selection
-      const treeWalker = document.createTreeWalker(
-        range.commonAncestorContainer,
-        NodeFilter.SHOW_TEXT,
-        {
-          acceptNode: function(node) {
-            if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
-            if (node.parentNode && node.parentNode.nodeName === 'MARK') return NodeFilter.FILTER_REJECT;
-            if (range.intersectsNode(node)) return NodeFilter.FILTER_ACCEPT;
-            return NodeFilter.FILTER_REJECT;
-          }
-        }
-      );
+    const el = contentRef.current;
+    if (!el || !el.contains(range.commonAncestorContainer)) return;
 
-      const nodesToWrap = [];
-      while (treeWalker.nextNode()) {
-        nodesToWrap.push(treeWalker.currentNode);
-      }
+    // Get offsets BEFORE any DOM mutations
+    const offsets = getSelectionOffsets(el, range);
+    if (!offsets.text.trim()) {
+      selection.removeAllRanges();
+      setToolbarPos(null);
+      return;
+    }
 
-      nodesToWrap.forEach((node) => {
-        const isStart = node === range.startContainer;
-        const isEnd = node === range.endContainer;
-        
-        let textToWrap = node;
-        
-        try {
-          if (isStart && isEnd) {
-             const split2 = node.splitText(range.endOffset);
-             const split1 = node.splitText(range.startOffset);
-             textToWrap = split1;
-          } else if (isStart) {
-             const split1 = node.splitText(range.startOffset);
-             textToWrap = split1;
-          } else if (isEnd) {
-             node.splitText(range.endOffset);
-          }
-          
-          if (textToWrap.nodeValue.trim()) {
-            const mark = document.createElement('mark');
-            mark.className = 'highlight';
-            mark.style.cssText = 'background-color: var(--test-hl-bg, #ffff00); color: var(--test-hl-fg, #000000);';
-            textToWrap.parentNode.insertBefore(mark, textToWrap);
-            mark.appendChild(textToWrap);
-          }
-        } catch (err) {
-          console.warn('Skipped a node wrap', err);
-        }
+    // Save highlight to localStorage
+    const highlights = loadHighlights();
+    // Avoid duplicate overlapping highlights
+    const isOverlapping = highlights.some(
+      (h) => h.start < offsets.end && h.end > offsets.start
+    );
+    if (!isOverlapping) {
+      highlights.push({
+        id: 'hl_' + Date.now() + Math.random().toString(36).substr(2, 5),
+        start: offsets.start,
+        end: offsets.end,
+        text: offsets.text,
       });
+      saveHighlights(highlights);
     }
 
     selection.removeAllRanges();
     setToolbarPos(null);
-  }, []);
+    setRangeOffsets(null);
 
-  /* ── Eraser Logic ── */
+    // Re-apply all highlights from localStorage to DOM
+    requestAnimationFrame(() => applyHighlights());
+  }, [loadHighlights, saveHighlights, applyHighlights]);
+
+  /* ── Eraser Logic — remove from localStorage too ── */
   const handleEraser = useCallback(() => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return;
 
     const range = selection.getRangeAt(0);
+    const el = contentRef.current;
+    if (!el) return;
 
-    if (contentRef.current) {
-      const highlights = contentRef.current.querySelectorAll('mark.highlight');
-      let removed = false;
-      
-      const marksToRemove = [];
-      highlights.forEach(mark => {
-        try {
-          if (range.intersectsNode(mark)) {
-            marksToRemove.push(mark);
-          }
-        } catch {
-          // ignore
-        }
-      });
-      
-      marksToRemove.forEach(mark => {
-        const parent = mark.parentNode;
-        if (parent) {
-          const fragment = document.createDocumentFragment();
-          while (mark.firstChild) {
-            fragment.appendChild(mark.firstChild);
-          }
-          parent.insertBefore(fragment, mark);
-          parent.removeChild(mark);
-          removed = true;
-        }
-      });
-      
-      if (removed) {
-        contentRef.current.normalize();
-      }
-    }
+    // Get selection offsets to find overlapping stored highlights
+    const offsets = getSelectionOffsets(el, range);
+
+    // Remove from localStorage
+    const highlights = loadHighlights();
+    const filtered = highlights.filter(
+      (h) => !(h.start < offsets.end && h.end > offsets.start)
+    );
+    saveHighlights(filtered);
 
     selection.removeAllRanges();
     setToolbarPos(null);
-  }, []);
+
+    // Re-apply (without erased highlights)
+    requestAnimationFrame(() => applyHighlights());
+  }, [loadHighlights, saveHighlights, applyHighlights]);
 
   /* ── Close toolbar on scroll ── */
   useEffect(() => {
@@ -356,9 +376,7 @@ const HighlightableContent = memo(function HighlightableContent({
   /* ── Close toolbar on click outside ── */
   useEffect(() => {
     const h = (e) => {
-      // Close toolbar if click is completely outside contentRef
       if (toolbarPos && contentRef.current && !contentRef.current.contains(e.target)) {
-        // Direct state update since toolbar buttons stop propagation now
         setToolbarPos(null);
       }
     };
@@ -370,9 +388,9 @@ const HighlightableContent = memo(function HighlightableContent({
 
   return (
     <>
-      <NoteToolbar 
-        position={toolbarPos} 
-        onAddNote={handleAddNote} 
+      <NoteToolbar
+        position={toolbarPos}
+        onAddNote={handleAddNote}
         onHighlight={handleHighlight}
         onEraser={handleEraser}
       />
