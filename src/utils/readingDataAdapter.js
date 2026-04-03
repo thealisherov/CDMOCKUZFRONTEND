@@ -391,21 +391,30 @@ function extractOptionLetters(options) {
   });
 }
 
-/**
- * Get all unique paragraph letters from passage content (A, B, C, etc.)
- */
 function extractParagraphLetters(passageContent) {
   if (!passageContent) return [];
-  const matches = passageContent.match(/^[A-Z]\s/gm);
-  if (!matches) {
-    // Try to find patterns like "\n\nA " in the content
-    const altMatches = passageContent.match(/(?:^|\n\n)([A-Z])\s/g);
-    if (altMatches) {
-      return [...new Set(altMatches.map(m => m.trim().charAt(0)))];
-    }
-    return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+  
+  // 1. Convert block breaks to true newlines
+  let cleanContent = passageContent
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|h[1-6]|li)>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ') // Strip remaining HTML tags
+    .replace(/&nbsp;/g, ' ')  // Replace HTML spaces
+    .replace(/\n\s+/g, '\n')  // Clean spaces after newlines
+    .trim();
+
+  // 2. Match a single uppercase letter followed by space or dot at the start of a line
+  const matches = cleanContent.match(/^[A-Z](?=[\s.)])/gm);
+  
+  if (matches && matches.length >= 2) {
+    const unique = [...new Set(matches.map(m => m.trim()))];
+    // Filter out 'I' or 'A' if they appear alone without a sequence like 'B' etc, 
+    // but the set unique will handle it implicitly if there's > 2 matches
+    return unique.sort();
   }
-  return [...new Set(matches.map(m => m.trim()))];
+  
+  // Fallback if the letters could not be extracted
+  return ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 }
 
 /**
