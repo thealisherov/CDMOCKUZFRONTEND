@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen, Headphones, PenTool, Mic,
   MessageCircle, LogOut, PanelLeftClose, PanelLeftOpen,
-  Zap, Star, Settings, ShieldCheck, Trophy, Sparkles, FileText, User, X
+  Zap, Star, Settings, ShieldCheck, Trophy, Sparkles, FileText, User, X, LifeBuoy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -43,6 +43,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     { name: "Articles",    href: "#",                    icon: FileText,      locked: true, badge: "Soon" },
     { name: "Comments",    href: "/dashboard/comments",  icon: MessageCircle, locked: false },
     { name: "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy,    locked: false },
+    { name: "Support",     href: "/dashboard/support",   icon: LifeBuoy,      locked: false },
     { name: "Premium",     href: "/dashboard/premium",   icon: Star,          locked: false, badge: "Upgrade" },
     { name: "Profile",     href: "/dashboard/profile",   icon: User,          locked: false },
   ];
@@ -143,12 +144,15 @@ export default function Sidebar({ collapsed, onToggle }) {
 
         {navigation.map((item) => {
           const active = isActive(item.href);
+          const translatedName = t?.sidebar?.[item.name.toLowerCase()] || item.name;
+          const translatedBadge = item.badge && t?.sidebar?.[item.badge.toLowerCase()] ? t.sidebar[item.badge.toLowerCase()] : item.badge;
+          
           return (
             <a
               key={item.name}
               href={item.href}
               onClick={(e) => handleNavClick(e, item)}
-              title={collapsed ? item.name : undefined}
+              title={collapsed ? translatedName : undefined}
               className={cn(
                 "group relative flex items-center rounded-xl text-sm font-medium transition-all duration-200",
                 collapsed ? "justify-center px-0 py-3" : "justify-between px-3 py-2.5",
@@ -190,7 +194,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                 />
                 {!collapsed && (
                   <span className={cn("font-medium", active ? "text-white" : "")}>
-                    {item.name}
+                    {translatedName}
                   </span>
                 )}
               </div>
@@ -204,7 +208,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                     : { color: 'var(--sidebar-foreground)', opacity: 0.5 }
                   }
                 >
-                  {item.badge}
+                  {translatedBadge}
                 </span>
               )}
 
@@ -220,8 +224,8 @@ export default function Sidebar({ collapsed, onToggle }) {
                     boxShadow: '0 8px 24px oklch(0 0 0 / 0.3)',
                   }}
                 >
-                  {item.name}
-                  {item.badge && <span className="ml-1.5 opacity-60">({item.badge})</span>}
+                  {translatedName}
+                  {item.badge && <span className="ml-1.5 opacity-60">({translatedBadge})</span>}
                 </span>
               )}
             </a>

@@ -162,6 +162,7 @@ export const translations = {
       predictions: "Predictions",
       articles: "Articles",
       profile: "My Profile",
+      support: "Support & FAQ",
     },
     profile: {
       accountInfo: "Account Info",
@@ -260,6 +261,24 @@ export const translations = {
       telegramTitle: "Join Our Community!",
       telegramDesc: "Subscribe to our Telegram channel for the latest news, IELTS tips, and exclusive updates.",
       telegramBtn: "Subscribe",
+    },
+    support: {
+      title: "Help Center",
+      subtitle: "Got questions or faced an issue? We're here to help!",
+      contactTitle: "Contact & Bug Report",
+      contactDesc: "If you encounter any bugs, errors, or mistakes in tests, please take a screenshot and send it to our Telegram support. Our team will fix it promptly.",
+      telegramBtn: "Contact via Telegram",
+      faqTitle: "Frequently Asked Questions (FAQ)",
+      faqs: [
+        { q: "How to use the platform?", a: "Choose any listening or reading test from the Dashboard and start. Your results will be evaluated immediately upon completion." },
+        { q: "How to get Premium and what's the cost?", a: "You can purchase Premium via the 'Subscription' or 'Pricing' section where all payment details are provided." },
+        { q: "How long does it take to activate Premium after payment?", a: "Preimum accounts are manually activated. Once you send the payment receipt to our Telegram Admin, it's usually activated within 15-30 minutes." },
+        { q: "I forgot my password, how can I recover it?", a: "You can easily reset your password by clicking on 'Forgot password?' on the Login page. A recovery link will be sent directly to your registered email." },
+        { q: "Can I take tests on my mobile phone?", a: "While you can browse tests on your mobile phone, taking actual exams (Reading, Listening) requires a laptop or PC for the best practice environment." },
+        { q: "Why are some tests Locked?", a: "The free plan grants access to limited tests. To unlock the full library of advanced tests, please upgrade to Premium." },
+        { q: "What if the audio is not playing?", a: "Check your browser's audio permissions or try refreshing the page. Ensure your device volume is up." },
+        { q: "Are my answers saved if I close the tab?", a: "Yes, your progress is safely auto-saved locally. You can resume exactly where you left off when you return." }
+      ]
     }
   },
   uz: {
@@ -418,6 +437,7 @@ export const translations = {
       predictions: "Bashoratlar",
       articles: "Maqolalar",
       profile: "Mening profilim",
+      support: "Yordam va FAQ",
     },
     profile: {
       accountInfo: "Akkaunt ma'lumotlari",
@@ -515,6 +535,24 @@ export const translations = {
       telegramTitle: "Jamoamizga Qo'shiling!",
       telegramDesc: "So'nggi yangiliklar, IELTS foydali maslahatlari va eksklyuziv yangilanishlar uchun Telegram kanalimizga obuna bo'ling.",
       telegramBtn: "Obuna Bo'lish",
+    },
+    support: {
+      title: "Yordam markazi",
+      subtitle: "Savollaringiz bormi yoki qandaydir muammo kuzatildimi? Biz shu yerdamiz!",
+      contactTitle: "Bog'lanish va Xatoliklar",
+      contactDesc: "Agar saytda yoki testlarda qandaydir xatolik (bug) topsangiz, iltimos u joyni rasmga (skrinshot) olib, bizning Telegram yordam guruhimizga yuboring. Dasturchilar tezda hal qilishadi.",
+      telegramBtn: "Telegram orqali bog'lanish",
+      faqTitle: "Ko'p so'raladigan savollar (FAQ)",
+      faqs: [
+        { q: "Platformadan qanday foydalanaman?", a: "Dashboard orqali istalgan listening yoki reading testini tanlab ishlashni boshlashingiz mumkin. Test yakunlangandan so'ng avtomat tekshiriladi." },
+        { q: "Premium qanday olinadi va qancha turadi?", a: "Premium tariflarni 'Obuna' bo'limi orqali xarid qilishingiz mumkin. Barcha to'lov yo'riqnomalari o'sha yerda tushuntirilgan." },
+        { q: "To'lov qilingandan so'ng Premium akkaunt qancha vaqtda faollashadi?", a: "To'lov chekini Telegram adminimizga yuborganingizdan so'ng, hisobingiz odatda 15-30 daqiqa ichida faollashtiriladi." },
+        { q: "Parolimni unutdim, uni qanday tiklasam bo'ladi?", a: "Login sahifasida 'Parolni unutdingizmi?' (Forgot password) tugmasini bosib e-mail pochtangizga kelgan havola orqali parolni yangilashingiz mumkin." },
+        { q: "Telefon orqali testlarni ishlasam bo'ladimi?", a: "Testlarni faqat kompyuter yoki noutbuk orqali ishlashingizni qat'iy tavsiya qilamiz chunchki u IELTS imtihoni muhitini to'liq bera oladi." },
+        { q: "Nega ba'zi testlar yopiq (Locked)?", a: "Faqat Bepul tarifdagilarga ma'lum testlar ochiq. Qolgan bazadagi testlarga kirish uchun Premium hisob kerak." },
+        { q: "Audio ishlamasa nima qilish kerak?", a: "Brauzer avtomatik ovozni past qilib qo'ygan bo'lishi mumkin. Ovozni tekshiring yoki sahifani yangilang." },
+        { q: "Test ishlayotganda sahifa yopilib qolsa javoblar saqlanadimi?", a: "Ha, javoblar avtomat saqlanadi. Qayta kirganingizda to'xtagan joyidan davom ettirasiz." }
+      ]
     }
   },
   ru: {
@@ -673,6 +711,7 @@ export const translations = {
       predictions: "Прогнозы",
       articles: "Статьи",
       profile: "Мой профиль",
+      support: "Поддержка и FAQ",
     },
     profile: {
       accountInfo: "Данные аккаунта",
@@ -770,6 +809,24 @@ export const translations = {
       telegramTitle: "Присоединяйтесь к нам!",
       telegramDesc: "Подпишитесь на наш Telegram-канал, чтобы получать последние новости, советы по IELTS и эксклюзивные обновления.",
       telegramBtn: "Подписаться",
+    },
+    support: {
+      title: "Центр поддержки",
+      subtitle: "Есть вопросы или столкнулись с проблемой? Мы здесь, чтобы помочь!",
+      contactTitle: "Связаться с нами и Сообщить об ошибке",
+      contactDesc: "Если вы обнаружили ошибку на сайте или в тесте, сделайте скриншот и отправьте нам в Telegram. Наши разработчики быстро всё исправят.",
+      telegramBtn: "Связаться в Telegram",
+      faqTitle: "Часто задаваемые вопросы (ЧАВО)",
+      faqs: [
+        { q: "Как пользоваться платформой?", a: "Выберите любой тест в панели (Dashboard) и начните. Ваши результаты будут оценены сразу после завершения." },
+        { q: "Как получить Premium и сколько это стоит?", a: "Вы можете купить Premium в разделе 'Подписка', где указаны все способы оплаты." },
+        { q: "Сколько времени занимает активация Premium после оплаты?", a: "Обычно аккаунты активируются в течение 15-30 минут после отправки чека нашему Telegram-администратору." },
+        { q: "Я забыл свой пароль, как его восстановить?", a: "Вы можете сбросить пароль, нажав кнопку 'Забыли пароль?' на странице входа и перейдя по ссылке, отправленной на ваш email." },
+        { q: "Могу ли я проходить тесты на мобильном телефоне?", a: "Мы настоятельно рекомендуем использовать компьютер или ноутбук для сдачи тестов, так как телефон не передает атмосферу настоящего экзамена." },
+        { q: "Почему некоторые тесты заблокированы (Locked)?", a: "Бесплатный тариф дает доступ к ограниченному числу тестов. Для полного доступа нужен Premium." },
+        { q: "Что делать, если аудио не работает?", a: "Проверьте разрешения звука в браузере или обновите страницу. Убедитесь, что звук на устройстве включен." },
+        { q: "Сохранятся ли ответы, если закрыть вкладку?", a: "Да, ваш прогресс автоматически сохраняется. Вы начнете ровно с того места, где остановились." }
+      ]
     }
   }
 };
