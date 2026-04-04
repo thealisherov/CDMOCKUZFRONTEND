@@ -267,10 +267,25 @@ const HighlightableContent = memo(function HighlightableContent({
   const applyAll = useCallback(() => { applyNoteMarks(); applyHighlights(); }, [applyNoteMarks, applyHighlights]);
 
   /* ── Effects ── */
+  // Re-apply when containerId changes (switching passage/part).
+  // Uses a double-rAF + 250ms retry because Next.js hydration may not have
+  // populated contentRef.current with text nodes yet on the first animation frame.
   useEffect(() => {
-    const id = requestAnimationFrame(() => { domReadyRef.current = true; applyAll(); });
+    const ids = { raf1: 0, raf2: 0, timer: 0 };
+
+    ids.raf1 = requestAnimationFrame(() => {
+      ids.raf2 = requestAnimationFrame(() => {
+        domReadyRef.current = true;
+        applyAll();
+        // Retry after a short delay to catch late hydration
+        ids.timer = setTimeout(() => applyAll(), 250);
+      });
+    });
+
     return () => {
-      cancelAnimationFrame(id);
+      cancelAnimationFrame(ids.raf1);
+      cancelAnimationFrame(ids.raf2);
+      clearTimeout(ids.timer);
       if (CSS_HL_SUPPORTED) {
         try { CSS.highlights.delete(hlName); CSS.highlights.delete(noteHlName); } catch { /* ignore */ }
       }
@@ -278,7 +293,7 @@ const HighlightableContent = memo(function HighlightableContent({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [containerId]);
 
-  // Re-apply when notes list changes
+  // Re-apply when notes list changes (note added/removed/updated)
   useEffect(() => {
     if (!domReadyRef.current) return;
     const id = requestAnimationFrame(() => applyAll());
