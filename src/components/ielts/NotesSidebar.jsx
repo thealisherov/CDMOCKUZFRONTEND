@@ -12,7 +12,13 @@ export default function NotesSidebar() {
   // Auto-focus the latest note's textarea when a new note is added
   useEffect(() => {
     if (isSidebarOpen && latestRef.current) {
-      latestRef.current.focus();
+      // Animatsiya (0.2s) tugaguncha kutib, keyin focus qilish (ekran sakrab/silkinib ketmasligi uchun)
+      const timer = setTimeout(() => {
+        if (latestRef.current) {
+          latestRef.current.focus({ preventScroll: true });
+        }
+      }, 250);
+      return () => clearTimeout(timer);
     }
   }, [onlyNotes.length, isSidebarOpen]);
 
