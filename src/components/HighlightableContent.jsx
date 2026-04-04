@@ -162,13 +162,12 @@ const HighlightableContent = memo(function HighlightableContent({
     if (!el) return;
 
     if (CSS_HL_SUPPORTED) {
-      // Clear old CSS highlight
+      // Always clear first
       CSS.highlights.delete(hlName);
 
       const highlights = loadHighlights();
       if (!highlights.length) return;
 
-      // Inject ::highlight() CSS rule once per name
       ensureHighlightStyle(
         hlName,
         'var(--test-hl-bg, #ffff00)',
@@ -190,7 +189,6 @@ const HighlightableContent = memo(function HighlightableContent({
     }
 
     // ── DOM fallback (older browsers) ──
-    // Remove existing DOM marks (no normalize!)
     el.querySelectorAll('mark.highlight').forEach((mark) => {
       const parent = mark.parentNode; if (!parent) return;
       while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
@@ -203,7 +201,7 @@ const HighlightableContent = memo(function HighlightableContent({
     [...highlights].sort((a, b) => b.start - a.start).forEach((hl) => {
       try {
         const range = restoreRange(el, hl.start, hl.end);
-        if (!range || !isSafeToMark(range)) return; // Guard: never touch React-managed nodes
+        if (!range || !isSafeToMark(range)) return;
         const mark = document.createElement('mark');
         mark.className = 'highlight';
         mark.setAttribute('data-hl-id', hl.id);

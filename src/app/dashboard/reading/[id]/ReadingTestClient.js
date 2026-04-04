@@ -411,15 +411,13 @@ function ReadingTestInner({ id, rawData }) {
               )}
 
               <div className="px-6 pt-6 pb-32">
-                <HighlightableContent className="max-w-none leading-relaxed" containerId={`passage_${activePassage}`}>
+              <HighlightableContent className="max-w-none leading-relaxed" containerId={`passage_${activePassage}`}>
                   {(currentPassage?.text || currentPassage?.content || '').split('\n\n').map((paragraph, idx) => {
                     const trimmed = paragraph.trim();
                     if (!trimmed) return null;
 
                     const matchHeadingsBlock = currentBlocks.find(b => b.type === 'match_headings');
                     
-                    // 1. Labelni aniqlash (Section 1, Paragraph A, yoki shunchaki A)
-                    // Support leading HTML tags like <img> or <br/> before the label
                     const sectionMatch = trimmed.match(/^((?:<[^>]+>\s*)*)(Section\s+(?:\d+|[A-ZIVX]+)|Paragraph\s+(?:[A-Z]|\d+)|[A-Z](?=\.|\n|\r|\t|  |$))[\.\s]*([\s\S]*)$/i);
                     
                     let headingQ = null;
@@ -431,13 +429,11 @@ function ReadingTestInner({ id, rawData }) {
                       const labelText = sectionMatch[2] || '';
                       labelFound = labelText.trim().toUpperCase();
                       const contentAfterLabel = sectionMatch[3]?.trim();
-                      
                       displayContent = leadingTags + contentAfterLabel;
 
                       if (matchHeadingsBlock?.questions) {
                         headingQ = matchHeadingsBlock.questions.find(q => {
                           const qt = q.text.toUpperCase();
-                          // "Section A" -> matching "A"
                           return qt === labelFound || qt === `SECTION ${labelFound}` || qt === `PARAGRAPH ${labelFound}` || new RegExp(`\\b${labelFound}\\b`).test(qt);
                         });
                       }
@@ -475,7 +471,7 @@ function ReadingTestInner({ id, rawData }) {
                   <h3 className="font-bold text-sm">Questions {rangeText}</h3>
                 </div>
                 <div className="space-y-6">
-                  <HighlightableContent containerId="reading_questions">
+                  <HighlightableContent containerId={`passage_${activePassage}_questions`}>
                     {currentBlocks.map((block, blockIndex) => {
                     const blockStartIndex = getStartIndex(blockOffset + blockIndex);
                     if (block.type === 'match_headings') {
