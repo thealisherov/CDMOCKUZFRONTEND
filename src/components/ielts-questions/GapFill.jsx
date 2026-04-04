@@ -1,17 +1,38 @@
 'use client';
 
-import React from 'react';
-import parse, { domToReact } from 'html-react-parser';
+import React, { useRef, useLayoutEffect } from 'react';
+import parse from 'html-react-parser';
 
 /**
  * GapFill — "Complete the notes / sentences" component.
- * Applies test-taking template design.
- * Fully controlled by `userAnswers`.
+ *
+ * Focus-loss fix: html-react-parser re-creates React elements on every render,
+ * causing inputs to unmount→remount and lose focus after each keystroke.
+ * We track the last-focused input id in a ref and restore focus via
+ * useLayoutEffect (runs synchronously after DOM update, before browser paint).
  */
 const GapFill = ({ data, onAnswer, userAnswers = {} }) => {
+  // Tracks the questionId of the input the user is currently typing in.
+  const focusedId = useRef(null);
+
   const handleInputChange = (questionId, val) => {
+    focusedId.current = questionId;
     onAnswer(questionId, val);
   };
+
+  // After every render: if we know which input was focused, re-focus it
+  // and move cursor to end. useLayoutEffect is synchronous so there is
+  // no visible flicker.
+  useLayoutEffect(() => {
+    if (focusedId.current) {
+      const el = document.getElementById(`gap-input-${focusedId.current}`);
+      if (el && document.activeElement !== el) {
+        el.focus();
+        const len = el.value.length;
+        el.setSelectionRange(len, len);
+      }
+    }
+  });
 
   const options = {
     replace: (domNode) => {
@@ -40,6 +61,8 @@ const GapFill = ({ data, onAnswer, userAnswers = {} }) => {
                         placeholder={questionId}
                         className="px-1 py-0 h-[1.3em] text-center border border-gray-400 rounded bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors font-semibold text-blue-800 text-[inherit]"
                         style={{ width: '140px', maxWidth: '230px' }}
+                        onFocus={() => { focusedId.current = questionId; }}
+                        onBlur={() => { focusedId.current = null; }}
                         onChange={(e) => handleInputChange(questionId, e.target.value)}
                       />
                     </span>
@@ -67,7 +90,9 @@ const GapFill = ({ data, onAnswer, userAnswers = {} }) => {
     }
   };
 
-  const cleanContent = data.content ? data.content.replace(/\[cite[^\]]*\]/ig, '').replace(/\n/g, '<br/>') : '';
+  const cleanContent = data.content
+    ? data.content.replace(/\[cite[^\]]*\]/ig, '').replace(/\n/g, '<br/>')
+    : '';
 
   return (
     <div className="mb-8 font-sans">
