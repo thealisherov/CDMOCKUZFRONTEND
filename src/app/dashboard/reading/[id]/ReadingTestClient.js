@@ -475,25 +475,25 @@ function ReadingTestInner({ id, rawData }) {
                   <h3 className="font-bold text-sm">Questions {rangeText}</h3>
                 </div>
                 <div className="space-y-6">
-                <div>
-                  {currentBlocks.map((block, blockIndex) => {
-                  const blockStartIndex = getStartIndex(blockOffset + blockIndex);
-                  if (block.type === 'match_headings') {
+                  <HighlightableContent containerId="reading_questions">
+                    {currentBlocks.map((block, blockIndex) => {
+                    const blockStartIndex = getStartIndex(blockOffset + blockIndex);
+                    if (block.type === 'match_headings') {
+                      return (
+                        <div key={block.id} id={`question-${blockStartIndex}`}>
+                          {block.instruction && <p className="font-bold mb-3" style={{ fontSize: '1.2em' }}>{block.instruction}</p>}
+                          <MatchHeadings data={block} onAnswer={handleBlockAnswers} startIndex={blockStartIndex} userAnswers={userAnswers} />
+                        </div>
+                      );
+                    }
                     return (
                       <div key={block.id} id={`question-${blockStartIndex}`}>
                         {block.instruction && <p className="font-bold mb-3" style={{ fontSize: '1.2em' }}>{block.instruction}</p>}
-                        <MatchHeadings data={block} onAnswer={handleBlockAnswers} startIndex={blockStartIndex} userAnswers={userAnswers} />
+                        <QuestionRenderer data={block} startIndex={blockStartIndex} onAnswersChange={handleBlockAnswers} userAnswers={userAnswers} layout="stacked" />
                       </div>
                     );
-                  }
-                  return (
-                    <div key={block.id} id={`question-${blockStartIndex}`}>
-                      {block.instruction && <p className="font-bold mb-3" style={{ fontSize: '1.2em' }}>{block.instruction}</p>}
-                      <QuestionRenderer data={block} startIndex={blockStartIndex} onAnswersChange={handleBlockAnswers} userAnswers={userAnswers} layout="stacked" />
-                    </div>
-                  );
-                })}
-                </div>
+                  })}
+                  </HighlightableContent>
                 </div>
               </div>
             </div>

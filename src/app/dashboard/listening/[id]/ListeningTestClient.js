@@ -561,7 +561,7 @@ function ListeningTestInner({ id, rawData }) {
     {/* ═══ MAIN CONTENT ═══ */}
     <div className="flex-1 overflow-y-auto pb-24" style={{ background: 'var(--test-panel-bg)', color: 'var(--test-fg)' }}>
       <div className="w-full px-6 lg:px-10 pt-4 py-8 max-w-[1600px]">
-        <div>
+        <HighlightableContent containerId={`listening_part_${activePartIndex}`}>
           {visibleSections.map((block) => {
             const blockStart = getStartIndex(block.id);
             const isSideBySide = !!block.image;
@@ -592,27 +592,17 @@ function ListeningTestInner({ id, rawData }) {
                 <div className={isSideBySide ? "flex flex-col lg:flex-row justify-between items-start" : "flex flex-col"}>
                   {block.image && (
                     <div className={isSideBySide ? "lg:w-[47.5%] w-full flex-shrink-0" : "w-full mb-8"}>
-                      <img
-                        src={block.image}
-                        alt="Question visual"
-                        className="w-full rounded border border-gray-200 shadow-lg"
-                      />
+                      <img src={block.image} alt="Question visual" className="w-full rounded border border-gray-200 shadow-lg" />
                     </div>
                   )}
-
                   <div className={isSideBySide ? "lg:w-[47.5%] w-full min-w-0" : "w-full"}>
-                    <QuestionRenderer
-                      data={block}
-                      startIndex={blockStart}
-                      onAnswersChange={handleBlockAnswers}
-                      userAnswers={userAnswers}
-                    />
+                    <QuestionRenderer data={block} startIndex={blockStart} onAnswersChange={handleBlockAnswers} userAnswers={userAnswers} />
                   </div>
                 </div>
               </div>
             );
           })}
-        </div>
+        </HighlightableContent>
       </div>
     </div>
 
