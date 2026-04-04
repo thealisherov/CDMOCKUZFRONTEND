@@ -3,35 +3,41 @@ import React, { memo, useState, useRef, useEffect, useCallback } from 'react';
 import { useNotes } from '@/components/NotesContext';
 
 /* ─────────────────────────────────────────────────────────────────────────────
- * SAFETY GUARD
- * Returns true only when it is safe to insert a <mark> via surroundContents.
- * A range is UNSAFE if its common ancestor contains any <input> or <textarea>
- * — those are React-managed nodes that must never be split by DOM mutation.
+ * CSS Custom Highlight API — ZERO DOM mutations.
+ * Highlights are applied via CSS ::highlight() pseudo-element without ever
+ * touching the DOM structure. This makes it completely safe with React-managed
+ * content (GapFill, etc.) because React's text-node references are never split.
+ *
+ * Support: Chrome 105+, Edge 105+, Safari 17.2+, Firefox 117+
+ * Fallback: DOM <mark> elements ONLY for areas without input elements.
  * ───────────────────────────────────────────────────────────────────────────── */
+
+const CSS_HL_SUPPORTED = typeof window !== 'undefined' && typeof CSS !== 'undefined' && !!CSS.highlights;
+
+/* ── Inject a ::highlight() CSS rule for a given highlight name (once per name) ── */
+function ensureHighlightStyle(hlName, bg, fg) {
+  const id = `hl-style-${hlName}`;
+  if (document.getElementById(id)) return;
+  const style = document.createElement('style');
+  style.id = id;
+  style.textContent = `::highlight(${hlName}){background-color:${bg};color:${fg};}`;
+  document.head.appendChild(style);
+}
+
+/* ── Safety guard for the DOM-mark fallback ── */
 function isSafeToMark(range) {
   if (!range) return false;
   const ancestor = range.commonAncestorContainer;
   const el = ancestor.nodeType === Node.TEXT_NODE ? ancestor.parentElement : ancestor;
   if (!el) return false;
-
-  // Block only when the selection range actually CROSSES an interactive element.
-  // Using intersectsNode() is precise: it returns true only when the input node
-  // overlaps with the range boundaries — not just because an input exists somewhere
-  // inside the ancestor.
   const interactives = el.querySelectorAll ? el.querySelectorAll('input, textarea, select') : [];
   for (const interactive of interactives) {
-    try {
-      if (range.intersectsNode(interactive)) return false;
-    } catch { /* ignore */ }
+    try { if (range.intersectsNode(interactive)) return false; } catch { /* ignore */ }
   }
   return true;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
- * OFFSET HELPERS  (offset = character distance from container start)
- * Walking only TEXT_NODE children; inputs contribute their placeholder length
- * so offsets stay consistent between save and restore.
- * ───────────────────────────────────────────────────────────────────────────── */
+/* ── Offset helpers ── */
 function getSelectionOffsets(container, range) {
   const pre = range.cloneRange();
   pre.selectNodeContents(container);
@@ -45,30 +51,22 @@ function restoreRange(container, start, end) {
   let idx = 0;
   const range = document.createRange();
   let foundStart = false, stop = false;
-
   (function walk(node) {
     if (stop) return;
     if (node.nodeType === Node.TEXT_NODE) {
       const next = idx + node.length;
-      if (!foundStart && start >= idx && start <= next) {
-        range.setStart(node, start - idx);
-        foundStart = true;
-      }
-      if (foundStart && end >= idx && end <= next) {
-        range.setEnd(node, end - idx);
-        stop = true;
-      }
+      if (!foundStart && start >= idx && start <= next) { range.setStart(node, start - idx); foundStart = true; }
+      if (foundStart && end >= idx && end <= next) { range.setEnd(node, end - idx); stop = true; }
       idx = next;
     } else {
       for (let i = 0; i < node.childNodes.length; i++) walk(node.childNodes[i]);
     }
   })(container);
-
   return foundStart && stop ? range : null;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- * NoteToolbar — floating action bar above selection
+ * NoteToolbar
  * ───────────────────────────────────────────────────────────────────────────── */
 const NoteToolbar = memo(function NoteToolbar({ position, onAddNote, onHighlight, onEraser, safeToMark }) {
   if (!position) return null;
@@ -92,22 +90,21 @@ const NoteToolbar = memo(function NoteToolbar({ position, onAddNote, onHighlight
         Note
       </button>
 
-      {safeToMark && (
-        <button
-          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onHighlight(); }}
-          className="flex flex-col items-center justify-center py-1.5 px-3 transition-colors border-r"
-          style={{ color: '#1a1a1a', borderColor: '#e2e2e2' }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-          title="Highlight"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            <path d="M3 21h18" strokeWidth={2} strokeLinecap="round"/>
-          </svg>
-          <div className="h-1 w-full bg-[#ddff00] mt-0.5 rounded-full"></div>
-        </button>
-      )}
+      {/* Highlight button — always shown; CSS API handles safe/unsafe correctly */}
+      <button
+        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onHighlight(); }}
+        className="flex flex-col items-center justify-center py-1.5 px-3 transition-colors border-r"
+        style={{ color: '#1a1a1a', borderColor: '#e2e2e2' }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = '#f5f5f5'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+        title="Highlight"
+      >
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          <path d="M3 21h18" strokeWidth={2} strokeLinecap="round"/>
+        </svg>
+        <div className="h-1 w-full bg-[#ddff00] mt-0.5 rounded-full"></div>
+      </button>
 
       <button
         onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onEraser(); }}
@@ -133,20 +130,21 @@ const HighlightableContent = memo(function HighlightableContent({
   enabled = true,
   containerId = 'main',
 }) {
-  const [toolbarPos,    setToolbarPos]    = useState(null);
-  const [rangeOffsets,  setRangeOffsets]  = useState(null);
-  const [currentSafe,   setCurrentSafe]   = useState(false); // is current selection safe to mark?
-  const contentRef   = useRef(null);
-  const domReadyRef  = useRef(false);
+  const [toolbarPos,   setToolbarPos]   = useState(null);
+  const [rangeOffsets, setRangeOffsets] = useState(null);
+  const contentRef  = useRef(null);
+  const domReadyRef = useRef(false);
 
-  const notesCtx        = useNotes();
-  const notes           = notesCtx?.notes           || [];
-  const addNote         = notesCtx?.addNote         || (() => {});
-  const setIsSidebarOpen= notesCtx?.setIsSidebarOpen|| (() => {});
-  const highlightPrefix = notesCtx?.highlightPrefix || 'highlights_main_';
-  const hlStorageKey    = `${highlightPrefix}${containerId}`;
+  const notesCtx         = useNotes();
+  const notes            = notesCtx?.notes            || [];
+  const addNote          = notesCtx?.addNote          || (() => {});
+  const setIsSidebarOpen = notesCtx?.setIsSidebarOpen || (() => {});
+  const highlightPrefix  = notesCtx?.highlightPrefix  || 'highlights_main_';
+  const hlStorageKey     = `${highlightPrefix}${containerId}`;
+  // CSS highlight name (must be a valid CSS ident; underscores + hyphens are fine)
+  const hlName = `hl-${containerId}`;
 
-  /* ── localStorage helpers ── */
+  /* ── localStorage ── */
   const loadHighlights = useCallback(() => {
     try { const s = localStorage.getItem(hlStorageKey); return s ? JSON.parse(s) : []; } catch { return []; }
   }, [hlStorageKey]);
@@ -155,42 +153,57 @@ const HighlightableContent = memo(function HighlightableContent({
     try { localStorage.setItem(hlStorageKey, JSON.stringify(hl)); } catch { /* ignore */ }
   }, [hlStorageKey]);
 
-  /* ── Remove marks (NO normalize — would break React text nodes) ── */
-  const removeHighlightMarks = useCallback((el) => {
-    el.querySelectorAll('mark.highlight').forEach((mark) => {
-      const parent = mark.parentNode;
-      if (!parent) return;
-      while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
-      parent.removeChild(mark);
-    });
-    // DO NOT call el.normalize() — it merges adjacent text nodes and
-    // invalidates React's internal references to those nodes.
-  }, []);
-
-  const removeNoteMarks = useCallback((el) => {
-    el.querySelectorAll('mark[data-note-id]').forEach((mark) => {
-      const parent = mark.parentNode;
-      if (!parent) return;
-      while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
-      parent.removeChild(mark);
-    });
-    // DO NOT call el.normalize()
-  }, []);
-
-  /* ── Apply saved highlights ── */
+  /* ── Apply highlights ──────────────────────────────────────────────────────
+   * PRIMARY path: CSS Custom Highlight API — zero DOM mutation, React-safe.
+   * FALLBACK: DOM <mark> only if CSS API unavailable AND area is input-free.
+   * ──────────────────────────────────────────────────────────────────────── */
   const applyHighlights = useCallback(() => {
     const el = contentRef.current;
     if (!el) return;
-    removeHighlightMarks(el);
+
+    if (CSS_HL_SUPPORTED) {
+      // Clear old CSS highlight
+      CSS.highlights.delete(hlName);
+
+      const highlights = loadHighlights();
+      if (!highlights.length) return;
+
+      // Inject ::highlight() CSS rule once per name
+      ensureHighlightStyle(
+        hlName,
+        'var(--test-hl-bg, #ffff00)',
+        'var(--test-hl-fg, #000000)'
+      );
+
+      const ranges = [];
+      highlights.forEach((hl) => {
+        try {
+          const range = restoreRange(el, hl.start, hl.end);
+          if (range) ranges.push(range);
+        } catch { /* ignore */ }
+      });
+
+      if (ranges.length) {
+        CSS.highlights.set(hlName, new Highlight(...ranges));
+      }
+      return;
+    }
+
+    // ── DOM fallback (older browsers) ──
+    // Remove existing DOM marks (no normalize!)
+    el.querySelectorAll('mark.highlight').forEach((mark) => {
+      const parent = mark.parentNode; if (!parent) return;
+      while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+      parent.removeChild(mark);
+    });
+
     const highlights = loadHighlights();
     if (!highlights.length) return;
 
     [...highlights].sort((a, b) => b.start - a.start).forEach((hl) => {
       try {
         const range = restoreRange(el, hl.start, hl.end);
-        if (!range) return;
-        // KEY GUARD: never mutate React-managed text nodes (those near inputs)
-        if (!isSafeToMark(range)) return;
+        if (!range || !isSafeToMark(range)) return; // Guard: never touch React-managed nodes
         const mark = document.createElement('mark');
         mark.className = 'highlight';
         mark.setAttribute('data-hl-id', hl.id);
@@ -199,47 +212,54 @@ const HighlightableContent = memo(function HighlightableContent({
         catch { const frag = range.extractContents(); mark.appendChild(frag); range.insertNode(mark); }
       } catch { /* silently skip */ }
     });
-  }, [loadHighlights, removeHighlightMarks]);
+  }, [loadHighlights, hlName]);
 
-  /* ── Apply note underlines ── */
+  /* ── Apply note underlines ─────────────────────────────────────────────────
+   * Notes use DOM <mark> for click handlers.
+   * The isSafeToMark guard prevents touching React-managed text nodes.
+   * ──────────────────────────────────────────────────────────────────────── */
   const applyNoteMarks = useCallback(() => {
     const el = contentRef.current;
     if (!el) return;
-    removeNoteMarks(el);
-    const relevant = notes
-      .filter((n) => n.containerId === containerId && n.type === 'note')
-      .sort((a, b) => b.start - a.start);
-
-    relevant.forEach((note) => {
-      try {
-        const range = restoreRange(el, note.start, note.end);
-        if (!range) return;
-        // KEY GUARD: skip React-managed areas
-        if (!isSafeToMark(range)) return;
-        const mark = document.createElement('mark');
-        mark.setAttribute('data-note-id', note.id);
-        mark.style.cssText = 'background:var(--test-note-bg,#dbeafe);color:var(--test-note-fg,inherit);border-bottom:2px solid var(--test-note-accent,#3b82f6);padding:0 1px;border-radius:2px;cursor:pointer;user-select:text;-webkit-user-select:text;';
-        mark.addEventListener('click', () => { if (window.getSelection()?.isCollapsed) setIsSidebarOpen(true); });
-        try { range.surroundContents(mark); }
-        catch { const frag = range.extractContents(); mark.appendChild(frag); range.insertNode(mark); }
-      } catch { /* silently skip */ }
+    // Remove existing note marks (no normalize!)
+    el.querySelectorAll('mark[data-note-id]').forEach((mark) => {
+      const parent = mark.parentNode; if (!parent) return;
+      while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+      parent.removeChild(mark);
     });
-  }, [notes, containerId, setIsSidebarOpen, removeNoteMarks]);
 
-  const applyAll = useCallback(() => {
-    applyNoteMarks();
-    applyHighlights();
-  }, [applyNoteMarks, applyHighlights]);
+    notes
+      .filter((n) => n.containerId === containerId && n.type === 'note')
+      .sort((a, b) => b.start - a.start)
+      .forEach((note) => {
+        try {
+          const range = restoreRange(el, note.start, note.end);
+          if (!range || !isSafeToMark(range)) return; // Guard
+          const mark = document.createElement('mark');
+          mark.setAttribute('data-note-id', note.id);
+          mark.style.cssText = 'background:var(--test-note-bg,#dbeafe);color:var(--test-note-fg,inherit);border-bottom:2px solid var(--test-note-accent,#3b82f6);padding:0 1px;border-radius:2px;cursor:pointer;user-select:text;-webkit-user-select:text;';
+          mark.addEventListener('click', () => { if (window.getSelection()?.isCollapsed) setIsSidebarOpen(true); });
+          try { range.surroundContents(mark); }
+          catch { const frag = range.extractContents(); mark.appendChild(frag); range.insertNode(mark); }
+        } catch { /* ignore */ }
+      });
+  }, [notes, containerId, setIsSidebarOpen]);
 
-  /* ── Re-apply when switching passage/part (containerId changes).
-         NOT when children change (would fire on every keystroke and corrupt DOM). ── */
+  const applyAll = useCallback(() => { applyNoteMarks(); applyHighlights(); }, [applyNoteMarks, applyHighlights]);
+
+  /* ── Effects ── */
+  // Re-apply when switching container (part/passage), NOT on every children change
   useEffect(() => {
     const id = requestAnimationFrame(() => { domReadyRef.current = true; applyAll(); });
-    return () => cancelAnimationFrame(id);
+    return () => {
+      cancelAnimationFrame(id);
+      // Clean up CSS highlight when unmounting
+      if (CSS_HL_SUPPORTED) { try { CSS.highlights.delete(hlName); } catch { /* ignore */ } }
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [containerId]);
+  }, [containerId, hlName]);
 
-  /* ── Re-apply when notes list changes (user added/deleted a note) ── */
+  // Re-apply when notes list changes (note added/removed)
   useEffect(() => {
     if (!domReadyRef.current) return;
     const id = requestAnimationFrame(() => applyAll());
@@ -255,34 +275,23 @@ const HighlightableContent = memo(function HighlightableContent({
   /* ── Selection handler ── */
   const handleSelectionChange = useCallback(() => {
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
-      setToolbarPos(null); setRangeOffsets(null); return;
-    }
-    // Skip if inside a form element itself
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) { setToolbarPos(null); setRangeOffsets(null); return; }
     if (sel.anchorNode) {
       const el = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode;
       if (['INPUT', 'TEXTAREA', 'BUTTON', 'SELECT'].includes(el?.tagName)) return;
     }
     const range = sel.getRangeAt(0);
-    if (!contentRef.current?.contains(range.commonAncestorContainer)) {
-      setToolbarPos(null); setRangeOffsets(null); return;
-    }
+    if (!contentRef.current?.contains(range.commonAncestorContainer)) { setToolbarPos(null); setRangeOffsets(null); return; }
     const rect = range.getBoundingClientRect();
     if (rect.width === 0 && rect.height === 0) return;
-
     setToolbarPos({ top: rect.top - 8, left: rect.left + rect.width / 2 });
     setRangeOffsets(getSelectionOffsets(contentRef.current, range));
-    setCurrentSafe(isSafeToMark(range));
   }, []);
 
   /* ── Add note ── */
   const handleAddNote = useCallback(() => {
     if (!rangeOffsets?.text.trim()) return;
-    addNote({
-      id: 'note_' + Date.now() + Math.random().toString(36).substr(2, 5),
-      containerId, type: 'note',
-      start: rangeOffsets.start, end: rangeOffsets.end, text: rangeOffsets.text, note: '',
-    });
+    addNote({ id: 'note_' + Date.now() + Math.random().toString(36).substr(2, 5), containerId, type: 'note', start: rangeOffsets.start, end: rangeOffsets.end, text: rangeOffsets.text, note: '' });
     window.getSelection()?.removeAllRanges();
     setToolbarPos(null); setRangeOffsets(null);
     setIsSidebarOpen(true);
@@ -295,10 +304,7 @@ const HighlightableContent = memo(function HighlightableContent({
     const range = selection.getRangeAt(0);
     const el = contentRef.current;
     if (!el?.contains(range.commonAncestorContainer)) return;
-    if (!isSafeToMark(range)) {
-      // Selection is over React-managed content — skip DOM mark silently
-      selection.removeAllRanges(); setToolbarPos(null); setRangeOffsets(null); return;
-    }
+
     const offsets = getSelectionOffsets(el, range);
     if (!offsets.text.trim()) { selection.removeAllRanges(); setToolbarPos(null); return; }
 
@@ -309,6 +315,7 @@ const HighlightableContent = memo(function HighlightableContent({
       saveHighlights(highlights);
     }
     selection.removeAllRanges(); setToolbarPos(null); setRangeOffsets(null);
+    // CSS API: re-apply to include new highlight
     requestAnimationFrame(() => applyHighlights());
   }, [loadHighlights, saveHighlights, applyHighlights]);
 
@@ -334,9 +341,7 @@ const HighlightableContent = memo(function HighlightableContent({
   }, [toolbarPos]);
 
   useEffect(() => {
-    const h = (e) => {
-      if (toolbarPos && contentRef.current && !contentRef.current.contains(e.target)) setToolbarPos(null);
-    };
+    const h = (e) => { if (toolbarPos && contentRef.current && !contentRef.current.contains(e.target)) setToolbarPos(null); };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
   }, [toolbarPos]);
@@ -345,19 +350,8 @@ const HighlightableContent = memo(function HighlightableContent({
 
   return (
     <>
-      <NoteToolbar
-        position={toolbarPos}
-        onAddNote={handleAddNote}
-        onHighlight={handleHighlight}
-        onEraser={handleEraser}
-        safeToMark={currentSafe}
-      />
-      <div
-        ref={contentRef}
-        className={`select-text ${className}`}
-        onMouseUp={handleSelectionChange}
-        onKeyUp={handleSelectionChange}
-      >
+      <NoteToolbar position={toolbarPos} onAddNote={handleAddNote} onHighlight={handleHighlight} onEraser={handleEraser} safeToMark={true} />
+      <div ref={contentRef} className={`select-text ${className}`} onMouseUp={handleSelectionChange} onKeyUp={handleSelectionChange}>
         {children}
       </div>
     </>
