@@ -325,14 +325,15 @@ export default function HighlightableContent({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [containerId]);
 
+  const isSidebarOpen = notesCtx?.isSidebarOpen ?? false;
+
   /* ════════════════════════════════════
-     notes o'zgarganda qayta qo'llash
-     (note qo'shildi / o'chirildi)
+     notes o'zgarganda yoki sidebar ochilib/yopilganda qayta qo'llash
+     (Sababi: parent re-render qilib text node'larni yangilagan bo'lsa yo'qolmasligi uchun)
      ════════════════════════════════════ */
   useEffect(() => {
-    // notes reference o'zgarganda applyAll qo'llash
     requestAnimationFrame(() => applyAll());
-  }, [notes, applyAll]);
+  }, [notes, isSidebarOpen, applyAll]);
 
   /* ════════════════════════════════════
      NOTES_UPDATED event (NotesContext dan)
