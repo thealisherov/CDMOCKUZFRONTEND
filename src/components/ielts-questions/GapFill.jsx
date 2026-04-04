@@ -26,25 +26,22 @@ const GapFill = ({ data, onAnswer, userAnswers = {} }) => {
                 if (match) {
                   const questionId = match[1];
                   const value = userAnswers[questionId] || '';
-                  const minWidth = Math.max(112, (value.length * 10) + 40);
 
                   return (
-                    <span key={index} className="relative inline-block mx-2 align-middle">
+                    <span key={index} className="inline-block mx-2 align-middle">
                       <input
                         id={`gap-input-${questionId}`}
                         type="text"
                         value={value}
                         autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
                         spellCheck={false}
-                        className="px-1 py-0 h-[1.3em] text-center border border-gray-400 rounded bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all font-semibold text-blue-800 text-[inherit]"
-                        style={{ width: `${minWidth}px`, maxWidth: '230px' }}
+                        placeholder={questionId}
+                        className="px-1 py-0 h-[1.3em] text-center border border-gray-400 rounded bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors font-semibold text-blue-800 text-[inherit]"
+                        style={{ width: '140px', maxWidth: '230px' }}
                         onChange={(e) => handleInputChange(questionId, e.target.value)}
                       />
-                      {!value && (
-                        <span className="absolute inset-0 flex items-center justify-center font-bold text-gray-900 pointer-events-none" style={{ fontSize: '0.9em' }}>
-                          {questionId}
-                        </span>
-                      )}
                     </span>
                   );
                 }
