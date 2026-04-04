@@ -561,7 +561,7 @@ function ListeningTestInner({ id, rawData }) {
     {/* ═══ MAIN CONTENT ═══ */}
     <div className="flex-1 overflow-y-auto pb-24" style={{ background: 'var(--test-panel-bg)', color: 'var(--test-fg)' }}>
       <div className="w-full px-6 lg:px-10 pt-4 py-8 max-w-[1600px]">
-        <HighlightableContent containerId={`listening_part_${activePartIndex}`}>
+        <div>
           {visibleSections.map((block) => {
             const blockStart = getStartIndex(block.id);
             const isSideBySide = !!block.image;
@@ -612,7 +612,7 @@ function ListeningTestInner({ id, rawData }) {
               </div>
             );
           })}
-        </HighlightableContent>
+        </div>
       </div>
     </div>
 

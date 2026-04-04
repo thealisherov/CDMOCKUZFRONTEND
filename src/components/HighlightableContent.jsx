@@ -146,14 +146,15 @@ const HighlightableContent = memo(function HighlightableContent({
     const el = contentRef.current;
     if (!el) return;
 
-    // Remove existing highlight marks first
+    // Remove existing highlight marks first.
+    // IMPORTANT: do NOT call el.normalize() after this — normalize() merges
+    // adjacent text nodes and breaks React's virtual DOM references.
     el.querySelectorAll('mark.highlight').forEach((mark) => {
       const parent = mark.parentNode;
       if (!parent) return;
       while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
       parent.removeChild(mark);
     });
-    el.normalize();
 
     const highlights = loadHighlights();
     if (highlights.length === 0) return;
@@ -185,14 +186,14 @@ const HighlightableContent = memo(function HighlightableContent({
     const el = contentRef.current;
     if (!el) return;
 
-    // 1. Remove existing note marks
+    // 1. Remove existing note marks.
+    // IMPORTANT: do NOT call el.normalize() — see applyHighlights comment above.
     el.querySelectorAll('mark[data-note-id]').forEach((mark) => {
       const parent = mark.parentNode;
       if (!parent) return;
       while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
       parent.removeChild(mark);
     });
-    el.normalize();
 
     // 2. Filter notes for this container, sort descending to avoid offset shift
     const relevant = notes
