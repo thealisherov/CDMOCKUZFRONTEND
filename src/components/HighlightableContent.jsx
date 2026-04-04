@@ -13,7 +13,18 @@ function isSafeToMark(range) {
   const ancestor = range.commonAncestorContainer;
   const el = ancestor.nodeType === Node.TEXT_NODE ? ancestor.parentElement : ancestor;
   if (!el) return false;
-  return !el.querySelector('input, textarea, select');
+
+  // Block only when the selection range actually CROSSES an interactive element.
+  // Using intersectsNode() is precise: it returns true only when the input node
+  // overlaps with the range boundaries — not just because an input exists somewhere
+  // inside the ancestor.
+  const interactives = el.querySelectorAll ? el.querySelectorAll('input, textarea, select') : [];
+  for (const interactive of interactives) {
+    try {
+      if (range.intersectsNode(interactive)) return false;
+    } catch { /* ignore */ }
+  }
+  return true;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
