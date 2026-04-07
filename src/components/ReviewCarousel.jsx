@@ -72,7 +72,13 @@ export default function ReviewCarousel() {
   useEffect(() => {
     fetch('/api/comments')
       .then(res => res.json())
-      .then(data => setReviews(data))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setReviews(data);
+        } else {
+          console.warn("ReviewCarousel: /api/comments returned non-array:", data);
+        }
+      })
       .catch(err => console.error("Error fetching comments:", err));
   }, []);
 

@@ -11,6 +11,7 @@ const CSS_HL_SUPPORTED =
 
 /* ─── CSS ::highlight() qoidasini bir marta qo'shish ─── */
 function ensureHighlightStyle(hlName, bg, fg, extra = '') {
+  if (typeof document === 'undefined') return; // SSR guard
   const id = `hl-style-${hlName}`;
   if (document.getElementById(id)) return;
   const style = document.createElement('style');

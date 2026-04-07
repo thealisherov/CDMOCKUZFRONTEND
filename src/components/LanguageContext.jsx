@@ -10,9 +10,14 @@ export function LanguageProvider({ children }) {
 
   useEffect(() => {
     // Check localStorage for saved preference on mount
-    const saved = localStorage.getItem("mega_ielts_lang");
-    if (saved && ["en", "uz", "ru"].includes(saved)) {
-      setLang(saved);
+    try {
+      const saved = localStorage.getItem("mega_ielts_lang");
+      if (saved && ["en", "uz", "ru"].includes(saved)) {
+        setLang(saved);
+      }
+    } catch (e) {
+      // Private Mode yoki localStorage bloklangan brauzerlar uchun
+      console.warn("localStorage unavailable for language preference:", e);
     }
   }, []);
 

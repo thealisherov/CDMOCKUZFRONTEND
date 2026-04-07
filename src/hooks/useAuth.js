@@ -145,5 +145,18 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const ctx = useContext(AuthContext);
+  // Safe fallback — AuthProvider tashqarisida chaqirilsa crash qilmasin
+  if (!ctx) {
+    return {
+      user: null,
+      login: async () => {},
+      loginWithGoogle: async () => {},
+      register: async () => {},
+      logout: async () => {},
+      resetPassword: async () => {},
+      updatePassword: async () => {},
+    };
+  }
+  return ctx;
 }
