@@ -329,12 +329,12 @@ export default function HighlightableContent({
   const isSidebarOpen = notesCtx?.isSidebarOpen ?? false;
 
   /* ════════════════════════════════════
-     notes o'zgarganda yoki sidebar ochilib/yopilganda qayta qo'llash
+     Har safar renderlanganda qayta qo'llash
      (Sababi: parent re-render qilib text node'larni yangilagan bo'lsa yo'qolmasligi uchun)
      ════════════════════════════════════ */
   useEffect(() => {
     requestAnimationFrame(() => applyAll());
-  }, [notes, isSidebarOpen, applyAll]);
+  }); // Ataylab dependency array olib tashlandi, toki har bir state o'zgarishida highlights saqlanib qolsin
 
   /* ════════════════════════════════════
      NOTES_UPDATED event (NotesContext dan)
