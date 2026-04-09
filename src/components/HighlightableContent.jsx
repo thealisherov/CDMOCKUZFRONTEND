@@ -273,58 +273,13 @@ export default function HighlightableContent({
   }, [applyNoteMarks, applyHighlights]);
 
   /* ════════════════════════════════════
-     MutationObserver yordamida DOM tayyor bo'lishini kuting,
-     keyin highlights'larni qo'llang.
-
-     Bu ASOSIY FIX:
-     - rAF/setTimeout erta ishga tushishi mumkin (ResizableSplitPane
-       va dangerouslySetInnerHTML hali render bo'lmagan)
-     - MutationObserver DOM'ga matn qo'shilgan zahoti ishlaydi
-     - Bir marta ishlaydi, keyin o'zini o'chiradi
-     ════════════════════════════════════ */
+    Har safar renderlanganda qayta qo'llash
+    (Sababi: parent re-render qilib text node'larni yangilagan bo'lsa yo'qolmasligi uchun)
+    ════════════════════════════════════ */
   useEffect(() => {
-    const el = contentRef.current;
-    if (!el) return;
-
-    let observer = null;
-    let cancelled = false;
-
-    const doApply = () => {
-      if (cancelled) return;
-      applyAll();
-    };
-
-    const tryApply = () => {
-      if (el.textContent.trim().length > 0) {
-        // DOM already has content — apply immediately
-        requestAnimationFrame(doApply);
-        return true;
-      }
-      return false;
-    };
-
-    // Try immediately first
-    if (!tryApply()) {
-      // DOM not ready yet — watch for content to appear
-      observer = new MutationObserver(() => {
-        if (el.textContent.trim().length > 0) {
-          observer.disconnect();
-          observer = null;
-          requestAnimationFrame(doApply);
-        }
-      });
-      observer.observe(el, { childList: true, subtree: true, characterData: true });
-    }
-
-    return () => {
-      cancelled = true;
-      if (observer) { observer.disconnect(); observer = null; }
-      // NOTE: Do NOT delete CSS highlights here. Detaching them from CSS.highlights
-      // when switching passages would flash-remove them before reapply.
-      // The next containerId's applyAll will overwrite them cleanly.
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [containerId]);
+    const timer = requestAnimationFrame(() => applyAll());
+    return () => cancelAnimationFrame(timer);
+  }); // Ataylab dependency array kiritilmadi
 
   const isSidebarOpen = notesCtx?.isSidebarOpen ?? false;
 

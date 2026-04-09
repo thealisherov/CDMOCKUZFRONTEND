@@ -737,6 +737,9 @@ export async function POST(request, { params }) {
 
       if (user) {
         try {
+          const meta = user.user_metadata || {};
+          const isPremiumData = meta.role === 'admin' || (meta.premium_until && new Date(meta.premium_until) > new Date());
+
           const { data: userData } = await supabase
             .from('users')
             .select('role')
@@ -745,7 +748,7 @@ export async function POST(request, { params }) {
 
           const userRole = userData?.role || 'student';
           // admin va premium uchun cheksiz tekshirish
-          const isUnlimited = userRole === 'admin' || userRole === 'premium';
+          const isUnlimited = isPremiumData || userRole === 'admin' || userRole === 'premium';
 
           if (!isUnlimited) {
             const MONTHLY_LIMIT = 3;

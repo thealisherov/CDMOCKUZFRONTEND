@@ -67,10 +67,15 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
     });
   }, []);
 
-  // Security: Prevent copy, cut, paste, and context menu outside textarea
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [activeTaskIndex, setActiveTaskIndex] = useState(0);
+  const [submitted, setSubmitted, clearSubmitted] = usePersistedState(isReviewMode ? null : `submitted_writing_${id}`, isReviewMode);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  // Security: Prevent copy, cut, paste, and context menu (only when test is active)
   useEffect(() => {
+    if (submitted) return;
     const preventAction = (e) => {
-      if (isReviewMode) return;
       if (e.target.tagName === 'TEXTAREA') return;
       e.preventDefault();
     };
@@ -85,19 +90,15 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
       document.removeEventListener('paste', preventAction);
       document.removeEventListener('contextmenu', preventAction);
     };
-  }, [isReviewMode]);
+  }, [submitted]);
 
-  const [optionsOpen, setOptionsOpen] = useState(false);
-  const [activeTaskIndex, setActiveTaskIndex] = useState(0);
-  const [submitted, setSubmitted] = useState(isReviewMode);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [essays, setEssays, clearEssays] = usePersistedState(isReviewMode ? null : `answers_writing_${id}`, initialEssays);
 
   // AI Evaluation states
   const [isEvaluating, setIsEvaluating] = useState(false);
-  const [evaluationResult, setEvaluationResult] = useState(initialEvaluation);
+  const [evaluationResult, setEvaluationResult, clearEvaluationResult] = usePersistedState(isReviewMode ? null : `result_writing_${id}`, initialEvaluation);
   const [evalError, setEvalError] = useState(null);
-  const [savedAttemptId, setSavedAttemptId] = useState(null);
+  const [savedAttemptId, setSavedAttemptId, clearSavedAttemptId] = usePersistedState(isReviewMode ? null : `attempt_writing_${id}`, null);
 
   // Writing limit modal
   const [showLimitModal, setShowLimitModal] = useState(false);
@@ -255,6 +256,9 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
     clearNotes();
     try { localStorage.removeItem(notesKey); } catch { /* */ }
     clearEssays();
+    clearSubmitted();
+    clearEvaluationResult();
+    clearSavedAttemptId();
     setEssays({});
     setSubmitted(false);
     setActiveTaskIndex(0);
@@ -262,7 +266,7 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
     setShowConfirm(false);
     setEvaluationResult(null);
     setEvalError(null);
-  }, [clearNotes, timerKey, notesKey, clearEssays]);
+  }, [clearNotes, timerKey, notesKey, clearEssays, clearSubmitted, clearEvaluationResult, clearSavedAttemptId]);
 
   // Removed unmount clearAllTestData so refreshing the page preserves the currently entered essay
 
@@ -292,7 +296,7 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
     const bandColor = getBandColor(evaluationResult?.band);
 
     return (
-      <div className="ielts-test-view fixed inset-0 z-50 bg-white overflow-y-auto">
+      <div className="ielts-test-view select-text fixed inset-0 z-50 bg-white overflow-y-auto">
         <div className="max-w-5xl mx-auto p-6 min-h-screen">
           <div className="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
             <h1 className="text-xl font-bold" style={{ color: '#333' }}>{rawData.title} — Results</h1>

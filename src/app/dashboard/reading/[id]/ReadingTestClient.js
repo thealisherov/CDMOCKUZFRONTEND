@@ -38,8 +38,15 @@ function ReadingTestInner({ id, rawData }) {
     });
   }, []);
 
-  // Security: Prevent copy, cut, paste, and context menu
+  const [userAnswers,   setUserAnswers, clearAnswers]   = usePersistedState(`answers_reading_${id}`, {});
+  const [submitted,     setSubmitted, clearSubmitted]     = usePersistedState(`submitted_reading_${id}`, false);
+  const [showConfirm,   setShowConfirm]   = useState(false);
+  const [activePassage, setActivePassage] = useState(0);
+  const [optionsOpen,   setOptionsOpen]   = useState(false);
+
+  // Security: Prevent copy, cut, paste, and context menu (only when test is active)
   useEffect(() => {
+    if (submitted) return;
     const preventAction = (e) => e.preventDefault();
     document.addEventListener('copy', preventAction);
     document.addEventListener('cut', preventAction);
@@ -51,18 +58,12 @@ function ReadingTestInner({ id, rawData }) {
       document.removeEventListener('paste', preventAction);
       document.removeEventListener('contextmenu', preventAction);
     };
-  }, []);
-
-  const [userAnswers,   setUserAnswers, clearAnswers]   = usePersistedState(`answers_reading_${id}`, {});
-  const [submitted,     setSubmitted]     = useState(false);
-  const [showConfirm,   setShowConfirm]   = useState(false);
-  const [activePassage, setActivePassage] = useState(0);
-  const [optionsOpen,   setOptionsOpen]   = useState(false);
+  }, [submitted]);
 
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evalError, setEvalError] = useState(null);
-  const [serverResult, setServerResult] = useState(null);
-  const [savedAttemptId, setSavedAttemptId] = useState(null);
+  const [serverResult, setServerResult, clearServerResult] = usePersistedState(`result_reading_${id}`, null);
+  const [savedAttemptId, setSavedAttemptId, clearSavedAttemptId] = usePersistedState(`attempt_reading_${id}`, null);
 
   const timerMinutes = rawData?.timer || 60;
   const passages     = rawData?.passages || [];
@@ -156,6 +157,9 @@ function ReadingTestInner({ id, rawData }) {
     // Highlights (all passages)
     clearHighlights();
     clearAnswers();
+    clearSubmitted();
+    clearServerResult();
+    clearSavedAttemptId();
     setUserAnswers({});
     setSubmitted(false);
     setActivePassage(0);
@@ -163,7 +167,7 @@ function ReadingTestInner({ id, rawData }) {
     setShowConfirm(false);
     setServerResult(null);
     setEvalError(null);
-  }, [clearNotes, clearHighlights, timerKey, notesKey, clearAnswers]);
+  }, [clearNotes, clearHighlights, timerKey, notesKey, clearAnswers, clearSubmitted, clearServerResult, clearSavedAttemptId]);
   // Unmount clearing logic removed so refreshing doesn't erase user answers
   const handleSubmit = async () => { 
     setSubmitted(true);
@@ -289,7 +293,7 @@ function ReadingTestInner({ id, rawData }) {
 
   if (submitted) {
     return (
-      <div className="ielts-test-view fixed inset-0 z-50 bg-white overflow-y-auto">
+      <div className="ielts-test-view select-text fixed inset-0 z-50 bg-white overflow-y-auto">
         <div className="max-w-5xl mx-auto p-6 min-h-screen">
           <div className="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
             <h1 className="text-xl font-bold" style={{ color: '#333' }}>{rawData.title} — Results</h1>

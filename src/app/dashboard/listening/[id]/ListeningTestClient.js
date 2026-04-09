@@ -40,21 +40,6 @@ function ListeningTestInner({ id, rawData }) {
     });
   }, []);
 
-  // Security: Prevent copy, cut, paste, and context menu
-  useEffect(() => {
-    const preventAction = (e) => e.preventDefault();
-    document.addEventListener('copy', preventAction);
-    document.addEventListener('cut', preventAction);
-    document.addEventListener('paste', preventAction);
-    document.addEventListener('contextmenu', preventAction);
-    return () => {
-      document.removeEventListener('copy', preventAction);
-      document.removeEventListener('cut', preventAction);
-      document.removeEventListener('paste', preventAction);
-      document.removeEventListener('contextmenu', preventAction);
-    };
-  }, []);
-
   useDynamicFavicon('/favicon.png');
   const [optionsOpen, setOptionsOpen] = usePersistedState(`opts_listening_${id}`, false);
 
@@ -68,10 +53,26 @@ function ListeningTestInner({ id, rawData }) {
   const [savedAudioPos, setSavedAudioPos] = useState(0);
   const [showConfirm,    setShowConfirm]                     = usePersistedState(`confirm_listening_${id}`,   false);
   
+  // Security: Prevent copy, cut, paste, and context menu (only when test is active)
+  useEffect(() => {
+    if (submitted) return;
+    const preventAction = (e) => e.preventDefault();
+    document.addEventListener('copy', preventAction);
+    document.addEventListener('cut', preventAction);
+    document.addEventListener('paste', preventAction);
+    document.addEventListener('contextmenu', preventAction);
+    return () => {
+      document.removeEventListener('copy', preventAction);
+      document.removeEventListener('cut', preventAction);
+      document.removeEventListener('paste', preventAction);
+      document.removeEventListener('contextmenu', preventAction);
+    };
+  }, [submitted]);
+  
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evalError, setEvalError] = useState(null);
-  const [serverResult, setServerResult] = useState(null);
-  const [savedAttemptId, setSavedAttemptId] = useState(null);
+  const [serverResult, setServerResult, clearServerResult] = usePersistedState(`result_listening_${id}`, null);
+  const [savedAttemptId, setSavedAttemptId, clearSavedAttemptId] = usePersistedState(`attempt_listening_${id}`, null);
   // ─────────────────────────────────────────────────────────────────────────
 
   const timerKey = `timer_listening_${id}`;
@@ -119,9 +120,11 @@ function ListeningTestInner({ id, rawData }) {
     try { localStorage.removeItem(`confirm_listening_${id}`); } catch { /* */ }
     try { localStorage.removeItem(`opts_listening_${id}`); } catch { /* */ }
     try { localStorage.removeItem(`cq_listening_${id}`); } catch { /* */ }
+    clearServerResult();
+    clearSavedAttemptId();
     setServerResult(null);
     setEvalError(null);
-  }, [clearNotes, clearHighlights, timerKey, notesKey, audioKey, clearAnswers, clearSubmitted, clearActivePart, id]);
+  }, [clearNotes, clearHighlights, timerKey, notesKey, audioKey, clearAnswers, clearSubmitted, clearActivePart, id, clearServerResult, clearSavedAttemptId]);
 
   // Removed unmount clearAllTestData so refreshing doesn't clear answers
 
@@ -376,7 +379,7 @@ function ListeningTestInner({ id, rawData }) {
 
   if (submitted) {
     return (
-      <div className="ielts-test-view fixed inset-0 z-50 bg-white overflow-y-auto">
+      <div className="ielts-test-view select-text fixed inset-0 z-50 bg-white overflow-y-auto">
         <div className="max-w-5xl mx-auto p-6 min-h-screen">
           <div className="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
             <h1 className="text-xl font-bold" style={{ color: '#333' }}>{rawData.title} — Results</h1>

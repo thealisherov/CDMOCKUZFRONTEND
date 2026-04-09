@@ -109,20 +109,7 @@ export default function ReviewTestClient({ testId, attemptId, rawData, moduleTyp
       .catch(() => setLoading(false));
   }, [attemptId]);
 
-  // Security: Prevent copy, cut, paste, and context menu
-  useEffect(() => {
-    const preventAction = (e) => e.preventDefault();
-    document.addEventListener('copy', preventAction);
-    document.addEventListener('cut', preventAction);
-    document.addEventListener('paste', preventAction);
-    document.addEventListener('contextmenu', preventAction);
-    return () => {
-      document.removeEventListener('copy', preventAction);
-      document.removeEventListener('cut', preventAction);
-      document.removeEventListener('paste', preventAction);
-      document.removeEventListener('contextmenu', preventAction);
-    };
-  }, []);
+
 
   const userAnswers = attempt?.user_answers || {};
   const serverResults = attempt?.server_results || {};
@@ -249,7 +236,7 @@ export default function ReviewTestClient({ testId, attemptId, rawData, moduleTyp
 
   if (showResults) {
     return (
-      <div className="ielts-test-view fixed inset-0 z-50 bg-white overflow-y-auto">
+      <div className="ielts-test-view select-text fixed inset-0 z-50 bg-white overflow-y-auto">
         <div className="max-w-5xl mx-auto p-6 min-h-screen">
           <div className="flex items-center justify-between mb-6 border-b border-gray-200 pb-4">
             <h1 className="text-xl font-bold" style={{ color: '#333' }}>{rawData.title} — Results</h1>
@@ -300,7 +287,7 @@ export default function ReviewTestClient({ testId, attemptId, rawData, moduleTyp
   };
 
   return (
-    <div className="ielts-test-view fixed inset-0 z-50 flex flex-col overflow-hidden" style={{ background: '#f8f9fa', color: '#1a1a1a' }}>
+    <div className="ielts-test-view select-text fixed inset-0 z-50 flex flex-col overflow-hidden" style={{ background: '#f8f9fa', color: '#1a1a1a' }}>
 
       {/* ═══ HEADER ═══ */}
       <div className="flex-none px-6 py-3 z-20 flex items-center justify-between" style={{ background: '#1a1a2e', color: '#fff' }}>
