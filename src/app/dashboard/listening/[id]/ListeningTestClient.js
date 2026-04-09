@@ -569,13 +569,7 @@ function ListeningTestInner({ id, rawData }) {
 
             return (
               <div key={block.id} className="mb-14">
-                {Array.from({ length: (() => {
-                  if (block.type === 'gap_fill') {
-                    const m = (block.content || '').match(/\{\d+\}/g);
-                    return m ? m.length : 0;
-                  }
-                  return (block.questions || []).length;
-                })() }, (_, i) => (
+                {Array.from({ length: getBlockQCount(block) }, (_, i) => (
                   <span key={i} id={`question-${blockStart + i}`} className="block h-0 -mt-4" />
                 ))}
 

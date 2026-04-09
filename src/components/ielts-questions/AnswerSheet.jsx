@@ -80,7 +80,7 @@ const AnswerSheet = ({ userAnswers = {}, testData = [], onRetry, onExit, moduleT
   const allQuestions = useMemo(() => {
     const questions = [];
     testData.forEach((block) => {
-      if (block.type === 'gap_fill') {
+      if (['gap_fill', 'drag_drop_summary', 'flow_chart', 'table'].includes(block.type)) {
         const matches = block.content.match(/\{(\d+)\}/g) || [];
         matches.forEach((m) => {
           const num = m.replace(/\{|\}/g, '');
