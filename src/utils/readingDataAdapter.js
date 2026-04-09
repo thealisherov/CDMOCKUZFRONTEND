@@ -362,15 +362,15 @@ function tryBuildListTable(questions) {
 function buildAnswersMap(questions) {
   const answers = {};
   questions.forEach((q) => {
-    if (q.numbers && q.answers) {
+    if (q.numbers) {
       q.numbers.forEach((num) => {
-        answers[String(num)] = q.answers; // Store full array for each number
+        answers[String(num)] = q.answers || null; // Store full array for each number
       });
-    } else if (q.number) {
+    } else if (q.number !== undefined) {
       if (q.alternativeAnswers && q.alternativeAnswers.length > 0) {
         answers[String(q.number)] = [q.answer, ...q.alternativeAnswers];
       } else {
-        answers[String(q.number)] = q.answer;
+        answers[String(q.number)] = q.answer || null;
       }
     }
   });

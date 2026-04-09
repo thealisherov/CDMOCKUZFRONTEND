@@ -27,7 +27,6 @@ function mapGroupType(groupType) {
     case 'sentence_completion':
     case 'form_completion':
     case 'summary_completion':
-    case 'short_answer':
       return 'gap_fill';
 
     case 'flowchart':
@@ -222,15 +221,15 @@ function buildSmartTable(questions) {
 function buildAnswersMap(questions) {
   const answers = {};
   questions.forEach((q) => {
-    if (q.numbers && q.answers) {
+    if (q.numbers) {
       q.numbers.forEach((num) => {
-        answers[String(num)] = q.answers; // Store full array for each number
+        answers[String(num)] = q.answers || null; // Store full array for each number
       });
-    } else if (q.number) {
+    } else if (q.number !== undefined) {
       if (q.alternativeAnswers && q.alternativeAnswers.length > 0) {
         answers[String(q.number)] = [q.answer, ...q.alternativeAnswers];
       } else {
-        answers[String(q.number)] = q.answer;
+        answers[String(q.number)] = q.answer || null;
       }
     }
   });
@@ -256,7 +255,7 @@ function convertQuestionGroup(group, partNumber, partTitle) {
   // Preserve the original groupType before any instruction-based overrides
   const originalType = group.groupType;
   const knownCompletionTypes = [
-    'note_completion', 'sentence_completion', 'form_completion', 'summary_completion', 'short_answer',
+    'note_completion', 'sentence_completion', 'form_completion', 'summary_completion',
   ];
 
   if (group.instruction && /flow-?chart/i.test(group.instruction)) {
@@ -289,7 +288,6 @@ function convertQuestionGroup(group, partNumber, partTitle) {
     case 'sentence_completion':
     case 'form_completion':
     case 'summary_completion':
-    case 'short_answer':
     case 'flowchart':
     case 'flow_chart':
     case 'flowchart_completion':
@@ -395,6 +393,16 @@ function convertQuestionGroup(group, partNumber, partTitle) {
       block.options = optionLetters;
       // Show full option descriptions
       block.optionDescriptions = groupOptions;
+      break;
+    }
+
+    case 'short_answer':
+    case 'short_answers': {
+      block.questions = group.questions.map((q) => ({
+        id: String(q.number),
+        number: q.number,
+        text: q.question,
+      }));
       break;
     }
 

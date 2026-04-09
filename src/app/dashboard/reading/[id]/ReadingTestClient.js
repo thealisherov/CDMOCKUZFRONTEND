@@ -75,6 +75,8 @@ function ReadingTestInner({ id, rawData }) {
 
   const getBlockQCount = (block) => {
     if (!block) return 0;
+    if (block.answers) return Object.keys(block.answers).length;
+
     if (['gap_fill', 'drag_drop_summary', 'flow_chart', 'table'].includes(block.type)) {
       const matches = (block.content || '').match(/\{\d+\}/g);
       return matches ? matches.length : 0;

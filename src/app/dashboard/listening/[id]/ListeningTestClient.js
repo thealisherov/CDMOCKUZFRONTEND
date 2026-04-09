@@ -158,12 +158,13 @@ function ListeningTestInner({ id, rawData }) {
   }, [parts.length, activePartIndex]);
 
   const getBlockQCount = (block) => {
+    if (block.answers) return Object.keys(block.answers).length;
+
     if (['gap_fill', 'drag_drop_summary', 'flow_chart', 'table'].includes(block.type)) {
       const m = block.content?.match(/\{\d+\}/g);
       return m ? m.length : 0;
     }
     if (block.type === 'checkbox_multiple' && block.questions) {
-      // Each sub-question covers multiple question numbers
       return block.questions.reduce((sum, q) => sum + (q.numbers ? q.numbers.length : 1), 0);
     }
     if (block.questions) {
