@@ -3,17 +3,20 @@
 import React from 'react';
 
 /**
- * CheckboxMultiple — Controlled component.
- * Selections driven by userAnswers prop from the parent page.
+ * CheckboxMultiple — IELTS CD-style multiple-choice multiple-answer.
+ * Design matches official IELTS CD interface from the screenshot:
+ * - "1–2" badge top-left with a thin border box
+ * - Question text + sub-question
+ * - Checkbox rows: empty square when unchecked, blue filled + highlight when checked
+ * - No card/panel container — clean white background
  */
 const CheckboxMultiple = ({ data, onAnswer, userAnswers = {} }) => {
   const extractLetter = (optStr) => {
-    const match = optStr.match(/^([A-Z])[\.\s:)]/);
+    const match = optStr.match(/^([A-Z])[.\s:)]/);
     return match ? match[1] : optStr;
   };
 
   const handleToggle = (qListId, value, maxAllowed, questionNumbers) => {
-    // Reconstruct current selections for this group from parent userAnswers
     const currentSelections = questionNumbers
       .map((num) => userAnswers[String(num)])
       .filter((v) => v && v.trim() !== '');
@@ -31,7 +34,6 @@ const CheckboxMultiple = ({ data, onAnswer, userAnswers = {} }) => {
 
     nextSelections.sort();
 
-    // Emit each question number separately
     questionNumbers.forEach((num, index) => {
       onAnswer(String(num), nextSelections[index] || '');
     });
@@ -39,13 +41,12 @@ const CheckboxMultiple = ({ data, onAnswer, userAnswers = {} }) => {
 
   return (
     <div className="mb-8 font-sans">
-      <div className="space-y-8">
+      <div className="space-y-10">
         {data.questions.map((q) => {
           const qListId = q.id;
           const questionNumbers = q.numbers || [];
           const maxAllowed = questionNumbers.length;
 
-          // Reconstruct current selections from parent state
           const currentSelections = questionNumbers
             .map((num) => userAnswers[String(num)])
             .filter((v) => v && v.trim() !== '');
@@ -54,97 +55,130 @@ const CheckboxMultiple = ({ data, onAnswer, userAnswers = {} }) => {
 
           const numbersLabel = questionNumbers.length > 1
             ? `${questionNumbers[0]}–${questionNumbers[questionNumbers.length - 1]}`
-            : questionNumbers[0];
+            : String(questionNumbers[0]);
 
           const usePerQuestionOptions = data.hasPerQuestionOptions && q.fullOptions;
           const displayOptions = usePerQuestionOptions ? q.fullOptions : (data.options || []);
 
           return (
-            <div key={qListId} className="rounded-xl overflow-hidden" style={{ border: '1.5px solid var(--test-border)' }}>
-              {/* Question header */}
-              <div className="flex gap-4 px-5 py-4" style={{ background: 'var(--test-strip-bg)', borderBottom: '1px solid var(--test-border)' }}>
-                <div className="flex-shrink-0">
-                  <span
-                    className="inline-flex items-center px-2 justify-center h-[2em] border font-bold select-none"
-                    style={{ minWidth: '2em', fontSize: '1.05em', backgroundColor: 'var(--test-header-bg)', borderColor: 'var(--test-border)', color: 'var(--test-header-fg)' }}
-                  >
-                    {numbersLabel}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div
-                    className="pt-1 font-medium leading-normal [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:my-2"
-                    style={{ fontSize: '1.05em', color: 'var(--test-fg)' }}
-                    dangerouslySetInnerHTML={{ __html: q.text }}
-                  />
-                  {/* Selection badge */}
-                  <div className="mt-2 flex items-center gap-2">
-                    <span
-                      className="inline-flex items-center gap-1.5 text-[0.78em] font-semibold px-2.5 py-0.5 rounded-full border"
-                      style={
-                        isAtLimit
-                          ? { background: '#fef3c7', color: '#92400e', borderColor: '#fbbf24' }
-                          : { background: '#eff6ff', color: '#1d4ed8', borderColor: '#93c5fd' }
-                      }
-                    >
-                      {isAtLimit
-                        ? `✓ ${currentSelections.length} / ${maxAllowed} selected`
-                        : `Select ${maxAllowed} answer${maxAllowed > 1 ? 's' : ''} · ${currentSelections.length} / ${maxAllowed}`}
-                    </span>
-                  </div>
-                </div>
+            <div key={qListId}>
+              {/* ── Question header row ── */}
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 10 }}>
+                {/* Number badge */}
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '2px 8px',
+                    border: '1.5px solid #222',
+                    borderRadius: 2,
+                    fontWeight: 700,
+                    fontSize: '0.98em',
+                    color: 'var(--test-fg, #111)',
+                    background: 'transparent',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    minWidth: 36,
+                  }}
+                >
+                  {numbersLabel}
+                </span>
+                {/* Question text */}
+                <div
+                  style={{
+                    fontSize: '1em',
+                    fontWeight: 400,
+                    lineHeight: 1.55,
+                    color: 'var(--test-fg, #111)',
+                  }}
+                  dangerouslySetInnerHTML={{ __html: q.text }}
+                />
               </div>
 
-              {/* Options */}
-              <div className="px-5 py-4 space-y-2.5" style={{ background: 'var(--test-bg)' }}>
-                {displayOptions.map((opt) => {
+              {/* ── Options ── */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                {displayOptions.map((opt, idx) => {
                   const value = usePerQuestionOptions ? extractLetter(opt) : opt;
                   const isChecked = currentSelections.includes(value);
                   const isDisabled = !isChecked && isAtLimit;
 
+                  // Strip leading letter+dot e.g. "A. They are less..." → "They are less..."
+                  const labelText = opt.replace(/^[A-Z][.\s:)]\s*/, '').trim();
+
                   return (
                     <label
-                      key={opt}
-                      className="flex items-start gap-3 cursor-pointer rounded-lg px-3 py-2.5 transition-all duration-150"
+                      key={idx}
                       style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: '9px 12px',
                         background: isChecked
-                          ? 'var(--opts-highlight)'
-                          : isDisabled
-                            ? 'var(--test-strip-bg)'
-                            : 'transparent',
-                        border: isChecked
-                          ? '1.5px solid #3b82f6'
-                          : '1.5px solid transparent',
-                        opacity: isDisabled ? 0.5 : 1,
+                          ? '#dbeafe'   /* light blue — matches screenshot */
+                          : 'transparent',
                         cursor: isDisabled ? 'not-allowed' : 'pointer',
+                        opacity: isDisabled ? 0.5 : 1,
+                        userSelect: 'none',
+                        transition: 'background 0.12s',
+                        borderRadius: 2,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isChecked && !isDisabled) {
+                          e.currentTarget.style.background = '#f0f7ff';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isChecked && !isDisabled) {
+                          e.currentTarget.style.background = 'transparent';
+                        }
                       }}
                     >
-                      <div className="relative flex items-center justify-center mt-0.5 flex-shrink-0">
+                      {/* Custom checkbox */}
+                      <div style={{ position: 'relative', width: 18, height: 18, flexShrink: 0 }}>
                         <input
                           type="checkbox"
-                          value={value}
                           checked={isChecked}
                           disabled={isDisabled}
                           onChange={() => !isDisabled && handleToggle(qListId, value, maxAllowed, questionNumbers)}
-                          className="peer appearance-none w-[1.25em] h-[1.25em] border-2 border-gray-400 checked:bg-blue-600 checked:border-blue-600 focus:ring-blue-500 cursor-pointer transition-colors shrink-0 rounded-sm"
-                          style={{ cursor: isDisabled ? 'not-allowed' : 'pointer' }}
+                          style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
                         />
-                        <svg
-                          className="absolute w-[0.75em] h-[0.75em] text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity"
-                          fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"
+                        {/* Box */}
+                        <div
+                          style={{
+                            width: 18,
+                            height: 18,
+                            border: isChecked ? '2px solid #2563eb' : '2px solid #9ca3af',
+                            borderRadius: 3,
+                            background: isChecked ? '#2563eb' : 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.12s',
+                          }}
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
+                          {isChecked && (
+                            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                              <path d="M2 6.5L4.5 9L10 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          )}
+                        </div>
                       </div>
+
+                      {/* Label text */}
                       <span
-                        className="font-medium leading-snug"
                         style={{
-                          fontSize: '1.05em',
-                          color: isChecked ? '#3b82f6' : isDisabled ? 'var(--opts-muted)' : 'var(--test-fg)',
-                          fontWeight: isChecked ? 600 : 400,
+                          fontSize: '1em',
+                          lineHeight: 1.5,
+                          color: isChecked
+                            ? '#1e40af'
+                            : isDisabled
+                              ? '#9ca3af'
+                              : 'var(--test-fg, #111)',
+                          fontWeight: isChecked ? 500 : 400,
                         }}
                       >
-                        {opt}
+                        {labelText}
                       </span>
                     </label>
                   );

@@ -65,22 +65,33 @@ function mapGroupType(groupType) {
  */
 function replaceGapPlaceholders(questionStr, qNumber) {
   if (!questionStr) return '';
-  const numRegex = new RegExp(`(?:<(?:b|strong)[^>]*>\\s*)?0*${qNumber}(?:\\s*<\\/(?:b|strong)>)?\\s*[\\.\\)]?\\s*_{3,}`, 'gi');
+  // Step 1: Replace current question's own bold-numbered blank
+  const numRegex = new RegExp(`(?:<(?:b|strong)[^>]*>\\s*)?0*${qNumber}(?:\\s*<\/(?:b|strong)>)?\\s*[\\.\\)]?\\s*_{3,}`, 'gi');
   let result = questionStr.replace(numRegex, `{${qNumber}}`);
-  return result.replace(/_{3,}/g, `{${qNumber}}`);
+  // Step 2: Protect other numbered blanks like "14 ______" with a null-byte marker
+  const MARKER = '\x00';
+  result = result.replace(/(\d+)(\s*_{3,})/g, `${MARKER}$1${MARKER}$2`);
+  // Step 3: Replace remaining unprotected underscores
+  result = result.replace(/_{3,}/g, `{${qNumber}}`);
+  // Step 4: Restore protected blanks
+  result = result.replace(new RegExp(`${MARKER}(\\d+)${MARKER}`, 'g'), '$1');
+  return result;
 }
+
 
 /**
  * Build the gap_fill content string from questions with ______ blanks.
  */
 function buildGapFillContent(questions) {
   let content = '';
-  questions.forEach((q, idx) => {
+  const visibleQuestions = questions.filter(q => q.question && q.question.trim() !== '' && q.question.trim() !== '#hidden#');
+  
+  visibleQuestions.forEach((q, idx) => {
     let questionText = replaceGapPlaceholders(q.question, q.number);
     // Convert hardcoded arrows to structural newline breaks for FlowChart blocks
     questionText = questionText.replace(/(<br\s*\/?>)?\s*↓\s*(<br\s*\/?>)?/g, '\n');
     content += questionText;
-    if (idx < questions.length - 1) {
+    if (idx < visibleQuestions.length - 1) {
       content += '\n';
     }
   });
@@ -448,7 +459,7 @@ export function adaptListeningData(rawData) {
   const allSections = [];
 
   (rawData.parts || []).forEach((part) => {
-    const partTitle = `Part ${part.partNumber}`;
+    const partTitle = `Section ${part.partNumber}`;
     const groups = part.questionGroups || [];
 
     groups.forEach((group, groupIdx) => {

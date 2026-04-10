@@ -52,13 +52,29 @@ export default function TestListLayout({ title, description, tests = [], moduleT
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  const TYPE_OPTIONS = [
-    { val: "All Types", label: t("testList.allTypes", { defaultValue: "All Types" }) },
-    { val: "Full Test", label: t("testList.fullTest", { defaultValue: "Full Test" }) },
-    { val: "Part / Section", label: "Part / Section" },
-    { val: "Passage", label: "Passage" },
-    { val: "Task", label: "Task" }
-  ];
+  const TYPE_OPTIONS = useMemo(() => {
+    const all = { val: "All Types", label: t("testList.allTypes", { defaultValue: "All Types" }) };
+    const full = { val: "full_test", label: "Full Test" };
+    if (moduleType === "listening") return [
+      all, full,
+      { val: "section_1", label: "Section 1" },
+      { val: "section_2", label: "Section 2" },
+      { val: "section_3", label: "Section 3" },
+      { val: "section_4", label: "Section 4" },
+    ];
+    if (moduleType === "reading") return [
+      all, full,
+      { val: "passage_1", label: "Passage 1" },
+      { val: "passage_2", label: "Passage 2" },
+      { val: "passage_3", label: "Passage 3" },
+    ];
+    if (moduleType === "writing") return [
+      all, full,
+      { val: "task_1", label: "Task 1" },
+      { val: "task_2", label: "Task 2" },
+    ];
+    return [all, full];
+  }, [moduleType, t]);
 
   const TAB_OPTIONS = [
     { key: "all", label: t("testList.allTests") },
@@ -82,18 +98,7 @@ export default function TestListLayout({ title, description, tests = [], moduleT
       result = result.filter(t => t.title.toLowerCase().includes(q));
     }
     if (typeFilter !== "All Types") {
-      const typeMap = { 
-        "Full Test": "full_test", 
-        "Part / Section": ["section", "part"], 
-        "Passage": "passage",
-        "Task": "task"
-      };
-      const mapped = typeMap[typeFilter];
-      if (Array.isArray(mapped)) {
-        result = result.filter(t => mapped.some(m => (t.testType || '').toLowerCase().startsWith(m)));
-      } else if (mapped) {
-        result = result.filter(t => (t.testType || '').toLowerCase().startsWith(mapped));
-      }
+      result = result.filter(t => (t.testType || '').toLowerCase() === typeFilter.toLowerCase());
     }
 
     // Sort: Free tests first for non-premium users

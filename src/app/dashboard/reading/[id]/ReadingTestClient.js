@@ -217,7 +217,7 @@ function ReadingTestInner({ id, rawData }) {
     }
   };
   const handleRetry = () => { clearAllTestData(); };
-  const handleExit  = useCallback(() => { clearAllTestData(); router.push('/dashboard/reading'); }, [clearAllTestData, router]);
+  const handleExit  = useCallback(() => { clearAllTestData(); router.back(); }, [clearAllTestData, router]);
 
   // Use ref to always capture latest userAnswers in timer callback
   const userAnswersRef = useRef(userAnswers);
@@ -436,7 +436,7 @@ function ReadingTestInner({ id, rawData }) {
 
                     const matchHeadingsBlock = currentBlocks.find(b => b.type === 'match_headings');
                     
-                    const sectionMatch = trimmed.match(/^((?:<[^>]+>\s*)*)(Section\s+(?:\d+|[A-ZIVX]+)|Paragraph\s+(?:[A-Z]|\d+)|[A-Z](?=\.|\n|\r|\t|  |$))[\.\s]*([\s\S]*)$/i);
+                    const sectionMatch = trimmed.match(/^((?:<[^>]+>\s*)*)(Section\s+(?:\d+|[A-ZIVX]+)|Paragraph\s+(?:[A-Z]|\d+)|[A-Z](?=\.\s|\n|\r|\t|  |\s+[A-Z]))[\.\s]*([\s\S]*)$/i);
                     
                     let headingQ = null;
                     let displayContent = trimmed;

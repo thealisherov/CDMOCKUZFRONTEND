@@ -76,13 +76,20 @@ function mapGroupType(groupType) {
  */
 function replaceGapPlaceholders(questionStr, qNumber) {
   if (!questionStr) return '';
-  // Remove the question number if it immediately precedes the underscores
-  // E.g., "<b>11</b> ______" -> "{11}", "11. _________" -> "{11}"
-  const numRegex = new RegExp(`(?:<(?:b|strong)[^>]*>\\s*)?0*${qNumber}(?:\\s*<\\/(?:b|strong)>)?\\s*[\\.\\)]?\\s*_{3,}`, 'gi');
+  // Step 1: Replace current question's own bold-numbered blank e.g. "<b>15</b> ______" → "{15}"
+  const numRegex = new RegExp(`(?:<(?:b|strong)[^>]*>\\s*)?0*${qNumber}(?:\\s*<\/(?:b|strong)>)?\\s*[\.\\)]?\\s*_{3,}`, 'gi');
   let result = questionStr.replace(numRegex, `{${qNumber}}`);
-  // Replace any remaining sequences of 3 or more underscores
-  return result.replace(/_{3,}/g, `{${qNumber}}`);
+  // Step 2: Protect other numbered blanks like "14 ______" so they don't get stolen.
+  // Replace "<number> ______" with a null-byte marker to restore later.
+  const MARKER = '\x00';
+  result = result.replace(/(\d+)(\s*_{3,})/g, `${MARKER}$1${MARKER}$2`);
+  // Step 3: Replace any remaining unprotected underscores with the current question number
+  result = result.replace(/_{3,}/g, `{${qNumber}}`);
+  // Step 4: Restore protected blanks ("\x00<num>\x00 ______" → "<num> ______")
+  result = result.replace(new RegExp(`${MARKER}(\\d+)${MARKER}`, 'g'), '$1');
+  return result;
 }
+
 
 /**
  * Build the gap_fill content string for summary_completion questions.
@@ -91,13 +98,15 @@ function replaceGapPlaceholders(questionStr, qNumber) {
 function buildGapFillContent(questions) {
   // Combine the questions into a single content block with {N} placeholders
   let content = '';
-  questions.forEach((q, idx) => {
+  const visibleQuestions = questions.filter(q => q.question && q.question.trim() !== '' && q.question.trim() !== '#hidden#');
+  
+  visibleQuestions.forEach((q, idx) => {
     // Replace the blank indicator with the numbered placeholder
     let questionText = replaceGapPlaceholders(q.question, q.number);
     // Convert hardcoded arrows to structural newline breaks for FlowChart blocks
     questionText = questionText.replace(/(<br\s*\/?>)?\s*↓\s*(<br\s*\/?>)?/g, '\n');
     content += questionText;
-    if (idx < questions.length - 1) {
+    if (idx < visibleQuestions.length - 1) {
       // Check if the question already ends with an HTML block tag (br, /ul, /li, /p, etc.)
       // If so, no extra separator is needed. Otherwise join with a space for flowing text.
       const endsWithBlock = /<\/(ul|ol|li|p|div|table|tr|td|th)>\s*$|<br\s*\/?>\s*$/i.test(questionText);

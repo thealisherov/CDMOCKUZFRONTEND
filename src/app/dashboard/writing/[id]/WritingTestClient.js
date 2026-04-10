@@ -271,7 +271,7 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
   // Removed unmount clearAllTestData so refreshing the page preserves the currently entered essay
 
   const handleRetry = () => { clearAllTestData(); };
-  const handleExit = useCallback(() => { clearAllTestData(); router.push('/dashboard/writing'); }, [clearAllTestData, router]);
+  const handleExit = useCallback(() => { clearAllTestData(); router.back(); }, [clearAllTestData, router]);
   // Timer expired: just submit current essays (don't clear first!)
   const handleSubmitRef = useRef(handleSubmit);
   handleSubmitRef.current = handleSubmit;

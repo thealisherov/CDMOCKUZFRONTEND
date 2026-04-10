@@ -138,7 +138,7 @@ function ListeningTestInner({ id, rawData }) {
 
     allSections.forEach(section => {
       // Prioritize partLabel from adapter, fallback to title regex
-      const label = section.partLabel || section.title?.match(/^(Section|Part) \d+/i)?.[0] || (currentLabel || 'Part 1');
+      const label = section.partLabel || section.title?.match(/^(Section|Part) \d+/i)?.[0] || (currentLabel || 'Section 1');
       if (label !== currentLabel) {
         if (currentLabel) {
           grouped.push({ label: currentLabel, sections: currentSections });
@@ -302,7 +302,7 @@ function ListeningTestInner({ id, rawData }) {
   // Exit via button: full reset, navigate away
   const handleExit = useCallback(() => {
     clearAllTestData();
-    router.push('/dashboard/listening');
+    router.back();
   }, [clearAllTestData, router]);
 
   // Use ref to always capture latest userAnswers (avoids stale closure in timer callback)
@@ -502,7 +502,7 @@ function ListeningTestInner({ id, rawData }) {
         style={{ background: 'var(--test-strip-bg)', borderColor: 'var(--test-border)' }}
         className="border rounded px-5 py-3"
       >
-        <p className="font-bold text-[16px] leading-tight mb-1">{currentPart?.label || 'Part 1'}</p>
+        <p className="font-bold text-[16px] leading-tight mb-1">{currentPart?.label ? currentPart.label.replace(/^Part (\d+)$/i, 'Section $1') : 'Section 1'}</p>
         <p className="text-[15px] leading-tight">
           {visibleSections[0]?.questionRange
             ? `Listen and answer questions ${visibleSections[0].questionRange}`
