@@ -620,7 +620,19 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
               </div>
 
             </div>
-          ) : null}
+          ) : (
+            <div className="bg-orange-50 border border-orange-200 rounded-xl p-10 mb-8 text-center flex flex-col items-center">
+              <AlertTriangle className="w-12 h-12 text-orange-500 mb-4" />
+              <h2 className="text-xl font-bold text-orange-800 mb-2">Results not found</h2>
+              <p className="text-orange-600 max-w-sm mx-auto mb-6">
+                Your previous session results couldn't be loaded. You can rebuild the results from your saved answers or start a new test.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <Button onClick={handleSubmit} className="h-12 px-8">Rebuild Results</Button>
+                <Button variant="outline" onClick={handleRetry} className="h-12 px-8">Start New Test</Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
