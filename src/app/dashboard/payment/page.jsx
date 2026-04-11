@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Copy, CheckCircle2, ChevronRight, Send, AlertCircle, CreditCard, ShieldCheck, Globe } from "lucide-react";
 import { useTranslation } from "@/components/LanguageContext";
+import { createClient } from "@/utils/supabase/client";
 
 function PaymentContent() {
   const searchParams = useSearchParams();
@@ -12,12 +13,42 @@ function PaymentContent() {
   const [isUSD, setIsUSD] = useState(initialCurrency === "usd" && initialCurrency !== "uzs");
   const [selectedPlan, setSelectedPlan] = useState(initialPlan);
   const [copied, setCopied] = useState(false);
+  const [dbPlans, setDbPlans] = useState([]);
   const { t } = useTranslation();
 
+  const fetchPlans = useCallback(async () => {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.from('pricing_plans').select('*').order('created_at');
+      if (error) throw error;
+      if (data && data.length > 0) setDbPlans(data);
+    } catch (err) {
+      console.error("Error fetching pricing plans:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPlans();
+  }, [fetchPlans]);
+
+  const getPlanPrice = (id, fallbackUzs, fallbackUsd) => {
+    const dbPlan = dbPlans.find(p => p.id === id);
+    if (!dbPlan) return isUSD ? fallbackUsd : fallbackUzs;
+    if (isUSD) {
+      return dbPlan.price_usd !== undefined && dbPlan.price_usd !== null
+        ? `$${dbPlan.price_usd}`
+        : fallbackUsd;
+    } else {
+      return dbPlan.price_uzs !== undefined && dbPlan.price_uzs !== null
+        ? `${Number(dbPlan.price_uzs).toLocaleString()} UZS`
+        : fallbackUzs;
+    }
+  };
+
   const plans = [
-    { id: "monthly", name: t("payment.plan1"), price: isUSD ? "$5" : "69,000 UZS", color: "oklch(0.48 0.22 270)" },
-    { id: "quarterly", name: t("payment.plan2"), price: isUSD ? "$12" : "149,000 UZS", color: "#e22d2d" },
-    { id: "custom", name: t("payment.plan3"), price: t("payment.customPrice"), color: "oklch(0.55 0.04 270)" }
+    { id: "monthly",   name: t("payment.plan1"), price: getPlanPrice("monthly",   "69,000 UZS", "$5"),  color: "oklch(0.48 0.22 270)" },
+    { id: "quarterly", name: t("payment.plan2"), price: getPlanPrice("quarterly", "149,000 UZS", "$12"), color: "#e22d2d" },
+    { id: "custom",    name: t("payment.plan3"), price: t("payment.customPrice"),                         color: "oklch(0.55 0.04 270)" }
   ];
 
   const handleCopy = () => {
