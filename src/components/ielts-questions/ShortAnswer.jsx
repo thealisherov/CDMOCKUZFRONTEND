@@ -73,51 +73,70 @@ const ShortAnswer = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => {
                 className="flex-1 flex flex-wrap items-baseline gap-x-2 gap-y-1 leading-relaxed font-medium"
                 style={{ fontSize: '1.05em', color: 'var(--test-fg, #111)' }}
               >
-                {/* Question text */}
-                <span dangerouslySetInnerHTML={{ __html: q.text ? q.text.replace(/\[cite[^\]]*\]/ig, '') : '' }} />
+                {/* Question text with inline input */}
+                {(() => {
+                  const rawText = q.text ? q.text.replace(/\[cite[^\]]*\]/ig, '') : '';
+                  // Split by optional spaces, optional digits, optional dot, optional spaces, and 2+ underscores
+                  const parts = rawText.split(/\s*(?:\d+\.?\s*)?_{2,}\s*/);
 
-                {/* Answer input box — IELTS CD style: small box at end of question */}
-                <span className="relative inline-flex items-center" style={{ verticalAlign: 'baseline' }}>
-                  <input
-                    id={`sa-input-${questionId}`}
-                    type="text"
-                    value={value}
-                    autoComplete="off"
-                    spellCheck={false}
-                    placeholder=""
-                    onChange={(e) => handleChange(questionId, e.target.value)}
-                    style={{
-                      width: `${inputWidth}px`,
-                      maxWidth: '380px',
-                      minWidth: '120px',
-                      height: '1.9em',
-                      padding: '0 8px',
-                      fontSize: '0.95em',
-                      fontFamily: 'inherit',
-                      fontWeight: 600,
-                      color: 'var(--test-fg, #1a3a6b)',
-                      background: 'var(--test-panel-bg, #fff)',
-                      border: '1.5px solid',
-                      borderColor: value
-                        ? 'var(--primary, #2563eb)'
-                        : 'var(--test-border, #999)',
-                      borderRadius: '2px',
-                      outline: 'none',
-                      transition: 'border-color 0.15s, box-shadow 0.15s',
-                      verticalAlign: 'baseline',
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = 'var(--primary, #2563eb)';
-                      e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.15)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.boxShadow = 'none';
-                      e.target.style.borderColor = value
-                        ? 'var(--primary, #2563eb)'
-                        : 'var(--test-border, #999)';
-                    }}
-                  />
-                </span>
+                  const inputElement = (
+                    <span key={`input-${questionId}`} className="relative inline-flex items-center mx-1" style={{ verticalAlign: 'baseline' }}>
+                      <input
+                        id={`sa-input-${questionId}`}
+                        type="text"
+                        value={value}
+                        autoComplete="off"
+                        spellCheck={false}
+                        placeholder=""
+                        onChange={(e) => handleChange(questionId, e.target.value)}
+                        style={{
+                          width: `${inputWidth}px`,
+                          maxWidth: '380px',
+                          minWidth: '120px',
+                          height: '1.9em',
+                          padding: '0 8px',
+                          fontSize: '0.95em',
+                          fontFamily: 'inherit',
+                          fontWeight: 600,
+                          color: 'var(--test-fg, #1a3a6b)',
+                          background: 'var(--test-panel-bg, #fff)',
+                          border: '1.5px solid',
+                          borderColor: value ? 'var(--primary, #2563eb)' : 'var(--test-border, #999)',
+                          borderRadius: '2px',
+                          outline: 'none',
+                          transition: 'border-color 0.15s, box-shadow 0.15s',
+                          verticalAlign: 'baseline',
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = 'var(--primary, #2563eb)';
+                          e.target.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.15)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.boxShadow = 'none';
+                          e.target.style.borderColor = value ? 'var(--primary, #2563eb)' : 'var(--test-border, #999)';
+                        }}
+                      />
+                    </span>
+                  );
+
+                  if (parts.length > 1) {
+                    return (
+                      <>
+                        <span dangerouslySetInnerHTML={{ __html: parts[0] }} />
+                        {inputElement}
+                        <span dangerouslySetInnerHTML={{ __html: parts.slice(1).join('') }} />
+                      </>
+                    );
+                  }
+
+                  // Fallback: no underscores found, render text then input at the end
+                  return (
+                    <>
+                      <span dangerouslySetInnerHTML={{ __html: rawText }} />
+                      {inputElement}
+                    </>
+                  );
+                })()}
               </span>
             </li>
           );

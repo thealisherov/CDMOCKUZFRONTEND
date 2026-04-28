@@ -70,21 +70,50 @@ export async function GET(request) {
       const d = row.data || {}
       const numericId = index + 1;
       const attemptInfo = completedMap[`${row.type}_${numericId}`];
+
+      let resolvedTestType = d.testFormat || d.testType;
+      let questionsCount = d.totalQuestions || (row.type === 'writing' ? 2 : 40);
+      let passageNum = 1;
+
+      if (row.type === 'reading' && d.passages && Array.isArray(d.passages) && d.passages.length === 1) {
+        passageNum = d.passages[0].passageNumber || 1;
+        let actualCount = d.passages[0].questionGroups?.reduce((acc, g) => acc + (g.questions?.length || 0), 0);
+        questionsCount = actualCount || d.totalQuestions || 13;
+        if (!resolvedTestType || resolvedTestType === 'full_test') {
+          resolvedTestType = `passage_${passageNum}`;
+        }
+      } else if (!resolvedTestType) {
+        resolvedTestType = 'full_test';
+      }
+
+      let testDesc = d.description || "";
+      if (!testDesc) {
+        if (resolvedTestType === 'full_test') {
+          testDesc = row.type === 'listening' ? '4-Section Listening · 40 Questions' 
+           : row.type === 'writing' ? 'Task 1 & Task 2 · 2 Tasks' 
+           : '3 Passages · 40 Questions';
+        } else if (resolvedTestType.startsWith('passage_')) {
+          testDesc = `Passage ${resolvedTestType.split('_')[1]} · ${questionsCount} Questions`;
+        } else if (resolvedTestType.startsWith('section_')) {
+          testDesc = `Section ${resolvedTestType.split('_')[1]} · ${questionsCount} Questions`;
+        } else if (resolvedTestType.startsWith('task_')) {
+          testDesc = `Task ${resolvedTestType.split('_')[1]} · ${questionsCount} Tasks`;
+        } else {
+          testDesc = `${resolvedTestType.replace('_', ' ').replace(/\\b\\w/g, l => l.toUpperCase())} · ${questionsCount} Questions`;
+        }
+      }
+
       return {
         id: numericId,                                // numeric ID for URL (position-based)
         supabaseId: row.id,                           // uuid (internal)
         test_id: row.test_id,                         // e.g. "listening-test-1-clarence-house"
         type: row.type,
         title: d.title || `Test ${index + 1}`,
-        description: d.testFormat === 'full_test' || d.testType === 'full_test'
-          ? (row.type === 'listening' ? '4-Section Listening · 40 Questions' 
-           : row.type === 'writing' ? 'Task 1 & Task 2 · 2 Tasks' 
-           : '3 Passages · 40 Questions')
-          : (d.description || (row.type === 'writing' ? '2 Tasks' : '')),
+        description: testDesc,
         duration: d.timer || (row.type === 'listening' ? 40 : 60),
         level: d.level || 'medium',
-        testType: d.testFormat || d.testType || 'full_test',
-        questions: d.totalQuestions || (row.type === 'writing' ? 2 : 40),
+        testType: resolvedTestType,
+        questions: questionsCount,
         access: (d.testTution === 'paid' || d.access === 'paid') ? 'premium' : (d.testTution || d.access || 'free'),
         completed: attemptInfo?.completed || false,
         bestBand: attemptInfo?.bestBand || null,

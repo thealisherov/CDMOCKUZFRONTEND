@@ -16,6 +16,12 @@ export function useRealtimeTests(type, initialData = null) {
   const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    if (initialData) {
+      setTests(initialData);
+    }
+  }, [initialData]);
+
   // Fetch (or re-fetch) the full test list via the API route
   const fetchTests = useCallback(async () => {
     try {
