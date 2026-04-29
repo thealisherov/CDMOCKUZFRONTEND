@@ -229,7 +229,7 @@ export default function UsersList() {
 
       <div className="bg-white dark:bg-black/20 rounded-2xl border border-border shadow-sm overflow-hidden">
         <div className="overflow-auto" style={{ maxHeight: '70vh' }}>
-          <table className="w-full text-sm text-left">
+          <table className="w-full text-sm text-left whitespace-nowrap">
             <thead>
               <tr className="bg-muted/30 text-muted-foreground text-[11px] uppercase tracking-wider font-bold sticky top-0 z-10" style={{ background: 'var(--muted, #f5f5f5)' }}>
                 <th className="px-6 py-4">User</th>
@@ -282,7 +282,7 @@ export default function UsersList() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-2 transition-opacity">
                             <button 
                                 onClick={() => router.push(`/dashboard/admin/users/${u.id}`)}
                                 className="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors"

@@ -22,7 +22,7 @@ export default function AdminPage() {
   if (!user || user.user_metadata?.role !== "admin") return null;
 
   return (
-    <div className="w-full h-full flex flex-col p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
+    <div className="w-full h-full flex flex-col p-4 sm:p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
       <div className="flex items-center gap-4">
         <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-indigo-50 text-indigo-600">
           <ShieldCheck className="w-6 h-6" />
@@ -33,7 +33,7 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <div className="flex space-x-2 border-b border-border pb-2">
+      <div className="flex space-x-2 border-b border-border pb-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
         <button
           onClick={() => setActiveTab("users")}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${activeTab === "users" ? "bg-indigo-50 text-indigo-700" : "text-muted-foreground hover:bg-muted"}`}

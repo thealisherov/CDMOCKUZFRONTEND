@@ -132,7 +132,7 @@ export default function PricingEditor() {
               )}
             </div>
 
-            <div className="p-6 grid grid-cols-2 gap-6">
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
                <div className="space-y-4">
                   <div>
                     <label className="text-[10px] font-black uppercase text-muted-foreground mb-1 block">Price (UZS)</label>

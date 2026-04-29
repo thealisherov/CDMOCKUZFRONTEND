@@ -56,6 +56,7 @@ function mapGroupType(groupType) {
     case 'matching_drag':
     case 'matching_features': 
     case 'matching_information':
+    case 'classification':
       return 'radio_matrix'; 
 
     case 'matching_headings':
@@ -592,9 +593,19 @@ function convertQuestionGroup(group, passageContent) {
     case 'matching_drag':
     case 'matching_features':
     case 'matching_information':
-    case 'matching_paragraphs': {
+    case 'matching_paragraphs':
+    case 'classification': {
       const firstQ = group.questions[0];
-      const rawOptions = group.options || firstQ?.options || [];
+      let rawOptions = group.options || firstQ?.options || [];
+
+      // Extract options from instruction if classification type has no explicit options
+      if (group.groupType === 'classification' && rawOptions.length === 0 && group.instruction) {
+          const regex = /([A-J])\.\s([^,.]+)/g;
+          let match;
+          while ((match = regex.exec(group.instruction)) !== null) {
+              rawOptions.push(`${match[1]}. ${match[2].trim()}`);
+          }
+      }
 
       // Determine if questions are Paragraphs (Matching Headings style) or Items (Matching Info style)
       const isParagraphsAsQuestions = group.questions.some(q => q.question.toUpperCase().includes('PARAGRAPH'));
