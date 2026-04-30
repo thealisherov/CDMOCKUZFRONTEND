@@ -109,6 +109,16 @@ export function AuthProvider({ children }) {
     });
 
     if (error) throw error;
+    
+    // Add new user to Resend Audience list
+    if (data?.user?.email) {
+      fetch("/api/add-contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data.user.email })
+      }).catch(err => console.error("Failed to add contact to Resend:", err));
+    }
+
     window.location.href = "/dashboard";
     return data;
   };
