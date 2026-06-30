@@ -53,7 +53,7 @@ export default function TelegramAuth() {
 
       // Authenticate user using the temporary password
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        phone: session.phone,
+        email: session.phone, // This column contains the dummy email address
         password: session.temp_password,
       });
 

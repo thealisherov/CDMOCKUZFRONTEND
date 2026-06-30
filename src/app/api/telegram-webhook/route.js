@@ -28,7 +28,7 @@ export async function POST(req) {
     const chatId = message.chat.id;
     const text = message.text;
 
-    // STEP 1: Handle "/start" command (no OTP query param, just start the bot)
+    // STEP 1: Handle "/start" command
     if (text && text.startsWith('/start')) {
       await sendMessage(
         chatId,
@@ -55,21 +55,23 @@ export async function POST(req) {
       const lastName = message.contact.last_name || '';
       const username = message.from.username || '';
 
-      // Generate a one-time random password for the user session login
+      // Map the phone number to a dummy email to bypass Supabase Phone Auth provider constraints
+      const dummyEmail = `${phone}@telegram.megaielts.uz`;
       const tempPassword = crypto.randomUUID();
 
       let authUser = null;
 
-      // Attempt to register a new user in Supabase Auth
+      // Attempt to register a new user in Supabase Auth using the dummy email
       const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        phone: `+${phone}`,
+        email: dummyEmail,
         password: tempPassword,
-        phone_confirm: true,
+        email_confirm: true,
         user_metadata: {
           full_name: `${firstName} ${lastName}`.trim() || username || 'Telegram User',
           first_name: firstName,
           last_name: lastName,
           username: username,
+          phone: `+${phone}`,
           role: 'student'
         }
       });
@@ -77,7 +79,7 @@ export async function POST(req) {
       if (createError) {
         console.log('[Telegram Webhook] createUser failed (user might exist). Code/Message:', createError.code, createError.message);
         
-        // Find existing user in Auth using listUsers pagination loop
+        // Find existing user in Auth using listUsers pagination loop by email
         let page = 1;
         const perPage = 1000;
         let existingUser = null;
@@ -90,7 +92,7 @@ export async function POST(req) {
 
           if (listError || !users || users.length === 0) break;
 
-          existingUser = users.find(u => u.phone === `+${phone}`);
+          existingUser = users.find(u => u.email === dummyEmail);
           if (existingUser) break;
 
           if (users.length < perPage) break;
@@ -132,8 +134,8 @@ export async function POST(req) {
       // Generate a 6-digit random OTP code
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-      // Delete any previous sessions for this phone to prevent garbage accumulation
-      await supabaseAdmin.from('telegram_auth_sessions').delete().eq('phone', `+${phone}`);
+      // Delete any previous sessions for this dummy email to prevent garbage accumulation
+      await supabaseAdmin.from('telegram_auth_sessions').delete().eq('phone', dummyEmail);
 
       // Insert new session with status 'authenticated'
       const { error: sessionInsertError } = await supabaseAdmin
@@ -142,7 +144,7 @@ export async function POST(req) {
           otp_code: otpCode,
           chat_id: chatId,
           status: 'authenticated',
-          phone: `+${phone}`,
+          phone: dummyEmail, // Store the dummy email in the phone column
           temp_password: tempPassword,
           user_metadata: { firstName, lastName, username }
         });
