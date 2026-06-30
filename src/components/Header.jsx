@@ -84,20 +84,8 @@ export default function Header() {
           borderColor: 'var(--border)',
         }}
       >
-        {/* Left section: Search or Brand */}
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/50 border border-border/50 text-muted-foreground hover:border-border transition-colors w-64">
-            <Search className="h-4 w-4 shrink-0" />
-            <input
-              type="text"
-              placeholder="Search tests..."
-              className="bg-transparent text-xs font-semibold outline-none w-full placeholder:text-muted-foreground/60"
-            />
-            <kbd className="hidden lg:flex items-center gap-0.5 text-[9px] font-bold text-muted-foreground/45 border border-border/50 rounded px-1.5 py-0.5">
-              ⌘K
-            </kbd>
-          </div>
-        </div>
+        {/* Left section: Empty placeholder to keep right-aligned layout */}
+        <div className="flex items-center gap-4" />
 
         {/* Right Section: Stats, Theme, Lang, Dropdown */}
         <div className="flex items-center gap-3">

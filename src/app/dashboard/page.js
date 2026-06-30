@@ -192,38 +192,69 @@ export default function DashboardPage() {
 
         const userId = session.user.id;
 
-        // Fetch user stats
+        // 1. Fetch user stats (for tests_taken, daily_streak)
         const { data: userStats } = await supabase
           .from("user_stats")
-          .select("total_tests_completed, average_band_score, global_rank")
+          .select("tests_taken, xp, daily_streak")
           .eq("user_id", userId)
-          .single();
+          .maybeSingle();
 
-        if (userStats) {
-          setStats({
-            testsCompleted: userStats.total_tests_completed || 0,
-            avgBand: userStats.average_band_score ? Number(userStats.average_band_score).toFixed(1) : "0.0",
-            globalRank: userStats.global_rank || "—",
-          });
+        // 2. Fetch all attempts to calculate average band score
+        const { data: allAttempts } = await supabase
+          .from("TestAttempts")
+          .select("band_score")
+          .eq("user_id", userId);
+
+        let calculatedAvgBand = "0.0";
+        if (allAttempts && allAttempts.length > 0) {
+          const validScores = allAttempts
+            .map((a) => parseFloat(a.band_score))
+            .filter((score) => !isNaN(score) && score > 0);
+          if (validScores.length > 0) {
+            const sum = validScores.reduce((acc, curr) => acc + curr, 0);
+            calculatedAvgBand = (sum / validScores.length).toFixed(1);
+          }
         }
 
-        // Fetch recent tests (submissions) for "Continue Practicing"
-        const { data: submissions } = await supabase
-          .from("submissions")
-          .select("id, test_id, test_type, score, created_at")
+        // 3. Fetch rank from leaderboard API
+        let currentUserRank = "—";
+        try {
+          const res = await fetch("/api/leaderboard");
+          if (res.ok) {
+            const leaderboardData = await res.json();
+            currentUserRank = leaderboardData?.currentUser?.rank || "—";
+          }
+        } catch (rankErr) {
+          console.error("Error fetching leaderboard rank:", rankErr);
+        }
+
+        setStats({
+          testsCompleted: userStats?.tests_taken || allAttempts?.length || 0,
+          avgBand: calculatedAvgBand,
+          globalRank: currentUserRank,
+        });
+
+        // 4. Fetch recent test attempts (max 6) for "Continue Practicing"
+        const { data: attempts } = await supabase
+          .from("TestAttempts")
+          .select("id, test_numeric_id, test_type, test_title, band_score, completed_at")
           .eq("user_id", userId)
-          .order("created_at", { ascending: false })
+          .order("completed_at", { ascending: false })
           .limit(6);
 
-        if (submissions && submissions.length > 0) {
-          const testCards = submissions.map((sub, idx) => ({
-            id: sub.id,
-            title: `${sub.test_type?.charAt(0).toUpperCase() + sub.test_type?.slice(1)} Test #${idx + 1}`,
-            type: sub.test_type || "reading",
-            duration: sub.test_type === "listening" ? 30 : sub.test_type === "writing" ? 60 : 60,
-            progress: sub.score ? Math.min(Math.round((sub.score / 9) * 100), 100) : 0,
-            href: `/dashboard/${sub.test_type || "reading"}`,
-          }));
+        if (attempts && attempts.length > 0) {
+          const testCards = attempts.map((sub) => {
+            const bandVal = parseFloat(sub.band_score);
+            const progressPct = !isNaN(bandVal) ? Math.min(Math.round((bandVal / 9) * 100), 100) : 0;
+            return {
+              id: sub.id,
+              title: sub.test_title || `${sub.test_type?.charAt(0).toUpperCase() + sub.test_type?.slice(1)} Test #${sub.test_numeric_id}`,
+              type: sub.test_type || "reading",
+              duration: sub.test_type === "listening" ? 30 : 60,
+              progress: progressPct,
+              href: `/dashboard/${sub.test_type || "reading"}`,
+            };
+          });
           setRecentTests(testCards);
         }
       } catch (err) {
