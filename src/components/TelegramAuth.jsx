@@ -27,42 +27,30 @@ export default function TelegramAuth() {
     setErrorMessage("");
 
     try {
-      // Find the session for the entered OTP code
-      const { data: session, error: fetchError } = await supabase
-        .from("telegram_auth_sessions")
-        .select("*")
-        .eq("otp_code", otpCode.trim())
-        .maybeSingle();
-
-      if (fetchError) {
-        throw new Error(fetchError.message || "Kodni tekshirishda xatolik.");
-      }
-
-      if (!session) {
-        throw new Error("Noto'g'ri yoki eskirgan kod. Iltimos, tekshirib qayta kiriting.");
-      }
-
-      // Check for expiration (10 minutes)
-      const createdAt = new Date(session.created_at);
-      const now = new Date();
-      const diffMinutes = (now - createdAt) / 1000 / 60;
-
-      if (diffMinutes > 10) {
-        throw new Error("Kodning muddati tugagan. Botdan yangi kod oling.");
-      }
-
-      // Authenticate user using the temporary password
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: session.phone, // This column contains the dummy email address
-        password: session.temp_password,
+      // OTP kodni serverga yuboramiz. Tekshirish va sessiya yaratish
+      // to'liq serverda (service_role bilan) amalga oshiriladi — bu yerda
+      // hech qanday email yoki parol clientga chiqmaydi.
+      const res = await fetch("/api/telegram/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ otp_code: otpCode.trim() }),
       });
 
-      if (signInError) {
-        throw new Error(signInError.message || "Tizimga kirishda xatolik yuz berdi.");
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error || "Avtorizatsiya muvaffaqiyatsiz tugadi.");
       }
 
-      // Delete the session from database for security
-      await supabase.from("telegram_auth_sessions").delete().eq("id", session.id);
+      // Serverdan kelgan tayyor sessiya tokenlari bilan clientda login qilamiz
+      const { error: setSessionError } = await supabase.auth.setSession({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token,
+      });
+
+      if (setSessionError) {
+        throw new Error(setSessionError.message || "Sessiya o'rnatishda xatolik.");
+      }
 
       setStatus("success");
       
