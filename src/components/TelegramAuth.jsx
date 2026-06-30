@@ -1,137 +1,93 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Send, Copy, Check, Loader2, AlertCircle, Phone, ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Send, Key, Loader2, AlertCircle, Check } from "lucide-react";
 
 export default function TelegramAuth() {
-  const [showOtpView, setShowOtpView] = useState(false);
+  const [showInputView, setShowInputView] = useState(false);
   const [otpCode, setOtpCode] = useState("");
-  const [sessionRecord, setSessionRecord] = useState(null);
-  const [status, setStatus] = useState("idle"); // idle, generating, waiting_start, waiting_contact, authenticating, success, error
+  const [status, setStatus] = useState("idle"); // idle, authenticating, success, error
   const [errorMessage, setErrorMessage] = useState("");
-  const [copied, setCopied] = useState(false);
-  const channelRef = useRef(null);
-
+  
   const supabase = createClient();
   const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "megaielts_bot";
 
-  // Clean up channel on unmount
-  useEffect(() => {
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-      }
-    };
-  }, [supabase]);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(otpCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy text: ", err);
-    }
-  };
-
-  const startTelegramLogin = async () => {
-    setStatus("generating");
-    setErrorMessage("");
-    setShowOtpView(true);
-
-    try {
-      // Generate a 6-digit random code
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      setOtpCode(code);
-
-      // Save the session in Supabase telegram_auth_sessions
-      const { data: session, error } = await supabase
-        .from("telegram_auth_sessions")
-        .insert([{ otp_code: code }])
-        .select()
-        .single();
-
-      if (error) {
-        throw new Error(error.message || "Failed to initialize session");
-      }
-
-      setSessionRecord(session);
-      setStatus("waiting_start");
-
-      // Subscribe to updates for this specific session row via Realtime
-      const channel = supabase
-        .channel(`telegram-auth-${session.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "telegram_auth_sessions",
-            filter: `id=eq.${session.id}`,
-          },
-          async (payload) => {
-            const updated = payload.new;
-            console.log("[Telegram Auth] Session update received:", updated);
-
-            if (updated.status === "waiting_contact") {
-              setStatus("waiting_contact");
-            } else if (updated.status === "authenticated") {
-              setStatus("authenticating");
-              
-              // Automatically sign in the user using the temporary password
-              const { error: signInError } = await supabase.auth.signInWithPassword({
-                phone: updated.phone,
-                password: updated.temp_password,
-              });
-
-              if (signInError) {
-                console.error("Sign-in failed:", signInError);
-                setStatus("error");
-                setErrorMessage(signInError.message || "Avtorizatsiya muvaffaqiyatsiz tugadi.");
-                return;
-              }
-
-              // On success, delete the session from DB for security
-              await supabase.from("telegram_auth_sessions").delete().eq("id", session.id);
-              
-              setStatus("success");
-              // Redirect to dashboard
-              window.location.href = "/dashboard";
-            }
-          }
-        )
-        .subscribe((status) => {
-          console.log("[Telegram Auth] Realtime channel status:", status);
-        });
-
-      channelRef.current = channel;
-    } catch (err) {
-      console.error("[Telegram Auth] Error starting login:", err);
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!otpCode || otpCode.length !== 6) {
+      setErrorMessage("Iltimos, 6 xonali kodni to'liq kiriting.");
       setStatus("error");
-      setErrorMessage(err.message || "Sessiyani boshlashda xatolik yuz berdi.");
+      return;
+    }
+
+    setStatus("authenticating");
+    setErrorMessage("");
+
+    try {
+      // Find the session for the entered OTP code
+      const { data: session, error: fetchError } = await supabase
+        .from("telegram_auth_sessions")
+        .select("*")
+        .eq("otp_code", otpCode.trim())
+        .maybeSingle();
+
+      if (fetchError) {
+        throw new Error(fetchError.message || "Kodni tekshirishda xatolik.");
+      }
+
+      if (!session) {
+        throw new Error("Noto'g'ri yoki eskirgan kod. Iltimos, tekshirib qayta kiriting.");
+      }
+
+      // Check for expiration (10 minutes)
+      const createdAt = new Date(session.created_at);
+      const now = new Date();
+      const diffMinutes = (now - createdAt) / 1000 / 60;
+
+      if (diffMinutes > 10) {
+        throw new Error("Kodning muddati tugagan. Botdan yangi kod oling.");
+      }
+
+      // Authenticate user using the temporary password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        phone: session.phone,
+        password: session.temp_password,
+      });
+
+      if (signInError) {
+        throw new Error(signInError.message || "Tizimga kirishda xatolik yuz berdi.");
+      }
+
+      // Delete the session from database for security
+      await supabase.from("telegram_auth_sessions").delete().eq("id", session.id);
+
+      setStatus("success");
+      
+      // Redirect to dashboard
+      window.location.href = "/dashboard";
+    } catch (err) {
+      console.error("[Telegram Auth] Verification error:", err);
+      setStatus("error");
+      setErrorMessage(err.message || "Avtorizatsiya muvaffaqiyatsiz tugadi.");
     }
   };
 
-  const handleBack = () => {
-    // Unsubscribe from channel
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
-    setShowOtpView(false);
-    setStatus("idle");
+  const handleToggleView = () => {
+    setShowInputView(!showInputView);
     setOtpCode("");
-    setSessionRecord(null);
+    setStatus("idle");
+    setErrorMessage("");
   };
 
-  if (!showOtpView) {
+  if (!showInputView) {
     return (
       <Button
         variant="outline"
         type="button"
-        onClick={startTelegramLogin}
+        onClick={handleToggleView}
         className="w-full bg-[#2EA6DA] hover:bg-[#2796C6] text-white border-none transition-all flex items-center justify-center gap-2 font-medium"
       >
         <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -143,123 +99,71 @@ export default function TelegramAuth() {
   }
 
   return (
-    <div className="w-full p-6 border border-border bg-card/60 backdrop-blur-md rounded-2xl shadow-xl flex flex-col space-y-5 transition-all">
-      <button
-        onClick={handleBack}
-        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors self-start"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" /> Orqaga
-      </button>
-
-      <div className="flex flex-col space-y-2 text-center">
-        <h3 className="font-bold text-lg text-foreground">Telegram orqali kirish</h3>
-        <p className="text-xs text-muted-foreground leading-relaxed px-2">
-          {status === "generating"
-            ? "Sessiya yaratilmoqda..."
-            : "Quyidagi 6 xonali OTP kodni botga yuborib, tizimga avtomatik kiring."}
+    <div className="w-full p-5 border border-border bg-card/60 backdrop-blur-md rounded-2xl shadow-xl flex flex-col space-y-4 transition-all">
+      <div className="flex flex-col space-y-1 text-center">
+        <h3 className="font-bold text-base text-foreground">Telegram tasdiqlash kodi</h3>
+        <p className="text-xs text-muted-foreground">
+          Botdan olgan 6 xonali kodni kiriting.
         </p>
       </div>
 
-      {status === "generating" && (
-        <div className="flex flex-col items-center justify-center py-6 space-y-3">
-          <Loader2 className="h-8 w-8 text-[#2EA6DA] animate-spin" />
-          <span className="text-xs text-muted-foreground">Kodni tayyorlamoqdamiz...</span>
+      <form onSubmit={handleVerifyOtp} className="space-y-3">
+        <div className="flex flex-col space-y-1.5">
+          <Input
+            type="text"
+            maxLength={6}
+            placeholder="000000"
+            value={otpCode}
+            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+            disabled={status === "authenticating" || status === "success"}
+            className="text-center font-mono text-2xl tracking-[0.4em] h-12 bg-muted/40 border-border focus:border-[#2EA6DA] focus:ring-1 focus:ring-[#2EA6DA]"
+          />
         </div>
-      )}
 
-      {status !== "generating" && status !== "error" && (
-        <div className="flex flex-col space-y-4">
-          {/* OTP Code display */}
-          <div className="relative flex items-center justify-between bg-muted/60 p-4 rounded-xl border border-border/80">
-            <span className="text-3xl font-mono font-extrabold tracking-widest text-[#2EA6DA] select-all">
-              {otpCode}
-            </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleCopy}
-              className="h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-muted"
-            >
-              {copied ? <Check className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
-            </Button>
-          </div>
-
-          {/* Action step instructions */}
-          <div className="space-y-3 text-sm text-foreground/90">
-            <div className="flex items-start gap-3">
-              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-[#2EA6DA]/10 text-[#2EA6DA] text-xs font-bold shrink-0">
-                1
-              </span>
-              <p className="text-xs leading-relaxed">
-                OTP kodni nusxalang va quyidagi <strong>Telegram Botga o'tish</strong> tugmasini bosing.
-              </p>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <span className="flex items-center justify-center h-6 w-6 rounded-full bg-[#2EA6DA]/10 text-[#2EA6DA] text-xs font-bold shrink-0">
-                2
-              </span>
-              <p className="text-xs leading-relaxed">
-                Botni ishga tushiring (<strong>Start</strong> bosing) va bot so'raganda telefon raqamingizni ulashing.
-              </p>
-            </div>
-          </div>
-
-          {/* Telegram Bot Link Button */}
-          <a
-            href={`https://t.me/${botUsername}?start=${otpCode}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full flex items-center justify-center gap-2 bg-[#2EA6DA] hover:bg-[#2796C6] text-white py-3 px-4 rounded-xl font-semibold text-sm transition-all shadow-md shadow-[#2EA6DA]/20"
-          >
-            <Send className="h-4 w-4 rotate-[-10deg]" /> Telegram Botga O'tish
-          </a>
-
-          {/* Realtime Connection Status Indicator */}
-          <div className="flex items-center justify-center gap-2 p-3 bg-muted/40 rounded-lg border border-border/40">
-            {status === "waiting_start" && (
-              <>
-                <Loader2 className="h-4 w-4 text-[#2EA6DA] animate-spin" />
-                <span className="text-xs text-muted-foreground">Bot orqali start bosilishini kutilmoqda...</span>
-              </>
-            )}
-            {status === "waiting_contact" && (
-              <>
-                <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-                <span className="text-xs text-amber-600 font-medium">Iltimos, botda telefon raqamingizni yuboring...</span>
-              </>
-            )}
-            {status === "authenticating" && (
-              <>
-                <Loader2 className="h-4 w-4 text-green-500 animate-spin" />
-                <span className="text-xs text-green-600 font-semibold">Tizimga kirilmoqda...</span>
-              </>
-            )}
-            {status === "success" && (
-              <>
-                <Check className="h-4 w-4 text-green-500" />
-                <span className="text-xs text-green-600 font-bold">Muvaffaqiyatli! Yo'naltirilmoqda...</span>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {status === "error" && (
-        <div className="flex flex-col space-y-4 text-center py-2">
-          <div className="flex items-center justify-center gap-2 text-red-500 bg-red-50 dark:bg-red-950/20 p-3 rounded-lg border border-red-200 dark:border-red-950/50">
-            <AlertCircle className="h-5 w-5 shrink-0" />
+        {status === "error" && (
+          <div className="flex items-center gap-2 text-red-500 bg-red-50 dark:bg-red-950/20 p-2.5 rounded-lg border border-red-200 dark:border-red-950/50">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             <span className="text-xs text-left font-medium">{errorMessage}</span>
           </div>
+        )}
+
+        <div className="flex gap-2">
           <Button
             type="button"
-            onClick={startTelegramLogin}
-            className="w-full bg-[#2EA6DA] hover:bg-[#2796C6] text-white"
+            variant="outline"
+            onClick={handleToggleView}
+            disabled={status === "authenticating" || status === "success"}
+            className="flex-1"
           >
-            Qaytadan urinish
+            Bekor qilish
+          </Button>
+          <Button
+            type="submit"
+            disabled={status === "authenticating" || status === "success" || otpCode.length !== 6}
+            className="flex-1 bg-[#2EA6DA] hover:bg-[#2796C6] text-white border-none"
+          >
+            {status === "authenticating" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : status === "success" ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              "Kirish"
+            )}
           </Button>
         </div>
-      )}
+      </form>
+
+      <div className="border-t border-border/60 my-2 pt-3 text-center">
+        <p className="text-xs text-muted-foreground mb-2">Hali kod olmadingizmi?</p>
+        <a
+          href={`https://t.me/${botUsername}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2EA6DA] hover:text-[#2796C6] transition-colors"
+        >
+          <Send className="h-3 w-3 rotate-[-10deg]" /> Telegram botni ochish va kod olish
+        </a>
+      </div>
     </div>
   );
 }

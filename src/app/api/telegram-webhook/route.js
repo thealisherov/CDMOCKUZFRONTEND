@@ -28,63 +28,17 @@ export async function POST(req) {
     const chatId = message.chat.id;
     const text = message.text;
 
-    // STEP 1: Handle "/start <OTP_CODE>" command from the user
-    if (text && text.startsWith('/start ')) {
-      const otpCode = text.split(' ')[1]?.trim();
-
-      if (!otpCode) {
-        await sendMessage(chatId, "⚠️ Iltimos, faqat veb-sayt orqali berilgan havoladan foydalaning.");
-        return NextResponse.json({ status: 'invalid_command' });
-      }
-
-      // Check if session exists for this OTP code
-      const { data: session, error: sessionError } = await supabaseAdmin
-        .from('telegram_auth_sessions')
-        .select('*')
-        .eq('otp_code', otpCode)
-        .maybeSingle();
-
-      if (sessionError || !session) {
-        await sendMessage(chatId, "❌ Noto'g'ri yoki eskirgan OTP kod. Iltimos, veb-saytga qaytib, yangi kod oling.");
-        return NextResponse.json({ status: 'session_not_found' });
-      }
-
-      // Check if the OTP session has expired (e.g. older than 10 minutes)
-      const createdAt = new Date(session.created_at);
-      const now = new Date();
-      const diffMinutes = (now - createdAt) / 1000 / 60;
-
-      if (diffMinutes > 10) {
-        await sendMessage(chatId, "❌ Ushbu OTP kodning muddati tugagan. Saytda yangi kod oling.");
-        return NextResponse.json({ status: 'session_expired' });
-      }
-
-      // Update the session in the DB with the user's chatId and change status
-      const { error: updateError } = await supabaseAdmin
-        .from('telegram_auth_sessions')
-        .update({
-          chat_id: chatId,
-          status: 'waiting_contact'
-        })
-        .eq('id', session.id);
-
-      if (updateError) {
-        console.error('[Telegram Webhook] Error updating session with chatId:', updateError);
-        await sendMessage(chatId, "❌ Tizimda xatolik yuz berdi. Iltimos, keyinroq qayta urining.");
-        return NextResponse.json({ error: updateError.message }, { status: 500 });
-      }
-
-      // Ask user to share their contact card
+    // STEP 1: Handle "/start" command (no OTP query param, just start the bot)
+    if (text && text.startsWith('/start')) {
       await sendMessage(
         chatId,
-        "📞 Avtorizatsiyani yakunlash va shaxsingizni tasdiqlash uchun quyidagi tugmani bosib telefon raqamingizni yuboring:",
+        "👋 Assalomu alaykum! Mega IELTS tizimiga kirish uchun iltimos telefon raqamingizni yuboring (pastdagi tugmani bosing):",
         {
-          keyboard: [[{ text: "📞 Telefon raqamni yuborish", request_contact: true }]],
+          keyboard: [[{ text: "📞 Telefon raqamni ulashish", request_contact: true }]],
           resize_keyboard: true,
           one_time_keyboard: true
         }
       );
-
       return NextResponse.json({ status: 'ok' });
     }
 
@@ -100,19 +54,6 @@ export async function POST(req) {
       const firstName = message.contact.first_name || '';
       const lastName = message.contact.last_name || '';
       const username = message.from.username || '';
-
-      // Find the pending session for this chatId in the database
-      const { data: session, error: sessionError } = await supabaseAdmin
-        .from('telegram_auth_sessions')
-        .select('*')
-        .eq('chat_id', chatId)
-        .eq('status', 'waiting_contact')
-        .maybeSingle();
-
-      if (sessionError || !session) {
-        await sendMessage(chatId, "❌ Kutilayotgan avtorizatsiya sessiyasi topilmadi. Saytdan qaytadan urinib ko'ring.");
-        return NextResponse.json({ status: 'session_not_found' });
-      }
 
       // Generate a one-time random password for the user session login
       const tempPassword = crypto.randomUUID();
@@ -188,27 +129,38 @@ export async function POST(req) {
         authUser = createData.user;
       }
 
-      // Update session status to authenticated with temporary password and phone number
-      const { error: sessionUpdateError } = await supabaseAdmin
+      // Generate a 6-digit random OTP code
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+      // Delete any previous sessions for this phone to prevent garbage accumulation
+      await supabaseAdmin.from('telegram_auth_sessions').delete().eq('phone', `+${phone}`);
+
+      // Insert new session with status 'authenticated'
+      const { error: sessionInsertError } = await supabaseAdmin
         .from('telegram_auth_sessions')
-        .update({
+        .insert({
+          otp_code: otpCode,
+          chat_id: chatId,
           status: 'authenticated',
           phone: `+${phone}`,
           temp_password: tempPassword,
           user_metadata: { firstName, lastName, username }
-        })
-        .eq('id', session.id);
+        });
 
-      if (sessionUpdateError) {
-        console.error('[Telegram Webhook] Error setting session to authenticated:', sessionUpdateError);
-        await sendMessage(chatId, "❌ Sessiya yangilanishi muvaffaqiyatsiz bo'ldi. Iltimos, qaytadan urinib ko'ring.");
-        return NextResponse.json({ error: sessionUpdateError.message }, { status: 500 });
+      if (sessionInsertError) {
+        console.error('[Telegram Webhook] Error inserting session:', sessionInsertError);
+        await sendMessage(chatId, "❌ Tizimda xatolik yuz berdi. Iltimos, keyinroq qayta urining.");
+        return NextResponse.json({ error: sessionInsertError.message }, { status: 500 });
       }
 
-      // Success confirmation message
-      await sendMessage(chatId, "✅ Muvaffaqiyatli! Saytga qaytishingiz mumkin, siz avtomatik tizimga kiritildingiz.", {
-        remove_keyboard: true
-      });
+      // Send the OTP code to the user in Telegram
+      await sendMessage(
+        chatId,
+        `🔑 Saytga kirish uchun tasdiqlash kodingiz:\n\n👉 ${otpCode} 👈\n\nUshbu kodni saytdagi maydonga kiriting. Kod 10 daqiqa davomida faol bo'ladi.`,
+        {
+          remove_keyboard: true
+        }
+      );
 
       return NextResponse.json({ status: 'ok' });
     }
