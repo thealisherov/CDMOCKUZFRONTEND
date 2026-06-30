@@ -56,11 +56,23 @@ function StatCard({ icon: Icon, label, value, subtitle, gradient, delay = 0 }) {
             )}
           </div>
         </div>
-        <div
-          className="flex items-center justify-center w-11 h-11 rounded-xl transition-transform duration-300 group-hover:scale-110"
-          style={{ background: gradient, opacity: 0.15 }}
-        >
-          <Icon className="h-5 w-5" style={{ color: gradient.includes('270') ? 'var(--primary)' : gradient.includes('145') ? 'oklch(0.52 0.16 145)' : 'oklch(0.65 0.2 40)' }} />
+        <div className="relative flex items-center justify-center w-11 h-11 rounded-xl overflow-hidden transition-transform duration-300 group-hover:scale-110">
+          <div 
+            className="absolute inset-0" 
+            style={{ background: gradient, opacity: 0.15 }} 
+          />
+          <Icon 
+            className="relative z-10 h-5 w-5" 
+            style={{ 
+              color: gradient.includes('270') 
+                ? 'oklch(0.55 0.22 270)' 
+                : gradient.includes('145') 
+                ? 'oklch(0.52 0.16 145)' 
+                : gradient.includes('330')
+                ? 'oklch(0.6 0.2 330)'
+                : 'oklch(0.65 0.2 40)' 
+            }} 
+          />
         </div>
       </div>
     </motion.div>
@@ -152,11 +164,23 @@ function QuickAction({ icon: Icon, title, description, href, gradient }) {
     <motion.div variants={itemVariants}>
       <Link href={href}>
         <div className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-5 transition-all duration-300 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 cursor-pointer">
-          <div
-            className="flex items-center justify-center w-10 h-10 rounded-xl mb-3"
-            style={{ background: gradient, opacity: 0.15 }}
-          >
-            <Icon className="h-5 w-5 text-primary" />
+          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl mb-3 overflow-hidden">
+            <div 
+              className="absolute inset-0" 
+              style={{ background: gradient, opacity: 0.15 }} 
+            />
+            <Icon 
+              className="relative z-10 h-5 w-5" 
+              style={{ 
+                color: gradient.includes('270') 
+                  ? 'oklch(0.55 0.22 270)' 
+                  : gradient.includes('145') 
+                  ? 'oklch(0.52 0.16 145)' 
+                  : gradient.includes('330')
+                  ? 'oklch(0.6 0.2 330)'
+                  : 'oklch(0.65 0.2 40)' 
+              }} 
+            />
           </div>
           <h4 className="text-sm font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
             {title}
