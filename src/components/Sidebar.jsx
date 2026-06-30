@@ -4,16 +4,16 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  BookOpen, Headphones, PenTool, Mic,
-  MessageCircle, LogOut, PanelLeftClose, PanelLeftOpen,
-  Zap, Star, Settings, ShieldCheck, Trophy, Sparkles, FileText, User, X, LifeBuoy
+  LayoutDashboard, Trophy, BarChart3, Headphones, BookOpen, PenTool, Mic,
+  LogOut, PanelLeftClose, PanelLeftOpen, Zap, Crown, Settings, ShieldCheck,
+  User, X, Sparkles, MessageCircle, FileText, LifeBuoy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import ProfileModal from "@/components/ProfileModal";
 import { useTranslation } from "@/components/LanguageContext";
 import { useAuth } from "@/hooks/useAuth";
+import { motion } from "framer-motion";
 
 export default function Sidebar({ collapsed, onToggle }) {
   const pathname = usePathname();
@@ -21,7 +21,6 @@ export default function Sidebar({ collapsed, onToggle }) {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
   const [showSettings, setShowSettings] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
   const settingsRef = useRef(null);
 
   useEffect(() => {
@@ -34,41 +33,113 @@ export default function Sidebar({ collapsed, onToggle }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const navigation = [
-    { name: "Reading",     href: "/dashboard/reading",   icon: BookOpen,      locked: false },
-    { name: "Listening",   href: "/dashboard/listening", icon: Headphones,    locked: false },
-    { name: "Writing",     href: "/dashboard/writing",   icon: PenTool,       locked: false },
-    { name: "Speaking",    href: "#",                    icon: Mic,           locked: true, badge: "Soon" },
-    { name: "Predictions", href: "#",                    icon: Sparkles,      locked: true, badge: "Soon" },
-    { name: "Articles",    href: "#",                    icon: FileText,      locked: true, badge: "Soon" },
-    { name: "Comments",    href: "/dashboard/comments",  icon: MessageCircle, locked: false },
-    { name: "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy,    locked: false },
-    { name: "Support",     href: "/dashboard/support",   icon: LifeBuoy,      locked: false },
-    { name: "Premium",     href: "/dashboard/premium",   icon: Star,          locked: false, badge: "Upgrade" },
-    { name: "Profile",     href: "/dashboard/profile",   icon: User,          locked: false },
+  const isActive = (href, exact) => {
+    if (href === "#") return false;
+    if (exact) return pathname === "/dashboard" || pathname === "/dashboard/";
+    return pathname.startsWith(href);
+  };
+
+  const mainNav = [
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, exact: true },
+    { name: "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy },
+    { name: "My Stats", href: "/dashboard/profile", icon: BarChart3 },
+    { name: "Comments", href: "/dashboard/comments", icon: MessageCircle },
   ];
 
-  if (user?.user_metadata?.role === "admin") {
-    navigation.push({ name: "Admin", href: "/dashboard/admin", icon: ShieldCheck, locked: false });
-  }
+  const practiceNav = [
+    { name: "Listening", href: "/dashboard/listening", icon: Headphones },
+    { name: "Reading", href: "/dashboard/reading", icon: BookOpen },
+    { name: "Writing", href: "/dashboard/writing", icon: PenTool },
+    { name: "Speaking", href: "#", icon: Mic, locked: true, badge: "Soon" },
+    { name: "Predictions", href: "#", icon: Sparkles, locked: true, badge: "Soon" },
+    { name: "Articles", href: "#", icon: FileText, locked: true, badge: "Soon" },
+  ];
+
+  const supportNav = [
+    { name: "Support", href: "/dashboard/support", icon: LifeBuoy },
+  ];
 
   const handleNavClick = (e, item) => {
     if (item.locked) e.preventDefault();
   };
 
-  const isActive = (href) => {
-    if (href === "#") return false;
-    return pathname.startsWith(href);
+  const renderNavItem = (item) => {
+    const active = isActive(item.href, item.exact);
+    const Icon = item.icon;
+    const displayName = t?.sidebar?.[item.name.toLowerCase()] || item.name;
+
+    return (
+      <Link
+        key={item.name}
+        href={item.locked ? "#" : item.href}
+        onClick={(e) => handleNavClick(e, item)}
+        title={collapsed ? displayName : undefined}
+        className={cn(
+          "group relative flex items-center gap-3 rounded-2xl text-[14px] font-medium transition-all duration-200",
+          collapsed ? "justify-center px-0 py-2.5 mx-auto w-11 h-11" : "px-3.5 py-3",
+          active
+            ? "text-primary bg-primary/5 dark:bg-primary/10"
+            : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200",
+          item.locked && "opacity-40 cursor-not-allowed"
+        )}
+      >
+        {/* Active left border highlight */}
+        {active && (
+          <span
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 rounded-r-full"
+            style={{
+              background: 'var(--primary)',
+              boxShadow: '0 0 10px var(--primary)',
+            }}
+          />
+        )}
+
+        {/* Hover overlay */}
+        {!active && !item.locked && (
+          <span className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity bg-slate-100 dark:bg-slate-800/50" />
+        )}
+
+        <span className="relative flex items-center gap-3 w-full">
+          <Icon
+            className={cn(
+              "h-[18px] w-[18px] shrink-0 transition-transform duration-200 group-hover:scale-110",
+              active ? "text-primary" : "text-slate-400 dark:text-slate-500"
+            )}
+          />
+          {!collapsed && (
+            <span className={cn("font-medium", active && "font-semibold")}>
+              {displayName}
+            </span>
+          )}
+          
+          {/* Badge */}
+          {!collapsed && item.badge && (
+            <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-orange-100 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400 animate-pulse">
+              {item.badge}
+            </span>
+          )}
+        </span>
+
+        {/* Collapsed tooltip */}
+        {collapsed && (
+          <span
+            className="absolute left-full ml-3 px-2.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap pointer-events-none z-50
+              opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-200
+              bg-popover text-popover-foreground border border-border shadow-xl"
+          >
+            {displayName}
+            {item.badge && <span className="ml-1.5 opacity-60">({item.badge})</span>}
+          </span>
+        )}
+      </Link>
+    );
   };
 
   return (
-    <div className="flex h-full w-full flex-col" style={{ background: 'var(--sidebar-background)' }}>
-
-      {/* ── Logo + Collapse ── */}
-      <div
-        className="flex h-16 items-center border-b px-3 justify-between shrink-0"
-        style={{ borderColor: 'var(--sidebar-border)' }}
-      >
+    <div className="flex h-full w-full flex-col bg-sidebar-background border-r border-sidebar-border">
+      
+      {/* Logo Header */}
+      <div className="flex h-16 items-center border-b border-sidebar-border px-4 justify-between shrink-0">
         <Link
           href="/"
           className={cn(
@@ -76,235 +147,180 @@ export default function Sidebar({ collapsed, onToggle }) {
             collapsed && "justify-center w-full"
           )}
         >
-          {/* Icon mark */}
           <div
-            className="relative shrink-0 flex items-center justify-center w-8 h-8 rounded-lg"
+            className="relative shrink-0 flex items-center justify-center w-8 h-8 rounded-xl"
             style={{
-              background: 'linear-gradient(135deg, #e22d2d, #c41e1e)',
-              boxShadow: '0 0 14px rgba(226,45,45,0.4)',
+              background: 'linear-gradient(135deg, var(--primary), #4f46e5)',
+              boxShadow: '0 0 14px rgba(79,70,229,0.3)',
             }}
           >
-            <Zap className="w-4 h-4 text-white" fill="white" />
+            <Zap className="w-4 h-4 text-white animate-pulse" fill="white" />
           </div>
 
-          {/* Wordmark — only when expanded */}
           {!collapsed && (
             <div className="flex items-baseline gap-0 leading-none">
-              <span
-                className="font-black text-[19px] tracking-tight"
-                style={{ color: 'var(--sidebar-foreground)' }}
-              >
+              <span className="font-extrabold text-[20px] tracking-tight text-slate-800 dark:text-white">
                 Mega
               </span>
-              <span
-                className="font-black text-[19px] tracking-tight ml-1.5"
-                style={{ color: '#e22d2d' }}
-              >
+              <span className="font-extrabold text-[20px] tracking-tight ml-1 text-primary">
                 IELTS
               </span>
             </div>
           )}
         </Link>
 
-        {/* Collapse toggle — desktop only */}
         {onToggle && (
           <button
             onClick={onToggle}
             className={cn(
-              "hidden md:flex items-center justify-center rounded-lg transition-all shrink-0",
-              "w-7 h-7 opacity-50 hover:opacity-100",
-              "hover:bg-[oklch(0.72_0.2_270/_0.15)]",
-              collapsed && "absolute -right-3 top-4 border border-[color:var(--sidebar-border)] shadow-lg z-50 h-6 w-6 rounded-full"
+              "hidden md:flex items-center justify-center rounded-xl transition-all shrink-0",
+              "w-8 h-8 opacity-60 hover:opacity-100 hover:bg-slate-100 dark:hover:bg-slate-800",
+              collapsed && "absolute -right-3 top-4 border border-border shadow-lg z-50 h-6 w-6 rounded-full bg-background"
             )}
-            style={{
-              color: 'var(--sidebar-foreground)',
-              background: collapsed ? 'var(--sidebar-background)' : 'transparent',
-            }}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            {collapsed
-              ? <PanelLeftOpen  className="h-3.5 w-3.5" />
-              : <PanelLeftClose className="h-3.5 w-3.5" />
-            }
+            {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
           </button>
         )}
       </div>
 
-      {/* ── Navigation ── */}
-      <nav className={cn("flex-1 py-5 space-y-1 overflow-y-auto", collapsed ? "px-2" : "px-3")}>
+      {/* Navigation Groups */}
+      <nav className={cn("flex-1 overflow-y-auto no-scrollbar", collapsed ? "px-2 py-2 space-y-2.5" : "px-4 py-4 space-y-4")}>
+        <div>
+          {!collapsed && (
+            <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+              Main
+            </p>
+          )}
+          <div className="space-y-1">
+            {mainNav.map(renderNavItem)}
+          </div>
+        </div>
 
-        {!collapsed && (
-          <p
-            className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-widest"
-            style={{ color: 'oklch(0.55 0.04 270)' }}
-          >
-            Modules
-          </p>
+        <div>
+          {!collapsed && (
+            <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+              Practice
+            </p>
+          )}
+          <div className="space-y-1">
+            {practiceNav.map(renderNavItem)}
+          </div>
+        </div>
+
+        <div>
+          {!collapsed && (
+            <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+              Support
+            </p>
+          )}
+          <div className="space-y-1">
+            {supportNav.map(renderNavItem)}
+          </div>
+        </div>
+
+        {user?.user_metadata?.role === "admin" && (
+          <div>
+            {!collapsed && (
+              <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                Admin
+              </p>
+            )}
+            <div className="space-y-1">
+              {renderNavItem({ name: "Admin Panel", href: "/dashboard/admin", icon: ShieldCheck })}
+            </div>
+          </div>
         )}
-
-        {navigation.map((item) => {
-          const active = isActive(item.href);
-          const translatedName = t?.sidebar?.[item.name.toLowerCase()] || item.name;
-          const translatedBadge = item.badge && t?.sidebar?.[item.badge.toLowerCase()] ? t.sidebar[item.badge.toLowerCase()] : item.badge;
-          
-          return (
-            <a
-              key={item.name}
-              href={item.href}
-              onClick={(e) => handleNavClick(e, item)}
-              title={collapsed ? translatedName : undefined}
-              className={cn(
-                "group relative flex items-center rounded-xl text-sm font-medium transition-all duration-200",
-                collapsed ? "justify-center px-0 py-3" : "justify-between px-3 py-2.5",
-                !active && !item.locked && "hover:opacity-100",
-                item.locked && "cursor-not-allowed opacity-35"
-              )}
-              style={active ? {
-                background: 'linear-gradient(135deg, oklch(0.55 0.22 270), oklch(0.52 0.2 250))',
-                boxShadow: '0 4px 20px oklch(0.55 0.22 270 / 0.35), inset 0 1px 0 oklch(1 0 0 / 0.1)',
-                color: '#ffffff',
-              } : {
-                color: 'var(--sidebar-foreground)',
-                opacity: 0.75,
-              }}
-            >
-              {/* Hover bg */}
-              {!active && !item.locked && (
-                <span
-                  className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ background: 'oklch(0.72 0.2 270 / 0.1)' }}
-                />
-              )}
-
-              {/* Active left bar */}
-              {active && !collapsed && (
-                <span
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full"
-                  style={{ background: 'oklch(0.9 0.1 270)', boxShadow: '0 0 8px #fff' }}
-                />
-              )}
-
-              <div className={cn("relative flex items-center", collapsed ? "gap-0" : "gap-3")}>
-                <item.icon
-                  className={cn(
-                    "h-[18px] w-[18px] shrink-0 transition-transform group-hover:scale-110",
-                    active ? "text-white" : ""
-                  )}
-                  style={active ? {} : { color: 'var(--sidebar-foreground)', opacity: 0.7 }}
-                />
-                {!collapsed && (
-                  <span className={cn("font-medium", active ? "text-white" : "")}>
-                    {translatedName}
-                  </span>
-                )}
-              </div>
-
-              {/* Badge */}
-              {!collapsed && item.badge && (
-                <span
-                  className="relative text-[10px] px-1.5 py-0.5 rounded-full font-semibold tracking-wide border border-current/20"
-                  style={active
-                    ? { background: 'rgba(255,255,255,0.2)', color: '#fff' }
-                    : { color: 'var(--sidebar-foreground)', opacity: 0.5 }
-                  }
-                >
-                  {translatedBadge}
-                </span>
-              )}
-
-              {/* Tooltip in collapsed mode */}
-              {collapsed && (
-                <span
-                  className="absolute left-full ml-3 px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap pointer-events-none z-50
-                    opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-200"
-                  style={{
-                    background: 'var(--sidebar-background)',
-                    color: 'var(--sidebar-foreground)',
-                    border: '1px solid var(--sidebar-border)',
-                    boxShadow: '0 8px 24px oklch(0 0 0 / 0.3)',
-                  }}
-                >
-                  {translatedName}
-                  {item.badge && <span className="ml-1.5 opacity-60">({translatedBadge})</span>}
-                </span>
-              )}
-            </a>
-          );
-        })}
       </nav>
 
-      {/* Divider */}
-      <div className="mx-3 h-px" style={{ background: 'var(--sidebar-border)' }} />
+      {/* Upgrade to Premium Mini Banner */}
+      {!user?.isPremium && !collapsed && (
+        <div className="px-4 mb-4">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-tr from-indigo-600 via-indigo-700 to-purple-800 text-white shadow-md shadow-indigo-500/20"
+          >
+            {/* Background elements */}
+            <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl" />
+            <div className="absolute top-1 right-2 w-2 h-2 bg-yellow-300 rounded-full animate-ping" />
 
-      {/* ── Bottom actions ── */}
-      <div ref={settingsRef} className={cn("py-4 pb-8 shrink-0", collapsed ? "px-2 space-y-2" : "px-3 space-y-1")}>
+            <div className="relative space-y-3">
+              <div className="flex items-center gap-2">
+                <Crown className="w-5 h-5 text-yellow-300 fill-yellow-300 shrink-0" />
+                <span className="text-[13px] font-bold uppercase tracking-wider">Upgrade to Premium</span>
+              </div>
+              <p className="text-[11px] text-indigo-100 leading-normal">
+                Unlock full mock tests, get detailed evaluation reports & instant feedback.
+              </p>
+              <Link href="/dashboard/premium" className="block w-full">
+                <button className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-white text-indigo-700 font-bold text-xs hover:bg-indigo-50 transition-colors shadow-sm">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Upgrade Now
+                </button>
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Divider */}
+      <div className="mx-4 h-px bg-sidebar-border" />
+
+      {/* Bottom Profile / Settings Actions */}
+      <div ref={settingsRef} className={cn("py-4 shrink-0", collapsed ? "px-2" : "px-4")}>
         {collapsed ? (
-          <div className="flex flex-col items-center gap-2 relative">
+          <div className="flex flex-col items-center gap-2">
             {showSettings && (
-              <div className="flex flex-col items-center gap-2 mb-2 p-2 rounded-xl border animate-in fade-in slide-in-from-bottom-2 duration-200 shadow-sm" style={{ background: 'oklch(0.5 0.0 0 / 0.03)', borderColor: 'var(--sidebar-border)' }}>
+              <div className="flex flex-col items-center gap-2 mb-2 p-2 rounded-2xl border border-border bg-popover shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200">
                 <LanguageSelector position="top" />
                 <ThemeToggle />
               </div>
             )}
             <button
               onClick={() => setShowSettings(!showSettings)}
-              title="Settings"
               className={cn(
-                "flex items-center justify-center h-9 w-9 rounded-xl transition-all",
-                showSettings ? "bg-primary/10 text-primary" : "hover:bg-[oklch(0.72_0.2_270/_0.12)]"
+                "flex items-center justify-center h-10 w-10 rounded-2xl transition-all",
+                showSettings ? "bg-primary/10 text-primary" : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
               )}
-              style={!showSettings ? { color: 'var(--sidebar-foreground)', opacity: 0.6 } : {}}
+              title="Settings"
             >
-              <Settings className="h-4 w-4 pointer-events-none" />
+              <Settings className="h-4.5 w-4.5" />
             </button>
-            {user ? (
-              <button
-                onClick={logout}
-                title="Sign Out"
-                className="flex items-center justify-center h-9 w-9 rounded-xl transition-all hover:bg-red-500/10 text-red-500"
-              >
-                <LogOut className="h-4 w-4 pointer-events-none" />
-              </button>
-            ) : (
-              <Link href="/login" title="Log In" className="flex items-center justify-center h-9 w-9 rounded-xl transition-all hover:bg-primary/10 text-primary">
-                <User className="h-4 w-4 pointer-events-none" />
-              </Link>
-            )}
+            <button
+              onClick={logout}
+              className="flex items-center justify-center h-10 w-10 rounded-2xl transition-all text-red-500 hover:bg-red-500/10"
+              title="Sign Out"
+            >
+              <LogOut className="h-4.5 w-4.5" />
+            </button>
           </div>
         ) : (
-            <>
+          <div className="space-y-2">
             {user ? (
               <>
                 <div
-                  onClick={() => router.push('/dashboard/profile')}
-                  className="group flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 cursor-pointer transition-all hover:bg-[oklch(0.72_0.2_270/_0.12)]"
-                  style={{
-                    background: 'oklch(0.72 0.2 270 / 0.08)',
-                    border: '1px solid var(--sidebar-border)',
-                  }}
+                  onClick={() => router.push("/dashboard/profile")}
+                  className="flex items-center gap-3 p-2 rounded-2xl border border-slate-100 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer transition-colors"
                 >
                   <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold text-xs text-white"
-                    style={{ background: 'linear-gradient(135deg, #e22d2d, oklch(0.68 0.22 270))' }}
+                    className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-white text-xs shrink-0"
+                    style={{ background: 'linear-gradient(135deg, var(--primary), #6366f1)' }}
                   >
                     {user?.user_metadata?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-semibold truncate" style={{ color: 'var(--sidebar-foreground)' }}>
+                    <p className="text-[12px] font-bold text-slate-800 dark:text-slate-200 truncate">
                       {user?.user_metadata?.full_name || user?.email?.split('@')[0]}
                     </p>
-                    <p className="text-[10px] truncate" style={{ color: 'oklch(0.55 0.04 270)' }}>
-                      {user?.isPremium ? "Premium Account" : "Free Plan"}
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
+                      {user?.isPremium ? "Premium Account" : "Free Account"}
                     </p>
                   </div>
                 </div>
 
                 {showSettings && (
-                  <div
-                    className="mx-1 mb-2 p-2 rounded-xl border flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200 shadow-sm"
-                    style={{ background: 'oklch(0.5 0.0 0 / 0.03)', borderColor: 'var(--sidebar-border)' }}
-                  >
-                    <span className="text-xs font-semibold pl-1" style={{ color: 'var(--sidebar-foreground)' }}>Settings</span>
+                  <div className="p-2 rounded-2xl border border-border bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 pl-1">Prefs</span>
                     <div className="flex gap-2">
                       <LanguageSelector position="top" />
                       <ThemeToggle />
@@ -312,77 +328,39 @@ export default function Sidebar({ collapsed, onToggle }) {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between px-1 mt-1">
+                <div className="flex items-center justify-between gap-2 pt-1">
                   <button
                     onClick={() => setShowSettings(!showSettings)}
                     className={cn(
                       "flex items-center justify-center p-2 rounded-xl transition-all",
-                      showSettings ? "bg-primary/10 text-primary" : "hover:bg-[oklch(0.72_0.2_270/_0.12)]"
+                      showSettings ? "bg-primary/10 text-primary" : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                     )}
-                    style={!showSettings ? { color: 'var(--sidebar-foreground)', opacity: 0.6 } : {}}
-                    title="Settings"
+                    title="Preferences"
                   >
-                    <Settings className="h-4 w-4 pointer-events-none" />
+                    <Settings className="h-4.5 w-4.5" />
                   </button>
-
                   <button
                     onClick={logout}
-                    className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all hover:bg-red-500/10 text-red-500 hover:text-red-700"
-                    style={{ opacity: 0.8 }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 transition-colors"
                   >
-                    <LogOut className="h-4 w-4 pointer-events-none" />
-                    <span className="hidden sm:inline">Sign Out</span>
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
                   </button>
                 </div>
               </>
             ) : (
-              <div className="flex flex-col gap-2 relative">
-                {showSettings && (
-                  <div className="mb-2 p-2 rounded-xl border flex flex-col items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200 shadow-sm" style={{ background: 'oklch(0.5 0.0 0 / 0.03)', borderColor: 'var(--sidebar-border)' }}>
-                    <div className="flex w-full items-center justify-between px-1">
-                      <span className="text-xs font-semibold" style={{ color: 'var(--sidebar-foreground)' }}>Settings</span>
-                      <button onClick={() => setShowSettings(false)} className="text-muted-foreground hover:text-primary"><X size={14}/></button>
-                    </div>
-                    <div className="flex gap-2 w-full justify-center">
-                      <LanguageSelector position="top" />
-                      <ThemeToggle />
-                    </div>
-                  </div>
-                )}
-                
-                <Link href="/login">
-                  <button className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all hover:bg-primary/10 text-primary border border-primary/20 bg-primary/5">
+              <div className="space-y-2">
+                <Link href="/login" className="block w-full">
+                  <button className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50">
                     <User className="h-4 w-4" />
-                    <span>Log In / Sign Up</span>
+                    Sign In
                   </button>
                 </Link>
-
-                <div className="flex items-center justify-center mt-1">
-                  <button
-                    onClick={() => setShowSettings(!showSettings)}
-                    className={cn(
-                      "flex items-center justify-center p-2 rounded-xl transition-all",
-                      showSettings ? "bg-primary/10 text-primary" : "hover:bg-[oklch(0.72_0.2_270/_0.12)]"
-                    )}
-                    style={!showSettings ? { color: 'var(--sidebar-foreground)', opacity: 0.6 } : {}}
-                    title="Settings"
-                  >
-                    <Settings className="h-4 w-4 pointer-events-none" />
-                  </button>
-                </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
-
-      {showProfile && (
-        <ProfileModal 
-          isOpen={showProfile} 
-          onClose={() => setShowProfile(false)} 
-          user={user} 
-        />
-      )}
     </div>
   );
 }

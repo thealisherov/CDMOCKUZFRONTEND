@@ -3,15 +3,14 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 import { cn } from "@/lib/utils";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import { useTheme } from "next-themes"; // Assuming next-themes for useTheme
 import StreakModal from "@/components/StreakModal";
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const { theme } = useTheme();
 
   useEffect(() => {
     const saved = localStorage.getItem("sidebar-collapsed");
@@ -27,16 +26,16 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+    <div className="min-h-screen flex bg-background text-foreground">
 
-        {/* ── Desktop Sidebar ── */}
+      {/* ── Desktop Sidebar ── */}
       <aside
         className={cn(
           "hidden md:flex flex-col fixed top-0 bottom-0 left-0 z-30 transition-all duration-300 ease-in-out",
           collapsed ? "w-[68px]" : "w-64"
         )}
         style={{
-          boxShadow: '2px 0 24px oklch(0 0 0 / 0.18)',
+          boxShadow: '1px 0 0 var(--border)',
         }}
       >
         <Sidebar collapsed={collapsed} onToggle={toggleCollapsed} />
@@ -58,8 +57,7 @@ export default function DashboardLayout({ children }) {
           }}
         >
           <button
-            className="mr-4 p-1.5 rounded-lg transition-colors"
-            style={{ color: 'var(--muted-foreground)' }}
+            className="mr-4 p-1.5 rounded-lg transition-colors text-muted-foreground hover:text-foreground"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu className="h-5 w-5" />
@@ -68,7 +66,7 @@ export default function DashboardLayout({ children }) {
           <div className="flex items-center gap-2 flex-1">
             <div
               className="w-6 h-6 rounded-md flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, oklch(0.68 0.22 270), oklch(0.72 0.2 200))' }}
+              style={{ background: 'linear-gradient(135deg, #e22d2d, #c41e1e)' }}
             >
               <span className="text-white text-[10px] font-black">M</span>
             </div>
@@ -79,8 +77,13 @@ export default function DashboardLayout({ children }) {
           </div>
         </header>
 
+        {/* Desktop header — only visible on md+ */}
+        <div className="hidden md:block">
+          <Header />
+        </div>
+
         {/* Page content */}
-        <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-hidden relative">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-hidden relative">
           {children}
         </main>
       </div>
@@ -97,16 +100,11 @@ export default function DashboardLayout({ children }) {
 
           {/* Panel */}
           <div
-            className="relative flex w-72 flex-col shadow-2xl animate-in slide-in-from-left duration-300"
-            style={{ background: 'var(--sidebar-background)' }}
+            className="relative flex w-72 flex-col shadow-2xl animate-in slide-in-from-left duration-300 bg-sidebar-background"
           >
             {/* Close button */}
             <button
-              className="absolute top-4 right-4 z-10 flex h-7 w-7 items-center justify-center rounded-lg transition-all"
-              style={{
-                background: 'oklch(0.72 0.2 270 / 0.15)',
-                color: 'var(--sidebar-foreground)',
-              }}
+              className="absolute top-4 right-4 z-10 flex h-7 w-7 items-center justify-center rounded-lg transition-all bg-muted hover:bg-muted/80 text-muted-foreground"
               onClick={() => setSidebarOpen(false)}
             >
               <X className="h-4 w-4" />
@@ -120,6 +118,6 @@ export default function DashboardLayout({ children }) {
 
       {/* Global Modals */}
       <StreakModal />
-      </div>
+    </div>
   );
 }
