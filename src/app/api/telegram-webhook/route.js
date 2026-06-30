@@ -186,7 +186,7 @@ async function sendMessage(chatId, text, replyMarkup = null) {
   };
 
   if (replyMarkup) {
-    payload.reply_markup = replyMarkup;
+    payload.reply_markup = JSON.stringify(replyMarkup);
   }
 
   try {
