@@ -13,7 +13,7 @@ export async function GET(req) {
       .from('user_stats')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     // Fetch payments
     const { data: payments } = await supabase

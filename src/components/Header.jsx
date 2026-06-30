@@ -43,7 +43,7 @@ export default function Header() {
           .from("user_stats")
           .select("daily_streak")
           .eq("user_id", session.user.id)
-          .single();
+          .maybeSingle();
 
         if (stats?.daily_streak) {
           setStreak(stats.daily_streak);

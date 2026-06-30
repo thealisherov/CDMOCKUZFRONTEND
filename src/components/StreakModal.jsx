@@ -20,7 +20,7 @@ export default function StreakModal() {
           .from("user_stats")
           .select("daily_streak, last_active_date")
           .eq("user_id", session.user.id)
-          .single();
+          .maybeSingle();
 
         if (stats && stats.last_active_date) {
           const lastDate = new Date(stats.last_active_date);
