@@ -67,66 +67,110 @@ export async function POST(req) {
 
       let authUser = null;
 
-      // Avval shu telegram_id uchun mavjud user borligini tekshiramiz
-      const { data: existingByQuery } = await supabaseAdmin
+      const userMetadata = {
+        full_name: `${firstName} ${lastName}`.trim() || username || 'Telegram User',
+        first_name: firstName,
+        last_name: lastName,
+        username: username,
+        phone: `+${phone}`,
+        telegram_id: telegramId,
+        role: 'student'
+      };
+
+      // ============================================================
+      // 3 BOSQICHLI USER TOPISH STRATEGIYASI:
+      // 1) public.users da telegram_id bo'yicha qidirish
+      // 2) auth.users da internal email bo'yicha fallback (trigger ishlamagan holat)
+      // 3) Faqat ikkalasida topilmasa — yangi user yaratish
+      // ============================================================
+
+      // BOSQICH 1: public.users jadvalidan telegram_id bo'yicha qidirish
+      const { data: existingByTgId } = await supabaseAdmin
         .from('users')
         .select('id')
         .eq('telegram_id', telegramId)
         .maybeSingle();
 
-      if (existingByQuery?.id) {
-        // Foydalanuvchi mavjud — metadata'sini yangilaymiz
+      if (existingByTgId?.id) {
+        // Foydalanuvchi topildi — metadata'sini yangilaymiz
+        console.log('[Telegram Webhook] User found in public.users by telegram_id:', existingByTgId.id);
         const { data: updateData, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-          existingByQuery.id,
-          {
-            user_metadata: {
-              full_name: `${firstName} ${lastName}`.trim() || username || 'Telegram User',
-              first_name: firstName,
-              last_name: lastName,
-              username: username,
-              phone: `+${phone}`,
-              telegram_id: telegramId,
-              role: 'student'
-            }
-          }
+          existingByTgId.id,
+          { user_metadata: userMetadata }
         );
 
         if (updateError) {
           console.error('[Telegram Webhook] Failed to update user:', updateError);
           await sendMessage(chatId, "❌ Tizimda xatolik yuz berdi. Iltimos, keyinroq qayta urining.");
-          // ⚠️ MUHIM: Telegram webhook'ga DOIM 200 qaytariladi.
-          // 500 qaytarilsa Telegram so'rovni qayta-qayta yuboradi — bu LOOP hosil qiladi!
           return NextResponse.json({ error: updateError.message, handled: true });
         }
 
-        // updateUserById da data.user ba'zan null keladi — shuning uchun
-        // existingByQuery.id'dan to'g'ridan-to'g'ri foydalanamiz.
-        authUser = updateData?.user ?? { id: existingByQuery.id };
-      } else {
-        // Yangi foydalanuvchi yaratamiz. Parol UMUMAN ishlatilmaydi —
-        // login keyinchalik faqat OTP orqali, parolsiz amalga oshiriladi.
-        const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
-          email: internalEmail,
-          email_confirm: true,
-          user_metadata: {
-            full_name: `${firstName} ${lastName}`.trim() || username || 'Telegram User',
-            first_name: firstName,
-            last_name: lastName,
-            username: username,
-            phone: `+${phone}`,
-            telegram_id: telegramId,
-            role: 'student'
-          }
-        });
+        authUser = updateData?.user ?? { id: existingByTgId.id };
 
-        if (createError) {
-          console.error('[Telegram Webhook] createUser failed:', createError.code, createError.message);
-          await sendMessage(chatId, "❌ Avtorizatsiya xatosi. Iltimos, keyinroq qayta urining.");
-          // ⚠️ MUHIM: 500 emas, 200 OK qaytariladi — Telegram retry loop'ini oldini olish uchun
-          return NextResponse.json({ error: createError.message, handled: true });
+      } else {
+        // BOSQICH 2: public.users da topilmadi — auth.users da email bo'yicha qidiramiz.
+        // Bu holat trigger yangilanmagan yoki public.users.telegram_id null bo'lganda yuz beradi.
+        console.log('[Telegram Webhook] Not found in public.users, trying auth.users by email:', internalEmail);
+
+        // Supabase admin API: listUsers with email filter
+        const { data: listData, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+
+        let existingAuthUser = null;
+        if (!listError && listData?.users) {
+          existingAuthUser = listData.users.find(u => u.email === internalEmail);
         }
 
-        authUser = createData.user;
+        if (existingAuthUser) {
+          // User auth.users da bor, lekin public.users.telegram_id bo'sh edi
+          console.log('[Telegram Webhook] User found in auth.users by email:', existingAuthUser.id);
+
+          // Metadata'ni yangilaymiz
+          const { data: updateData, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+            existingAuthUser.id,
+            { user_metadata: userMetadata }
+          );
+
+          if (updateError) {
+            console.error('[Telegram Webhook] Failed to update existing auth user:', updateError);
+            await sendMessage(chatId, "❌ Tizimda xatolik yuz berdi. Iltimos, keyinroq qayta urining.");
+            return NextResponse.json({ error: updateError.message, handled: true });
+          }
+
+          authUser = updateData?.user ?? { id: existingAuthUser.id };
+
+          // public.users.telegram_id ni ham sinhronlaymiz
+          await supabaseAdmin
+            .from('users')
+            .update({ telegram_id: telegramId })
+            .eq('id', existingAuthUser.id);
+
+          console.log('[Telegram Webhook] Synced telegram_id to public.users for user:', existingAuthUser.id);
+
+        } else {
+          // BOSQICH 3: Hech qayerda topilmadi — yangi foydalanuvchi yaratamiz
+          console.log('[Telegram Webhook] User not found anywhere, creating new user...');
+
+          const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+            email: internalEmail,
+            email_confirm: true,
+            user_metadata: userMetadata
+          });
+
+          if (createError) {
+            console.error('[Telegram Webhook] createUser failed:', createError.code, createError.message);
+            await sendMessage(chatId, "❌ Avtorizatsiya xatosi. Iltimos, keyinroq qayta urining.");
+            return NextResponse.json({ error: createError.message, handled: true });
+          }
+
+          authUser = createData.user;
+
+          // Yangi yaratilgan user uchun public.users.telegram_id ni ham to'ldiramiz
+          // (trigger ishlamagan holat uchun xavfsizlik)
+          await supabaseAdmin
+            .from('users')
+            .update({ telegram_id: telegramId })
+            .eq('id', authUser.id);
+        }
       }
 
       // Generate a 6-digit random OTP code

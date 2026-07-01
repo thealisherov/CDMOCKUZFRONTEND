@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Key, Loader2, AlertCircle, Check } from "lucide-react";
 
-export default function TelegramAuth() {
+export default function TelegramAuth({ mode = "login" }) {
   const [showInputView, setShowInputView] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [status, setStatus] = useState("idle"); // idle, authenticating, success, error
@@ -81,7 +81,7 @@ export default function TelegramAuth() {
         <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15.82-.79 4.6-1.12 6.37-.14.75-.41 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.24-5.54 3.65-.52.36-.99.53-1.42.52-.47-.01-1.37-.27-2.03-.49-.82-.27-1.47-.41-1.41-.87.03-.24.37-.48 1.02-.73 3.99-1.73 6.66-2.88 8.01-3.43 3.82-1.57 4.61-1.85 5.13-1.86.11 0 .37.03.54.17.14.12.18.28.2.44-.01.07.01.23 0 .32z" />
         </svg>
-        Sign in with Telegram
+        {mode === "register" ? "Sign up with Telegram" : "Sign in with Telegram"}
       </Button>
     );
   }
@@ -135,7 +135,7 @@ export default function TelegramAuth() {
             ) : status === "success" ? (
               <Check className="h-4 w-4" />
             ) : (
-              "Kirish"
+              mode === "register" ? "Ro'yxatdan o'tish" : "Kirish"
             )}
           </Button>
         </div>
