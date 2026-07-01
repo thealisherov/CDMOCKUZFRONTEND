@@ -231,37 +231,37 @@ export default function Sidebar({ collapsed, onToggle }) {
             </div>
           </div>
         )}
-      </nav>
 
-      {/* Upgrade to Premium Mini Banner */}
-      {!user?.isPremium && !collapsed && (
-        <div className="px-4 mb-4">
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-tr from-indigo-600 via-indigo-700 to-purple-800 text-white shadow-md shadow-indigo-500/20"
-          >
-            {/* Background elements */}
-            <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl" />
-            <div className="absolute top-1 right-2 w-2 h-2 bg-yellow-300 rounded-full animate-ping" />
+        {/* Upgrade to Premium Mini Banner */}
+        {!user?.isPremium && !collapsed && (
+          <div className="pt-2">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-tr from-indigo-600 via-indigo-700 to-purple-800 text-white shadow-md shadow-indigo-500/20"
+            >
+              {/* Background elements */}
+              <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl" />
+              <div className="absolute top-1 right-2 w-2 h-2 bg-yellow-300 rounded-full animate-ping" />
 
-            <div className="relative space-y-3">
-              <div className="flex items-center gap-2">
-                <Crown className="w-5 h-5 text-yellow-300 fill-yellow-300 shrink-0" />
-                <span className="text-[13px] font-bold uppercase tracking-wider">Upgrade to Premium</span>
+              <div className="relative space-y-3">
+                <div className="flex items-center gap-2">
+                  <Crown className="w-5 h-5 text-yellow-300 fill-yellow-300 shrink-0" />
+                  <span className="text-[13px] font-bold uppercase tracking-wider">Upgrade to Premium</span>
+                </div>
+                <p className="text-[11px] text-indigo-100 leading-normal">
+                  Unlock full mock tests, get detailed evaluation reports & instant feedback.
+                </p>
+                <Link href="/dashboard/premium" className="block w-full">
+                  <button className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-white text-indigo-700 font-bold text-xs hover:bg-indigo-50 transition-colors shadow-sm">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Upgrade Now
+                  </button>
+                </Link>
               </div>
-              <p className="text-[11px] text-indigo-100 leading-normal">
-                Unlock full mock tests, get detailed evaluation reports & instant feedback.
-              </p>
-              <Link href="/dashboard/premium" className="block w-full">
-                <button className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-white text-indigo-700 font-bold text-xs hover:bg-indigo-50 transition-colors shadow-sm">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Upgrade Now
-                </button>
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      )}
+            </motion.div>
+          </div>
+        )}
+      </nav>
 
       {/* Divider */}
       <div className="mx-4 h-px bg-sidebar-border" />

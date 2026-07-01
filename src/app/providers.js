@@ -6,6 +6,7 @@ import { LanguageProvider } from "@/components/LanguageContext";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { Toaster } from "react-hot-toast";
 
 // Lazy load TelegramPromo — it's not critical for initial render
 const TelegramPromo = dynamic(() => import("@/components/TelegramPromo"), {
@@ -34,6 +35,7 @@ export function Providers({ children }) {
           <AuthProvider>
             {children}
             <TelegramPromo />
+            <Toaster position="bottom-right" reverseOrder={false} />
           </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>
