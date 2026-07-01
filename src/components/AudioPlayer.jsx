@@ -15,6 +15,9 @@ const AudioPlayer = forwardRef(function AudioPlayer({ src, playSignal, storageKe
   const audioRef = useRef(null);
   const saveIntervalRef = useRef(null);
 
+  const expectedTimeRef = useRef(0);
+  const isSeekingRef = useRef(false);
+
   const stopSaving = useCallback(() => {
     if (saveIntervalRef.current) {
       clearInterval(saveIntervalRef.current);
@@ -30,7 +33,11 @@ const AudioPlayer = forwardRef(function AudioPlayer({ src, playSignal, storageKe
       const audio = audioRef.current;
       if (audio && !audio.paused && !audio.ended) {
         try {
-          localStorage.setItem(storageKey, String(audio.currentTime));
+          // Only update our expected time if we are naturally progressing
+          if (!isSeekingRef.current) {
+             expectedTimeRef.current = audio.currentTime;
+             localStorage.setItem(storageKey, String(audio.currentTime));
+          }
         } catch { /* ignore */ }
       }
     }, 1000);
@@ -44,6 +51,7 @@ const AudioPlayer = forwardRef(function AudioPlayer({ src, playSignal, storageKe
         audio.pause();
         audio.currentTime = 0;
       }
+      expectedTimeRef.current = 0;
       stopSaving();
       if (storageKey) {
         try { localStorage.removeItem(storageKey); } catch { /* ignore */ }
@@ -59,6 +67,7 @@ const AudioPlayer = forwardRef(function AudioPlayer({ src, playSignal, storageKe
               const t = parseFloat(saved);
               if (!isNaN(t) && t > 0) {
                 audio.currentTime = t;
+                expectedTimeRef.current = t;
               }
             }
           } catch { /* ignore */ }
@@ -83,6 +92,7 @@ const AudioPlayer = forwardRef(function AudioPlayer({ src, playSignal, storageKe
           const t = parseFloat(saved);
           if (!isNaN(t) && t > 0) {
             audio.currentTime = t;
+            expectedTimeRef.current = t;
           }
         }
       } catch { /* ignore */ }
@@ -97,15 +107,87 @@ const AudioPlayer = forwardRef(function AudioPlayer({ src, playSignal, storageKe
     return () => stopSaving();
   }, [stopSaving]);
 
+  // Block global media controls (hardware keys, browser media hub, extensions)
+  useEffect(() => {
+    if ('mediaSession' in navigator) {
+      // Set dummy metadata to override any parsed page info
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: 'IELTS Listening Practice',
+        artist: 'Test in progress - Do not pause',
+        album: 'Mega IELTS',
+      });
+
+      // Provide dummy handlers so browser doesn't execute default media actions
+      const blockAction = () => {
+        console.log("Media control action blocked for test integrity.");
+      };
+
+      const actions = ['play', 'pause', 'seekbackward', 'seekforward', 'previoustrack', 'nexttrack', 'stop'];
+      
+      actions.forEach(action => {
+        try {
+          navigator.mediaSession.setActionHandler(action, blockAction);
+        } catch (e) {
+          // Ignore unsupported actions
+        }
+      });
+    }
+
+    return () => {
+      // Cleanup handlers when unmounting
+      if ('mediaSession' in navigator) {
+        const actions = ['play', 'pause', 'seekbackward', 'seekforward', 'previoustrack', 'nexttrack', 'stop'];
+        actions.forEach(action => {
+          try {
+            navigator.mediaSession.setActionHandler(action, null);
+          } catch (e) {}
+        });
+      }
+    };
+  }, []);
+
+  const handlePause = (e) => {
+    stopSaving();
+    // STRICT ANTI-CHEAT: If the audio is paused by an external control (like Media Hub) 
+    // but the test is active (playSignal is true), FORCE it to keep playing!
+    if (playSignal && audioRef.current && !audioRef.current.ended) {
+      console.log("Anti-cheat: Prevented unauthorized pause.");
+      audioRef.current.play().catch(() => {});
+    }
+  };
+
+  const handleSeeked = (e) => {
+    const audio = e.target;
+    if (!playSignal) return;
+    isSeekingRef.current = false;
+  };
+
+  const handleSeeking = (e) => {
+    const audio = e.target;
+    if (!playSignal) return;
+    
+    // STRICT ANTI-CHEAT: Prevent skipping forward or backward by extensions/tools
+    const diff = Math.abs(audio.currentTime - expectedTimeRef.current);
+    if (diff > 2) {
+      console.log("Anti-cheat: Prevented unauthorized seek.");
+      isSeekingRef.current = true;
+      audio.currentTime = expectedTimeRef.current; // Force it back to legitimate time
+    }
+  };
+
   return (
     <audio
       ref={audioRef}
       src={src}
       preload="auto"
       className="hidden"
+      disableRemotePlayback
       onEnded={stopSaving}
-      onPause={stopSaving}
+      onPause={handlePause}
       onPlay={startSaving}
+      onSeeking={handleSeeking}
+      onSeeked={handleSeeked}
+      controlsList="nodownload noremoteplayback"
     />
   );
 });

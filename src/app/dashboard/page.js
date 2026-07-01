@@ -212,23 +212,14 @@ export default function DashboardPage() {
 
     const fetchDashboardData = async () => {
       try {
-        const supabase = createClient();
-        const userId = user.id;
+        const res = await fetch('/api/dashboard');
+        if (!res.ok) throw new Error('Failed to fetch dashboard data');
+        const data = await res.json();
 
-        // Fetch all data in a single parallel batch
-        const [userStatsResult, allAttemptsResult, attemptsResult] = await Promise.all([
-          supabase.from("user_stats").select("tests_taken, xp, daily_streak").eq("user_id", userId).maybeSingle(),
-          supabase.from("TestAttempts").select("band_score").eq("user_id", userId),
-          supabase.from("TestAttempts")
-            .select("id, test_numeric_id, test_type, test_title, band_score, completed_at")
-            .eq("user_id", userId)
-            .order("completed_at", { ascending: false })
-            .limit(6)
-        ]);
-
-        const userStats = userStatsResult.data;
-        const allAttempts = allAttemptsResult.data;
-        const attempts = attemptsResult.data;
+        const userStats = data.userStats;
+        const allAttempts = data.allAttempts;
+        const attempts = data.recentAttempts;
+        const currentUserRank = data.rank;
 
         // Calculate average band score
         let calculatedAvgBand = "0.0";
@@ -239,21 +230,6 @@ export default function DashboardPage() {
           if (validScores.length > 0) {
             const sum = validScores.reduce((acc, curr) => acc + curr, 0);
             calculatedAvgBand = (sum / validScores.length).toFixed(1);
-          }
-        }
-
-        // Calculate rank in parallel (non-blocking)
-        let currentUserRank = "—";
-        if (userStats) {
-          try {
-            const currentXp = userStats.xp || 0;
-            const { count } = await supabase
-              .from("user_stats")
-              .select("user_id", { count: "exact", head: true })
-              .gt("xp", currentXp);
-            currentUserRank = (count || 0) + 1;
-          } catch (rankErr) {
-            console.error("Error calculating user rank:", rankErr);
           }
         }
 
