@@ -17,7 +17,6 @@ export default function ProfilePage() {
   const { user: authUser } = useAuth();
   const { t, lang } = useTranslation();
   const [profileData, setProfileData] = useState(null);
-  const [leaderboardData, setLeaderboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef(null);
@@ -32,19 +31,11 @@ export default function ProfilePage() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
-      const [profileRes, leaderboardRes] = await Promise.all([
-        fetch("/api/profile", { headers: { Authorization: `Bearer ${session?.access_token}` }}),
-        fetch("/api/leaderboard", { headers: { Authorization: `Bearer ${session?.access_token}` }})
-      ]);
+      const res = await fetch("/api/profile", { headers: { Authorization: `Bearer ${session?.access_token}` }});
 
-      if (!profileRes.ok) throw new Error("Failed to load profile");
-      const data = await profileRes.json();
+      if (!res.ok) throw new Error("Failed to load profile");
+      const data = await res.json();
       setProfileData(data);
-
-      if (leaderboardRes.ok) {
-        const lbData = await leaderboardRes.json();
-        setLeaderboardData(lbData);
-      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -223,7 +214,7 @@ export default function ProfilePage() {
             {isPremium ? (
               <div className="flex items-center gap-4 bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800/20">
                 <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-indigo-200 dark:shadow-none">
-                  #{leaderboardData?.currentUser?.rank || '?'}
+                  #{profileData?.rank || '?'}
                 </div>
                 <div>
                   <p className="font-bold text-indigo-900 dark:text-indigo-100">{t("profile.topStudent") || "Top Performing Student"}</p>

@@ -15,6 +15,20 @@ export async function GET(req) {
       .eq('user_id', user.id)
       .maybeSingle();
 
+    // Fetch user rank (based on XP)
+    let rank = null;
+    if (stats) {
+      try {
+        const { count } = await supabase
+          .from('user_stats')
+          .select('user_id', { count: 'exact', head: true })
+          .gt('xp', stats.xp || 0);
+        rank = (count || 0) + 1;
+      } catch (rankErr) {
+        console.error('Error fetching user rank in profile API:', rankErr);
+      }
+    }
+
     // Fetch payments
     const { data: payments } = await supabase
       .from('payments')
@@ -35,7 +49,8 @@ export async function GET(req) {
       user,
       stats: stats || { xp: 0, tests_taken: 0, correct_answers: 0, total_time_seconds: 0, daily_streak: 0, last_active_date: null },
       payments: payments || [],
-      testResults: testResults || []
+      testResults: testResults || [],
+      rank
     });
 
   } catch (err) {
