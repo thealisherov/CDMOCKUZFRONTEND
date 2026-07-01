@@ -5,11 +5,9 @@ import Link from "next/link";
 import {
   CheckCircle2, TrendingUp, Globe, ArrowRight,
   Headphones, BookOpen, PenTool, Clock, ChevronRight,
-  Sparkles, Target, Flame
+  Sparkles, Target, Flame,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { createClient } from "@/utils/supabase/client";
 import { motion } from "framer-motion";
 
 // ── Animation Variants ──
@@ -34,7 +32,7 @@ const itemVariants = {
 };
 
 // ── Stat Card Component ──
-function StatCard({ icon: Icon, label, value, subtitle, gradient, delay = 0 }) {
+function StatCard({ icon: Icon, label, value, subtitle, gradient }) {
   return (
     <motion.div
       variants={itemVariants}
@@ -57,21 +55,21 @@ function StatCard({ icon: Icon, label, value, subtitle, gradient, delay = 0 }) {
           </div>
         </div>
         <div className="relative flex items-center justify-center w-11 h-11 rounded-xl overflow-hidden transition-transform duration-300 group-hover:scale-110">
-          <div 
-            className="absolute inset-0" 
-            style={{ background: gradient, opacity: 0.15 }} 
+          <div
+            className="absolute inset-0"
+            style={{ background: gradient, opacity: 0.15 }}
           />
-          <Icon 
-            className="relative z-10 h-5 w-5" 
-            style={{ 
-              color: gradient.includes('270') 
-                ? 'oklch(0.55 0.22 270)' 
-                : gradient.includes('145') 
-                ? 'oklch(0.52 0.16 145)' 
-                : gradient.includes('330')
-                ? 'oklch(0.6 0.2 330)'
-                : 'oklch(0.65 0.2 40)' 
-            }} 
+          <Icon
+            className="relative z-10 h-5 w-5"
+            style={{
+              color: gradient.includes("270")
+                ? "oklch(0.55 0.22 270)"
+                : gradient.includes("145")
+                ? "oklch(0.52 0.16 145)"
+                : gradient.includes("330")
+                ? "oklch(0.6 0.2 330)"
+                : "oklch(0.65 0.2 40)",
+            }}
           />
         </div>
       </div>
@@ -165,21 +163,21 @@ function QuickAction({ icon: Icon, title, description, href, gradient }) {
       <Link href={href}>
         <div className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-5 transition-all duration-300 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 cursor-pointer">
           <div className="relative flex items-center justify-center w-10 h-10 rounded-xl mb-3 overflow-hidden">
-            <div 
-              className="absolute inset-0" 
-              style={{ background: gradient, opacity: 0.15 }} 
+            <div
+              className="absolute inset-0"
+              style={{ background: gradient, opacity: 0.15 }}
             />
-            <Icon 
-              className="relative z-10 h-5 w-5" 
-              style={{ 
-                color: gradient.includes('270') 
-                  ? 'oklch(0.55 0.22 270)' 
-                  : gradient.includes('145') 
-                  ? 'oklch(0.52 0.16 145)' 
-                  : gradient.includes('330')
-                  ? 'oklch(0.6 0.2 330)'
-                  : 'oklch(0.65 0.2 40)' 
-              }} 
+            <Icon
+              className="relative z-10 h-5 w-5"
+              style={{
+                color: gradient.includes("270")
+                  ? "oklch(0.55 0.22 270)"
+                  : gradient.includes("145")
+                  ? "oklch(0.52 0.16 145)"
+                  : gradient.includes("330")
+                  ? "oklch(0.6 0.2 330)"
+                  : "oklch(0.65 0.2 40)",
+              }}
             />
           </div>
           <h4 className="text-sm font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
@@ -196,15 +194,24 @@ function QuickAction({ icon: Icon, title, description, href, gradient }) {
 // ── Main Dashboard Page ──
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
-  const [stats, setStats] = useState({ testsCompleted: 0, avgBand: 0, globalRank: "—" });
+  const [stats, setStats] = useState({
+    testsCompleted: 0,
+    avgBand: "0.0",
+    globalRank: "—",
+    streak: 0,
+    byType: { listening: 0, reading: 0, writing: 0 },
+  });
   const [recentTests, setRecentTests] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const userName = user?.user_metadata?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "Student";
+  const userName =
+    user?.user_metadata?.full_name?.split(" ")[0] ||
+    user?.email?.split("@")[0] ||
+    "Student";
 
-  // Fetch stats and recent test activity — optimized with full parallelism
+  // Butun tarixdagi ma'lumotlarni yuklash
   useEffect(() => {
-    if (authLoading) return; // Wait for auth to resolve
+    if (authLoading) return;
     if (!user?.id) {
       setLoading(false);
       return;
@@ -212,40 +219,38 @@ export default function DashboardPage() {
 
     const fetchDashboardData = async () => {
       try {
-        const res = await fetch('/api/dashboard');
-        if (!res.ok) throw new Error('Failed to fetch dashboard data');
+        const res = await fetch("/api/dashboard");
+        if (!res.ok) throw new Error("Failed to fetch dashboard data");
         const data = await res.json();
 
-        const userStats = data.userStats;
-        const allAttempts = data.allAttempts;
-        const attempts = data.recentAttempts;
-        const currentUserRank = data.rank;
-
-        // Calculate average band score
-        let calculatedAvgBand = "0.0";
-        if (allAttempts && allAttempts.length > 0) {
-          const validScores = allAttempts
-            .map((a) => parseFloat(a.band_score))
-            .filter((score) => !isNaN(score) && score > 0);
-          if (validScores.length > 0) {
-            const sum = validScores.reduce((acc, curr) => acc + curr, 0);
-            calculatedAvgBand = (sum / validScores.length).toFixed(1);
-          }
-        }
+        // API TestAttempts dan hisoblangan to'g'ri qiymatlarni qaytaradi
+        const totalTests = data.totalTests ?? data.allAttempts?.length ?? 0;
+        const avgBand = data.avgBand ?? "0.0";
+        const breakdown = data.breakdown ?? { listening: 0, reading: 0, writing: 0 };
+        const streak = data.userStats?.daily_streak ?? 0;
 
         setStats({
-          testsCompleted: userStats?.tests_taken || allAttempts?.length || 0,
-          avgBand: calculatedAvgBand,
-          globalRank: currentUserRank,
+          testsCompleted: totalTests,
+          avgBand,
+          globalRank: data.rank,
+          streak,
+          byType: breakdown,
         });
 
-        if (attempts && attempts.length > 0) {
+        const attempts = data.recentAttempts || [];
+        if (attempts.length > 0) {
           const testCards = attempts.map((sub) => {
             const bandVal = parseFloat(sub.band_score);
-            const progressPct = !isNaN(bandVal) ? Math.min(Math.round((bandVal / 9) * 100), 100) : 0;
+            const progressPct = !isNaN(bandVal)
+              ? Math.min(Math.round((bandVal / 9) * 100), 100)
+              : 0;
             return {
               id: sub.id,
-              title: sub.test_title || `${sub.test_type?.charAt(0).toUpperCase() + sub.test_type?.slice(1)} Test #${sub.test_numeric_id}`,
+              title:
+                sub.test_title ||
+                `${
+                  sub.test_type?.charAt(0).toUpperCase() + sub.test_type?.slice(1)
+                } Test #${sub.test_numeric_id}`,
               type: sub.test_type || "reading",
               duration: sub.test_type === "listening" ? 30 : 60,
               progress: progressPct,
@@ -264,7 +269,7 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, [user?.id, authLoading]);
 
-  // Fallback test cards for new users
+  // Yangi foydalanuvchilar uchun standart kartalar
   const defaultTests = [
     { id: 1, title: "Academic Reading Practice", type: "reading", duration: 60, progress: 0, href: "/dashboard/reading" },
     { id: 2, title: "Listening Comprehension", type: "listening", duration: 30, progress: 0, href: "/dashboard/listening" },
@@ -276,7 +281,6 @@ export default function DashboardPage() {
 
   const testsToShow = recentTests.length > 0 ? recentTests : defaultTests;
 
-  // Greeting based on time of day
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
@@ -287,7 +291,7 @@ export default function DashboardPage() {
       animate="visible"
       className="max-w-6xl mx-auto space-y-8"
     >
-      {/* ── Welcome Section ── */}
+      {/* ── Salomlashuv ── */}
       <motion.div variants={itemVariants} className="space-y-2">
         <div className="flex items-center gap-2">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
@@ -295,21 +299,23 @@ export default function DashboardPage() {
           </h1>
         </div>
         <p className="text-muted-foreground text-sm sm:text-base max-w-xl">
-          Let&apos;s get that <span className="font-semibold text-primary">Band 8.0</span> today. Pick up where you left off or start something new.
+          Let&apos;s get that{" "}
+          <span className="font-semibold text-primary">Band 8.0</span> today. Pick up
+          where you left off or start something new.
         </p>
       </motion.div>
 
-      {/* ── Progress Overview Cards ── */}
+      {/* ── Asosiy statistika ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
           icon={CheckCircle2}
-          label="Tests Completed"
+          label="Jami ishlangan testlar"
           value={loading ? "—" : stats.testsCompleted}
           gradient="linear-gradient(135deg, oklch(0.55 0.22 270), oklch(0.65 0.2 300))"
         />
         <StatCard
           icon={TrendingUp}
-          label="Average Band Score"
+          label="O'rtacha band score"
           value={loading ? "—" : stats.avgBand}
           subtitle="/ 9.0"
           gradient="linear-gradient(135deg, oklch(0.52 0.16 145), oklch(0.58 0.18 160))"
@@ -317,12 +323,44 @@ export default function DashboardPage() {
         <StatCard
           icon={Globe}
           label="Global Rank"
-          value={loading ? "—" : stats.globalRank === "—" ? "—" : `#${stats.globalRank}`}
+          value={
+            loading ? "—" : stats.globalRank === "—" ? "—" : `#${stats.globalRank}`
+          }
           gradient="linear-gradient(135deg, oklch(0.65 0.2 40), oklch(0.7 0.18 60))"
         />
       </div>
 
-      {/* ── Continue Practicing ── */}
+      {/* ── Test turi bo'yicha tarix ── */}
+      <motion.div variants={itemVariants} className="space-y-3">
+        <div>
+          <h2 className="text-lg font-bold text-foreground">Barcha vaqtdagi natijalar</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Butun tarix bo&apos;yicha ishlangan testlar soni
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <StatCard
+            icon={Headphones}
+            label="Listening testlar"
+            value={loading ? "—" : stats.byType.listening}
+            gradient="linear-gradient(135deg, oklch(0.55 0.22 270), oklch(0.65 0.2 300))"
+          />
+          <StatCard
+            icon={BookOpen}
+            label="Reading testlar"
+            value={loading ? "—" : stats.byType.reading}
+            gradient="linear-gradient(135deg, oklch(0.52 0.16 145), oklch(0.58 0.18 160))"
+          />
+          <StatCard
+            icon={PenTool}
+            label="Writing testlar"
+            value={loading ? "—" : stats.byType.writing}
+            gradient="linear-gradient(135deg, oklch(0.65 0.2 40), oklch(0.7 0.18 60))"
+          />
+        </div>
+      </motion.div>
+
+      {/* ── So'nggi testlar ── */}
       <motion.div variants={itemVariants} className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -344,7 +382,7 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      {/* ── Quick Actions ── */}
+      {/* ── Tezkor harakatlar ── */}
       <motion.div variants={itemVariants} className="space-y-4">
         <h2 className="text-lg font-bold text-foreground">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -379,7 +417,7 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      {/* ── Daily Tip Section ── */}
+      {/* ── Kunlik maslahat ── */}
       <motion.div
         variants={itemVariants}
         className="relative overflow-hidden rounded-2xl border border-border/50 bg-card p-6 md:p-8"
@@ -394,8 +432,9 @@ export default function DashboardPage() {
           <div>
             <h3 className="text-base font-bold text-foreground mb-1">💡 Daily Tip</h3>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-              For Reading section — always skim the passage first, identify keywords in the questions,
-              then scan for specific answers. This can save you up to 5 minutes per passage!
+              For Reading section — always skim the passage first, identify keywords in
+              the questions, then scan for specific answers. This can save you up to 5
+              minutes per passage!
             </p>
           </div>
         </div>
