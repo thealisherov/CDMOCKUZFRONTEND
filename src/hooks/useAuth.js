@@ -12,30 +12,42 @@ export function AuthProvider({ children }) {
   const supabase = createClient();
 
   useEffect(() => {
+    const handleUserUpdate = async (sessionUser) => {
+      if (!sessionUser) {
+        setUser(null);
+        return;
+      }
+      
+      // Set temporary state from session to avoid delay
+      const tempMeta = sessionUser.user_metadata || {};
+      sessionUser.isPremium = tempMeta.role === 'admin' || (tempMeta.premium_until && new Date(tempMeta.premium_until) > new Date());
+      setUser({ ...sessionUser });
+
+      // Fetch fresh user from server to ensure metadata (premium_until, etc) is not stale
+      try {
+        const { data: { user: freshUser } } = await supabase.auth.getUser();
+        if (freshUser) {
+          const meta = freshUser.user_metadata || {};
+          freshUser.isPremium = meta.role === 'admin' || (meta.premium_until && new Date(meta.premium_until) > new Date());
+          setUser(freshUser);
+        }
+      } catch (e) {
+        console.error("Error fetching fresh user:", e);
+      }
+    };
+
     // Check initial session
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      const currentUser = session?.user ?? null;
-      if (currentUser) {
-        const meta = currentUser.user_metadata || {};
-        const isPremium = meta.role === 'admin' || (meta.premium_until && new Date(meta.premium_until) > new Date());
-        currentUser.isPremium = isPremium;
-      }
-      setUser(currentUser);
+      await handleUserUpdate(session?.user ?? null);
     };
 
     checkSession();
 
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        const currentUser = session?.user ?? null;
-        if (currentUser) {
-          const meta = currentUser.user_metadata || {};
-          const isPremium = meta.role === 'admin' || (meta.premium_until && new Date(meta.premium_until) > new Date());
-          currentUser.isPremium = isPremium;
-        }
-        setUser(currentUser);
+      async (event, session) => {
+        await handleUserUpdate(session?.user ?? null);
       }
     );
 

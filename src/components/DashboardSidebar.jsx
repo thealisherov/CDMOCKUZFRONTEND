@@ -280,7 +280,7 @@ export default function DashboardSidebar({ collapsed, onToggle }) {
             >
               <Settings className="h-4 w-4" />
             </button>
-            {user && (
+            {user ? (
               <button
                 onClick={logout}
                 title="Sign Out"
@@ -288,6 +288,14 @@ export default function DashboardSidebar({ collapsed, onToggle }) {
               >
                 <LogOut className="h-4 w-4" />
               </button>
+            ) : (
+              <Link
+                href="/login"
+                title="Log In / Sign Up"
+                className="flex items-center justify-center h-9 w-9 rounded-xl transition-all border border-border text-muted-foreground hover:bg-muted"
+              >
+                <User className="h-4 w-4" />
+              </Link>
             )}
           </div>
         ) : (
@@ -364,11 +372,12 @@ export default function DashboardSidebar({ collapsed, onToggle }) {
                     </div>
                   </div>
                 )}
-                <Link href="/login">
-                  <button className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all bg-primary text-primary-foreground hover:opacity-90">
-                    <User className="h-4 w-4" />
-                    <span>Log In / Sign Up</span>
-                  </button>
+                <Link
+                  href="/login"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all bg-primary text-primary-foreground hover:opacity-90"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Log In / Sign Up</span>
                 </Link>
                 <div className="flex items-center justify-center mt-1">
                   <button

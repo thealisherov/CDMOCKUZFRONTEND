@@ -262,6 +262,12 @@ export const translations = {
       telegramDesc: "Subscribe to our Telegram channel for the latest news, IELTS tips, and exclusive updates.",
       telegramBtn: "Subscribe",
     },
+    premiumPromo: {
+      title: "Get Premium Benefits! 👑",
+      desc: "Unlock all Reading & Listening mock tests and get AI Writing evaluations to achieve Band 7.0+!",
+      button: "Upgrade Now",
+      close: "Later",
+    },
     support: {
       title: "Help Center",
       subtitle: "Got questions or faced an issue? We're here to help!",
@@ -536,6 +542,12 @@ export const translations = {
       telegramDesc: "So'nggi yangiliklar, IELTS foydali maslahatlari va eksklyuziv yangilanishlar uchun Telegram kanalimizga obuna bo'ling.",
       telegramBtn: "Obuna Bo'lish",
     },
+    premiumPromo: {
+      title: "Premium imkoniyatlarni oching! 👑",
+      desc: "Band 7.0+ ballga erishish uchun barcha Reading & Listening mock testlarini va AI insho baholashlarini faollashtiring!",
+      button: "Premiumga o'tish",
+      close: "Keyinroq",
+    },
     support: {
       title: "Yordam markazi",
       subtitle: "Savollaringiz bormi yoki qandaydir muammo kuzatildimi? Biz shu yerdamiz!",
@@ -809,6 +821,12 @@ export const translations = {
       telegramTitle: "Присоединяйтесь к нам!",
       telegramDesc: "Подпишитесь на наш Telegram-канал, чтобы получать последние новости, советы по IELTS и эксклюзивные обновления.",
       telegramBtn: "Подписаться",
+    },
+    premiumPromo: {
+      title: "Откройте Premium! 👑",
+      desc: "Разблокируйте все тесты Reading & Listening и получите AI-оценку эссе для достижения Band 7.0+!",
+      button: "Активировать",
+      close: "Позже",
     },
     support: {
       title: "Центр поддержки",

@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import { cn } from "@/lib/utils";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import StreakModal from "@/components/StreakModal";
+import PremiumPromoToast from "@/components/PremiumPromoToast";
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -118,6 +119,7 @@ export default function DashboardLayout({ children }) {
 
       {/* Global Modals */}
       <StreakModal />
+      <PremiumPromoToast />
     </div>
   );
 }
