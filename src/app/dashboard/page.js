@@ -216,19 +216,22 @@ export default function DashboardPage() {
 
         const userId = session.user.id;
 
-        // 1. Fetch user stats (for tests_taken, daily_streak)
-        const { data: userStats } = await supabase
-          .from("user_stats")
-          .select("tests_taken, xp, daily_streak")
-          .eq("user_id", userId)
-          .maybeSingle();
+        // Fetch userStats, allAttempts and recent attempts in parallel to optimize speed
+        const [userStatsResult, allAttemptsResult, attemptsResult] = await Promise.all([
+          supabase.from("user_stats").select("tests_taken, xp, daily_streak").eq("user_id", userId).maybeSingle(),
+          supabase.from("TestAttempts").select("band_score").eq("user_id", userId),
+          supabase.from("TestAttempts")
+            .select("id, test_numeric_id, test_type, test_title, band_score, completed_at")
+            .eq("user_id", userId)
+            .order("completed_at", { ascending: false })
+            .limit(6)
+        ]);
 
-        // 2. Fetch all attempts to calculate average band score
-        const { data: allAttempts } = await supabase
-          .from("TestAttempts")
-          .select("band_score")
-          .eq("user_id", userId);
+        const userStats = userStatsResult.data;
+        const allAttempts = allAttemptsResult.data;
+        const attempts = attemptsResult.data;
 
+        // Calculate average band score
         let calculatedAvgBand = "0.0";
         if (allAttempts && allAttempts.length > 0) {
           const validScores = allAttempts
@@ -240,16 +243,19 @@ export default function DashboardPage() {
           }
         }
 
-        // 3. Fetch rank from leaderboard API
+        // Fetch rank from count of user_stats with higher XP (highly optimized query)
         let currentUserRank = "—";
-        try {
-          const res = await fetch("/api/leaderboard");
-          if (res.ok) {
-            const leaderboardData = await res.json();
-            currentUserRank = leaderboardData?.currentUser?.rank || "—";
+        if (userStats) {
+          try {
+            const currentXp = userStats.xp || 0;
+            const { count } = await supabase
+              .from("user_stats")
+              .select("user_id", { count: "exact", head: true })
+              .gt("xp", currentXp);
+            currentUserRank = (count || 0) + 1;
+          } catch (rankErr) {
+            console.error("Error calculating user rank:", rankErr);
           }
-        } catch (rankErr) {
-          console.error("Error fetching leaderboard rank:", rankErr);
         }
 
         setStats({
@@ -257,14 +263,6 @@ export default function DashboardPage() {
           avgBand: calculatedAvgBand,
           globalRank: currentUserRank,
         });
-
-        // 4. Fetch recent test attempts (max 6) for "Continue Practicing"
-        const { data: attempts } = await supabase
-          .from("TestAttempts")
-          .select("id, test_numeric_id, test_type, test_title, band_score, completed_at")
-          .eq("user_id", userId)
-          .order("completed_at", { ascending: false })
-          .limit(6);
 
         if (attempts && attempts.length > 0) {
           const testCards = attempts.map((sub) => {

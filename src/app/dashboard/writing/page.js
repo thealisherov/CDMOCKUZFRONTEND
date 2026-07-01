@@ -9,18 +9,21 @@ export default async function WritingPage() {
   try {
     const supabase = await createClient();
 
-    const { data: rows } = await supabase
-      .from("Tests")
-      .select("id, test_id, type, data, created_at")
-      .eq("type", "writing")
-      .order("created_at", { ascending: true });
+    // Fetch tests and auth user in parallel to eliminate waterfall latency
+    const [testsResult, userResult] = await Promise.all([
+      supabase.from("Tests")
+        .select("id, test_id, type, data, created_at")
+        .eq("type", "writing")
+        .order("created_at", { ascending: true }),
+      supabase.auth.getUser().catch(() => ({ data: { user: null } }))
+    ]);
+
+    const rows = testsResult.data;
+    const user = userResult.data?.user;
 
     // Check user attempts
     let completedMap = {};
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
       if (user) {
         const { data: attempts } = await supabase
           .from("TestAttempts")

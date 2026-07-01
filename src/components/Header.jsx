@@ -35,14 +35,13 @@ export default function Header() {
   useEffect(() => {
     const fetchStreak = async () => {
       try {
+        if (!user?.id) return;
         const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user?.id) return;
 
         const { data: stats } = await supabase
           .from("user_stats")
           .select("daily_streak")
-          .eq("user_id", session.user.id)
+          .eq("user_id", user.id)
           .maybeSingle();
 
         if (stats?.daily_streak) {
@@ -55,7 +54,7 @@ export default function Header() {
     if (pathname?.startsWith("/dashboard")) {
       fetchStreak();
     }
-  }, [pathname]);
+  }, [pathname, user]);
 
   // Click outside to close dropdown
   useEffect(() => {
