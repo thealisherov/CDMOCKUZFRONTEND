@@ -94,10 +94,14 @@ export async function POST(req) {
         if (updateError) {
           console.error('[Telegram Webhook] Failed to update user:', updateError);
           await sendMessage(chatId, "❌ Tizimda xatolik yuz berdi. Iltimos, keyinroq qayta urining.");
-          return NextResponse.json({ error: updateError.message }, { status: 500 });
+          // ⚠️ MUHIM: Telegram webhook'ga DOIM 200 qaytariladi.
+          // 500 qaytarilsa Telegram so'rovni qayta-qayta yuboradi — bu LOOP hosil qiladi!
+          return NextResponse.json({ error: updateError.message, handled: true });
         }
 
-        authUser = updateData.user;
+        // updateUserById da data.user ba'zan null keladi — shuning uchun
+        // existingByQuery.id'dan to'g'ridan-to'g'ri foydalanamiz.
+        authUser = updateData?.user ?? { id: existingByQuery.id };
       } else {
         // Yangi foydalanuvchi yaratamiz. Parol UMUMAN ishlatilmaydi —
         // login keyinchalik faqat OTP orqali, parolsiz amalga oshiriladi.
@@ -118,7 +122,8 @@ export async function POST(req) {
         if (createError) {
           console.error('[Telegram Webhook] createUser failed:', createError.code, createError.message);
           await sendMessage(chatId, "❌ Avtorizatsiya xatosi. Iltimos, keyinroq qayta urining.");
-          return NextResponse.json({ error: createError.message }, { status: 500 });
+          // ⚠️ MUHIM: 500 emas, 200 OK qaytariladi — Telegram retry loop'ini oldini olish uchun
+          return NextResponse.json({ error: createError.message, handled: true });
         }
 
         authUser = createData.user;
@@ -147,7 +152,8 @@ export async function POST(req) {
       if (sessionInsertError) {
         console.error('[Telegram Webhook] Error inserting session:', sessionInsertError);
         await sendMessage(chatId, "❌ Tizimda xatolik yuz berdi. Iltimos, keyinroq qayta urining.");
-        return NextResponse.json({ error: sessionInsertError.message }, { status: 500 });
+        // ⚠️ MUHIM: 500 emas, 200 OK — Telegram retry loop'ini oldini olish uchun
+        return NextResponse.json({ error: sessionInsertError.message, handled: true });
       }
 
       // Send the OTP code to the user in Telegram
@@ -165,6 +171,9 @@ export async function POST(req) {
     return NextResponse.json({ status: 'ok' });
   } catch (error) {
     console.error('[Telegram Webhook] Webhook handler error:', error);
+    // ⚠️ MUHIM: catch blokida ham 200 OK — Telegram 500 ko'rsa qayta yuboradi (LOOP!)
+    // Lekin bu jiddiy, kutilmagan xato bo'lgani uchun 500 saqlaymiz — bu holat bo'lmasligi kerak.
+    // Agar loop bo'lsa, yuqoridagi handled: true logikasi ishga kiradi.
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
