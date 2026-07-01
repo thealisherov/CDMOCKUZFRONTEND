@@ -49,3 +49,33 @@ export async function POST(req) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
+export async function DELETE(req) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Delete all files in user's folder under 'avatars' bucket
+    const { data: existingFiles } = await supabase.storage
+      .from('avatars')
+      .list(user.id);
+
+    if (existingFiles && existingFiles.length > 0) {
+      const filesToDelete = existingFiles.map(f => `${user.id}/${f.name}`);
+      await supabase.storage.from('avatars').remove(filesToDelete);
+    }
+
+    // Set avatar_url metadata to null
+    const { error: updateError } = await supabase.auth.updateUser({
+      data: { avatar_url: null }
+    });
+
+    if (updateError) throw updateError;
+
+    return NextResponse.json({ success: true, message: 'Avatar deleted successfully' });
+  } catch (err) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}

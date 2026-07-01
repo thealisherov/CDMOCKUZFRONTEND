@@ -8,14 +8,14 @@ import { format, differenceInDays } from "date-fns";
 import { useRouter } from "next/navigation";
 import {
   Mail, Calendar, Shield, Crown, Clock, Flame,
-  BookOpen, CheckCircle2, Timer, Camera,
+  BookOpen, CheckCircle2, Timer, Camera, Trash2,
   Trophy, Target, Zap, CreditCard, TrendingUp, Lock
 } from "lucide-react";
 import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
   const { user: authUser } = useAuth();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [profileData, setProfileData] = useState(null);
   const [leaderboardData, setLeaderboardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -82,6 +82,44 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAvatarDelete = async () => {
+    const confirmMsg = lang === "uz" 
+      ? "Profil rasmini o'chirishni xohlaysizmi?" 
+      : lang === "ru" 
+        ? "Вы уверены, что хотите удалить изображение профиля?" 
+        : "Are you sure you want to delete your profile image?";
+
+    if (!window.confirm(confirmMsg)) return;
+
+    setUploading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const res = await fetch("/api/profile/avatar", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${session?.access_token}` }
+      });
+
+      if (!res.ok) throw new Error("Delete failed");
+      
+      setProfileData(prev => ({
+        ...prev,
+        user: { ...prev.user, user_metadata: { ...prev.user.user_metadata, avatar_url: null } }
+      }));
+      
+      const successMsg = lang === "uz"
+        ? "Profil rasmi o'chirildi!"
+        : lang === "ru"
+          ? "Изображение профиля удалено!"
+          : "Avatar removed!";
+      toast.success(successMsg);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -130,9 +168,19 @@ export default function ProfilePage() {
               <button 
                 onClick={() => fileRef.current?.click()}
                 className="absolute bottom-1 right-1 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-indigo-700"
+                title="Change image"
               >
                 <Camera className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
+              {avatarUrl && (
+                <button 
+                  onClick={handleAvatarDelete}
+                  className="absolute bottom-1 left-1 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-red-650 text-white flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                  title="Remove image"
+                >
+                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+              )}
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
               {uploading && <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-black/50 flex items-center justify-center"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div></div>}
             </div>
