@@ -36,9 +36,7 @@ export async function updateSession(request) {
   const path = request.nextUrl.pathname;
   const isAuthRoute = path.startsWith('/login') || path.startsWith('/register');
   
-  // Test routes are protected (e.g. /dashboard/reading/123). But /dashboard/reading is not.
-  const isProtectedTestRoute = /^\/dashboard\/(reading|listening|writing|speaking)\/.+/.test(path);
-  const isProtectedRoute = isProtectedTestRoute || path.startsWith('/dashboard/profile') || path.startsWith('/dashboard/admin') || path.startsWith('/dashboard/comments') || path.startsWith('/dashboard/payment') || path.startsWith('/dashboard/premium');
+  const isProtectedRoute = path.startsWith('/dashboard');
 
   if (!user && isProtectedRoute) {
     // Users who are not logged in but trying to access protected routes must login first

@@ -14,9 +14,28 @@ export default function PremiumPromoToast() {
   const pathname = usePathname();
   const router = useRouter();
   const toastIdRef = useRef(null);
+  const timerRef = useRef(null);
+  const intervalRef = useRef(null);
+  const wasTakingTestRef = useRef(false);
+
+  const clearTimers = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return clearTimers;
+  }, []);
 
   useEffect(() => {
-    // If user is premium, not logged in, or taking a test, do nothing
+    // If user is premium or not logged in, do nothing
     if (!user || user.isPremium) return;
 
     const pathParts = pathname.split('/');
@@ -24,30 +43,9 @@ export default function PremiumPromoToast() {
                          ['listening', 'reading', 'writing'].includes(pathParts[2]) && 
                          pathParts[3] !== 'attempts';
 
-    if (isTakingTest) {
-      // Dismiss any active promo toast if they start a test
-      if (toastIdRef.current) {
-        toast.dismiss(toastIdRef.current);
-      }
-      return;
-    }
-
-    // Check if shown in this session recently to avoid irritation
-    const lastShown = sessionStorage.getItem("premium_promo_last_shown");
-    const now = Date.now();
-    
-    // Default wait is 15 seconds for initial show, or if last shown was more than 3 minutes ago
-    let delay = 15000;
-    if (lastShown) {
-      const timeSinceLast = now - parseInt(lastShown, 10);
-      if (timeSinceLast < 180000) {
-        // Less than 3 minutes since last shown, set delay to remaining time
-        delay = 180000 - timeSinceLast;
-      }
-    }
-
     const showPromoToast = () => {
-      sessionStorage.setItem("premium_promo_last_shown", String(Date.now()));
+      // Dismiss active toast to avoid duplicates
+      if (toastIdRef.current) toast.dismiss(toastIdRef.current);
       
       const toastId = toast.custom((toastObj) => (
         <motion.div
@@ -109,23 +107,32 @@ export default function PremiumPromoToast() {
       toastIdRef.current = toastId;
     };
 
-    const timer = setTimeout(showPromoToast, delay);
-
-    // Also set up interval to show it every 3 minutes (180000 ms) after the initial delay
-    let interval;
-    const setupInterval = () => {
-      interval = setInterval(showPromoToast, 180000);
-    };
-    const intervalTimer = setTimeout(setupInterval, delay);
-
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(intervalTimer);
-      if (interval) clearInterval(interval);
+    if (isTakingTest) {
+      wasTakingTestRef.current = true;
+      clearTimers();
       if (toastIdRef.current) {
         toast.dismiss(toastIdRef.current);
       }
-    };
+    } else {
+      if (wasTakingTestRef.current) {
+        // Just finished/exited a test
+        wasTakingTestRef.current = false;
+        clearTimers();
+        timerRef.current = setTimeout(() => {
+          showPromoToast();
+          intervalRef.current = setInterval(showPromoToast, 180000); // 3 mins after
+        }, 8000);
+      } else {
+        // Normal dashboard navigation
+        // Only start if not already running
+        if (!timerRef.current && !intervalRef.current) {
+          timerRef.current = setTimeout(() => {
+            showPromoToast();
+            intervalRef.current = setInterval(showPromoToast, 180000);
+          }, 15000);
+        }
+      }
+    }
   }, [user, pathname, router, t]);
 
   return null;
