@@ -40,7 +40,11 @@ export default function ProfilePage() {
       const [statsResult, paymentsResult, testResultsResult] = await Promise.all([
         supabase.from('user_stats').select('*').eq('user_id', userId).maybeSingle(),
         supabase.from('payments').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(20),
-        supabase.from('test_results').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50),
+        supabase.from('TestAttempts')
+          .select('id, test_type, test_title, correct_count, total_questions, band_score, completed_at')
+          .eq('user_id', userId)
+          .order('completed_at', { ascending: false })
+          .limit(50),
       ]);
 
       const stats = statsResult.data;
@@ -57,11 +61,22 @@ export default function ProfilePage() {
         } catch (e) { /* ignore rank errors */ }
       }
 
+      // TestAttempts ustunlarini UI kutayotgan formatga moslaymiz
+      const mappedResults = (testResultsResult.data || []).map((a) => ({
+        id: a.id,
+        test_type: a.test_type,
+        test_name: a.test_title,
+        score: a.total_questions ? Math.round((a.correct_count / a.total_questions) * 100) : (a.band_score ? Math.round((a.band_score / 9) * 100) : 0),
+        correct: a.correct_count,
+        total: a.total_questions,
+        created_at: a.completed_at,
+      }));
+
       setProfileData({
         user: authUser,
         stats: stats || { xp: 0, tests_taken: 0, correct_answers: 0, total_time_seconds: 0, daily_streak: 0, last_active_date: null },
         payments: paymentsResult.data || [],
-        testResults: testResultsResult.data || [],
+        testResults: mappedResults,
         rank,
       });
     } catch (err) {

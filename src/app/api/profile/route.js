@@ -37,12 +37,12 @@ export async function GET(req) {
       .order('created_at', { ascending: false })
       .limit(20);
 
-    // Fetch test results 
+    // Fetch test results — TestAttempts jadvalidan (test_results ga hech narsa yozilmaydi)
     const { data: testResults } = await supabase
-      .from('test_results')
-      .select('*')
+      .from('TestAttempts')
+      .select('id, test_type, test_title, correct_count, total_questions, band_score, completed_at')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
+      .order('completed_at', { ascending: false })
       .limit(50);
 
     return NextResponse.json({
