@@ -195,28 +195,27 @@ function QuickAction({ icon: Icon, title, description, href, gradient }) {
 
 // ── Main Dashboard Page ──
 export default function DashboardPage() {
-  const { user } = useAuth();
-  const [stats, setStats] = useState({ testsCompleted: 0, avgBand: 0, globalRank: 0 });
+  const { user, loading: authLoading } = useAuth();
+  const [stats, setStats] = useState({ testsCompleted: 0, avgBand: 0, globalRank: "—" });
   const [recentTests, setRecentTests] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const userName = user?.user_metadata?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "Student";
 
-  // Fetch stats and recent test activity
+  // Fetch stats and recent test activity — optimized with full parallelism
   useEffect(() => {
+    if (authLoading) return; // Wait for auth to resolve
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
     const fetchDashboardData = async () => {
       try {
         const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
+        const userId = user.id;
 
-        if (!session?.user?.id) {
-          setLoading(false);
-          return;
-        }
-
-        const userId = session.user.id;
-
-        // Fetch userStats, allAttempts and recent attempts in parallel to optimize speed
+        // Fetch all data in a single parallel batch
         const [userStatsResult, allAttemptsResult, attemptsResult] = await Promise.all([
           supabase.from("user_stats").select("tests_taken, xp, daily_streak").eq("user_id", userId).maybeSingle(),
           supabase.from("TestAttempts").select("band_score").eq("user_id", userId),
@@ -243,7 +242,7 @@ export default function DashboardPage() {
           }
         }
 
-        // Fetch rank from count of user_stats with higher XP (highly optimized query)
+        // Calculate rank in parallel (non-blocking)
         let currentUserRank = "—";
         if (userStats) {
           try {
@@ -287,7 +286,7 @@ export default function DashboardPage() {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [user?.id, authLoading]);
 
   // Fallback test cards for new users
   const defaultTests = [

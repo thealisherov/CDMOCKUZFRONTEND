@@ -14,7 +14,7 @@ import {
 import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
-  const { user: authUser } = useAuth();
+  const { user: authUser, loading: authLoading } = useAuth();
   const { t, lang } = useTranslation();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,18 +24,46 @@ export default function ProfilePage() {
   const supabase = createClient();
 
   useEffect(() => {
-    if (authUser) fetchProfile();
-  }, [authUser]);
+    if (authLoading) return;
+    if (!authUser?.id) {
+      setLoading(false);
+      return;
+    }
+    fetchProfile();
+  }, [authUser?.id, authLoading]);
 
   const fetchProfile = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const res = await fetch("/api/profile", { headers: { Authorization: `Bearer ${session?.access_token}` }});
+      const userId = authUser.id;
 
-      if (!res.ok) throw new Error("Failed to load profile");
-      const data = await res.json();
-      setProfileData(data);
+      // Fetch all profile data in parallel — no API route needed
+      const [statsResult, paymentsResult, testResultsResult] = await Promise.all([
+        supabase.from('user_stats').select('*').eq('user_id', userId).maybeSingle(),
+        supabase.from('payments').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(20),
+        supabase.from('test_results').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50),
+      ]);
+
+      const stats = statsResult.data;
+
+      // Calculate rank
+      let rank = null;
+      if (stats) {
+        try {
+          const { count } = await supabase
+            .from('user_stats')
+            .select('user_id', { count: 'exact', head: true })
+            .gt('xp', stats.xp || 0);
+          rank = (count || 0) + 1;
+        } catch (e) { /* ignore rank errors */ }
+      }
+
+      setProfileData({
+        user: authUser,
+        stats: stats || { xp: 0, tests_taken: 0, correct_answers: 0, total_time_seconds: 0, daily_streak: 0, last_active_date: null },
+        payments: paymentsResult.data || [],
+        testResults: testResultsResult.data || [],
+        rank,
+      });
     } catch (err) {
       console.error(err);
     } finally {
@@ -111,15 +139,48 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+  if (loading || authLoading) return (
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-8 pb-12 pt-4 animate-pulse">
+      {/* Hero skeleton */}
+      <div className="rounded-2xl sm:rounded-3xl overflow-hidden border border-border bg-white dark:bg-gray-900">
+        <div className="h-28 sm:h-40 w-full bg-gradient-to-r from-indigo-200 to-purple-200 dark:from-indigo-900/30 dark:to-purple-900/30" />
+        <div className="px-4 sm:px-8 pb-6 sm:pb-8 -mt-12 sm:-mt-16 relative z-10">
+          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 sm:gap-6">
+            <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl sm:rounded-3xl border-4 border-white dark:border-gray-900 bg-gray-200 dark:bg-gray-700" />
+            <div className="flex-1 space-y-2 pt-2">
+              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg w-48" />
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-lg w-64" />
+            </div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-2xl w-32" />
+          </div>
+        </div>
+      </div>
+      {/* Stats skeleton */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-24 rounded-xl sm:rounded-2xl bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700" />
+        ))}
+      </div>
+      {/* Content skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="space-y-6">
+          <div className="h-48 bg-gray-100 dark:bg-gray-800 rounded-2xl border border-border" />
+          <div className="h-36 bg-gray-100 dark:bg-gray-800 rounded-2xl border border-border" />
+        </div>
+        <div className="lg:col-span-2 space-y-6">
+          <div className="h-48 bg-gray-100 dark:bg-gray-800 rounded-2xl border border-border" />
+          <div className="h-64 bg-gray-100 dark:bg-gray-800 rounded-2xl border border-border" />
+        </div>
+      </div>
     </div>
   );
 
   if (!profileData?.user) return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh]">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
       <p className="text-muted-foreground">Could not load profile</p>
+      <button onClick={() => { setLoading(true); fetchProfile(); }} className="px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors">
+        Try Again
+      </button>
     </div>
   );
 
