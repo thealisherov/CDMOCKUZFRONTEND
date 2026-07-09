@@ -18,40 +18,33 @@ export default function StatsPanel() {
   useEffect(() => {
     fetchStats();
 
-    // ── Real-time polling every 20 seconds ──
-    const interval = setInterval(() => {
-      fetchStats();
-    }, 20000);
+    // ── Supabase Realtime: Tests + payments o'zgarganda yangilaymiz ──
+    // 20 soniyalik polling OLIB TASHLANDI — u har safar BARCHA userlar,
+    // to'lovlar va testlarni qayta tortib serverni bo'g'ib qo'yardi.
+    // Realtime hodisalarini debounce qilamiz: ketma-ket o'zgarishlar bitta
+    // yangilashga birlashadi va UI miltillamaydi (background = true).
+    let debounceTimer = null;
+    const scheduleRefresh = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => fetchStats(true), 1500);
+    };
 
-    // ── Supabase Realtime: listen to Tests + payments tables ──
     const channel = supabase
       .channel('admin-stats-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'Tests' },
-        () => {
-          console.log('[Admin Stats] Tests table changed, refreshing...');
-          fetchStats();
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'payments' },
-        () => {
-          console.log('[Admin Stats] Payments changed, refreshing...');
-          fetchStats();
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'Tests' }, scheduleRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, scheduleRefresh)
       .subscribe();
 
     return () => {
-      clearInterval(interval);
+      if (debounceTimer) clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange, customRange]);
 
-  const fetchStats = async () => {
-    setLoading(true);
+  const fetchStats = async (background = false) => {
+    // background=true bo'lsa, jadval "Loading..." holatiga o'tmaydi (miltillash yo'q)
+    if (!background) setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       

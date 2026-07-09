@@ -56,17 +56,20 @@ export async function GET(req) {
     // 3. Get test statistics
     let testStats = { total: 0, reading: 0, listening: 0, writing: 0, free: 0, premium: 0 };
     try {
+      // MUHIM: butun `data` JSONB ustunini tortmaymiz (u har bir testda
+      // bir necha MB bo'lishi mumkin — passages, transcript, savollar...).
+      // Faqat kerakli 2 ta kichik JSON qiymatni so'raymiz.
       const { data: tests } = await supabaseAdmin
         .from('Tests')
-        .select('type, data');
+        .select('type, tution:data->>testTution, access:data->>access');
       if (tests) {
         testStats.total = tests.length;
         tests.forEach(t => {
           if (t.type === 'reading') testStats.reading++;
           else if (t.type === 'listening') testStats.listening++;
           else if (t.type === 'writing') testStats.writing++;
-          
-          const access = t.data?.testTution || t.data?.access || 'free';
+
+          const access = t.tution || t.access || 'free';
           if (access === 'paid') testStats.premium++;
           else testStats.free++;
         });

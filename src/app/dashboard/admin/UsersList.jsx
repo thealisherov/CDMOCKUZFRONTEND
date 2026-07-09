@@ -24,26 +24,27 @@ export default function UsersList() {
   useEffect(() => {
     fetchUsers();
 
-    // ── Real-time polling every 15 seconds ──
-    const interval = setInterval(() => {
-      fetchUsers();
-    }, 15000);
+    // 15 soniyalik polling OLIB TASHLANDI — u har 15 soniyada
+    // auth.admin.listUsers() orqali BARCHA foydalanuvchilarni qayta tortib,
+    // admin panelni sekinlashtirardi va serverni ortiqcha yuklardi.
+    // Endi faqat to'lov o'zgarganda realtime orqali (debounce bilan) yangilaymiz.
+    let debounceTimer = null;
+    const scheduleRefresh = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => fetchUsers(), 1500);
+    };
 
-    // ── Supabase Realtime: listen to payments table for instant refresh ──
     const channel = supabase
       .channel('admin-users-realtime')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'payments' },
-        () => {
-          console.log('[Admin] Payment change detected, refreshing users...');
-          fetchUsers();
-        }
+        scheduleRefresh
       )
       .subscribe();
 
     return () => {
-      clearInterval(interval);
+      if (debounceTimer) clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, []);

@@ -193,7 +193,7 @@ function QuickAction({ icon: Icon, title, description, href, gradient }) {
 
 // ── Main Dashboard Page ──
 export default function DashboardPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     testsCompleted: 0,
     avgBand: "0.0",
@@ -211,17 +211,25 @@ export default function DashboardPage() {
 
   // Butun tarixdagi ma'lumotlarni yuklash
   useEffect(() => {
-    if (authLoading) return;
-    if (!user?.id) {
-      setLoading(false);
-      return;
-    }
+    // Dashboard ma'lumotini DARHOL yuklaymiz. /api/dashboard cookie orqali
+    // o'zini autentifikatsiya qiladi, shuning uchun useAuth ning to'liq
+    // yakunlanishini (getSession → getUser tarmoq so'rovi) KUTMAYMIZ.
+    // Ilgari fetch faqat authLoading=false VA user.id kelgandan keyin boshlanardi;
+    // bu ketma-ket kutish "ma'lumot bittada chiqmaydi / noto'g'ri chiqadi"
+    // muammosini keltirib chiqarardi. Endi so'rov mount paytida darrov ketadi.
+    let cancelled = false;
 
     const fetchDashboardData = async () => {
       try {
         const res = await fetch("/api/dashboard");
+        // Middleware /dashboard ni himoya qiladi; agar baribir 401 bo'lsa — jimgina chiqamiz
+        if (res.status === 401) {
+          if (!cancelled) setLoading(false);
+          return;
+        }
         if (!res.ok) throw new Error("Failed to fetch dashboard data");
         const data = await res.json();
+        if (cancelled) return;
 
         // API TestAttempts dan hisoblangan to'g'ri qiymatlarni qaytaradi
         const totalTests = data.totalTests ?? data.allAttempts?.length ?? 0;
@@ -262,12 +270,13 @@ export default function DashboardPage() {
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, [user?.id, authLoading]);
+    return () => { cancelled = true; };
+  }, []);
 
   // Yangi foydalanuvchilar uchun standart kartalar
   const defaultTests = [
