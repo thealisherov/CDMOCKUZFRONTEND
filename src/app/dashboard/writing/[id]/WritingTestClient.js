@@ -52,7 +52,7 @@ function getBandLabel(band) {
 /**
  * Inner component with NotesContext access
  */
-function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {}, initialEvaluation = null }) {
+function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {}, initialEvaluation = null, centerConfig = null }) {
   const router = useRouter();
   const { clearNotes } = useNotes();
 
@@ -62,10 +62,15 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
   // Fetch user email for "Test taker ID"
   const [userEmail, setUserEmail] = useState('');
   useEffect(() => {
+    // O'quv Markaz rejimi: Supabase auth YO'Q — o'quvchi ismini ko'rsatamiz
+    if (centerConfig) {
+      setUserEmail([centerConfig.name, centerConfig.surname].filter(Boolean).join(' '));
+      return;
+    }
     createClient().auth.getUser().then(({ data }) => {
       if (data?.user?.email) setUserEmail(data.user.email);
     });
-  }, []);
+  }, [centerConfig]);
 
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [activeTaskIndex, setActiveTaskIndex] = useState(0);
@@ -157,7 +162,46 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
 
 
 
-  const handleSubmit = async () => { 
+  // ── O'quv Markaz rejimi: essaylarni xom holda /api/centers/submit ga yuboradi ──
+  const submitCenter = async (answersObj) => {
+    setSubmitted(true);
+    setShowConfirm(false);
+    setIsEvaluating(true);
+    setEvalError(null);
+    try {
+      const res = await fetch(centerConfig.submitUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: centerConfig.type,
+          testNumericId: centerConfig.testNumericId,
+          name: centerConfig.name,
+          surname: centerConfig.surname,
+          answers: answersObj,
+          timeSpent: centerConfig.startedAt ? Math.round((Date.now() - centerConfig.startedAt) / 1000) : null,
+        }),
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.error || 'Yuborishda xatolik');
+      }
+      const resData = await res.json().catch(() => ({}));
+      try { localStorage.removeItem(timerKey); } catch { /* */ }
+      centerConfig.onComplete?.(resData);
+    } catch (err) {
+      setEvalError(err.message || 'Yuborishda xatolik');
+      setIsEvaluating(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    // ── Full Mock rejimi: essaylarni runner'ga topshiradi (bo'sh bo'lsa ham, POST yo'q) ──
+    if (centerConfig?.onSection) {
+      try { localStorage.removeItem(timerKey); } catch { /* */ }
+      centerConfig.onSection(essays);
+      return;
+    }
+
     // ── Validate: at least one task must have text ────────────────────────
     const hasAnyEssay = tasks.some((_, i) => countWords(essays[i] || '') > 0);
     if (!hasAnyEssay) {
@@ -181,6 +225,8 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
       );
       return;
     }
+
+    if (centerConfig) return submitCenter(essays);
 
     setSubmitted(true);
     setShowConfirm(false);
@@ -285,6 +331,28 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
         <h2 className="text-xl font-bold mb-2" style={{ color: '#333' }}>Test not found</h2>
         <p className="text-gray-500 mb-4">Writing Test #{id} does not exist.</p>
         <Button onClick={() => router.push('/dashboard/writing')}>Back to Tests</Button>
+      </div>
+    );
+  }
+
+  // ── SUBMITTED (O'quv Markaz rejimi) ──
+  if (submitted && centerConfig) {
+    return (
+      <div className="ielts-test-view fixed inset-0 z-50 bg-white flex flex-col items-center justify-center text-center p-6">
+        {evalError ? (
+          <>
+            <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
+            <h2 className="text-xl font-bold mb-2">Yuborishda xatolik</h2>
+            <p className="text-gray-500 mb-4">{evalError}</p>
+            <Button onClick={() => submitCenter(essays)}>Qayta yuborish</Button>
+          </>
+        ) : (
+          <>
+            <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <h2 className="text-xl font-bold text-indigo-800 mb-2">Javoblaringiz yuborilmoqda...</h2>
+            <p className="text-gray-500">Iltimos, kuting.</p>
+          </>
+        )}
       </div>
     );
   }
@@ -852,16 +920,17 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
 }
 
 
-export default function WritingTestClient({ id, rawData, isReviewMode = false, initialEssays = {}, initialEvaluation = null }) {
+export default function WritingTestClient({ id, rawData, isReviewMode = false, initialEssays = {}, initialEvaluation = null, centerConfig = null }) {
   return (
     <NotesProvider testId={`writing_${id}`}>
       <Toaster position="top-center" />
-      <WritingTestInner 
-        id={id} 
-        rawData={rawData} 
-        isReviewMode={isReviewMode} 
-        initialEssays={initialEssays} 
-        initialEvaluation={initialEvaluation} 
+      <WritingTestInner
+        id={id}
+        rawData={rawData}
+        isReviewMode={isReviewMode}
+        initialEssays={initialEssays}
+        initialEvaluation={initialEvaluation}
+        centerConfig={centerConfig}
       />
     </NotesProvider>
   );

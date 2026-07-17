@@ -21,6 +21,7 @@ async function loadTestData(testId) {
         .from('Tests')
         .select('*')
         .eq('type', 'writing')
+        .is('center_id', null)
         .order('created_at', { ascending: true })
 
       if (!error && rows) {
@@ -34,6 +35,7 @@ async function loadTestData(testId) {
         .from('Tests')
         .select('*')
         .eq('test_id', testId)
+        .is('center_id', null)
         .single()
 
       if (!error && row) {

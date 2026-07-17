@@ -12,6 +12,7 @@ export async function GET(request) {
       .from('Tests')
       .select('*')
       .eq('type', 'reading')
+      .is('center_id', null)
       .order('created_at', { ascending: true })
 
     if (!error && rows) {

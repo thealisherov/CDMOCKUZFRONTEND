@@ -32,6 +32,7 @@ export async function GET(request, { params }) {
         .from('Tests')
         .select('*')
         .eq('type', type)
+        .is('center_id', null)
         .order('created_at', { ascending: true })
 
       if (error) {
@@ -49,6 +50,7 @@ export async function GET(request, { params }) {
         .from('Tests')
         .select('*')
         .eq('test_id', id)
+        .is('center_id', null)
         .single()
 
       if (!error && row) {

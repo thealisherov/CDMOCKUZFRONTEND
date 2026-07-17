@@ -26,6 +26,7 @@ export async function GET(request) {
     let query = supabase
       .from('Tests')
       .select('id, test_id, type, data, created_at')
+      .is('center_id', null)
       .order('created_at', { ascending: true })
 
     if (type) {

@@ -13,6 +13,7 @@ async function loadTestData(testId) {
         .from('Tests')
         .select('*')
         .eq('type', 'writing')
+        .is('center_id', null)
         .order('created_at', { ascending: true })
 
       if (!error && rows) testRow = rows[numericId - 1] || null

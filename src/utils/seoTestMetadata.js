@@ -15,6 +15,7 @@ export async function generateTestMetadata({ id, type, params }) {
         .from('Tests')
         .select('*')
         .eq('type', type)
+        .is('center_id', null)
         .order('created_at', { ascending: true });
       if (rows && rows.length >= numericId) {
         testRow = rows[numericId - 1];

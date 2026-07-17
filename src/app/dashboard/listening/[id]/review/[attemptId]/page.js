@@ -17,6 +17,7 @@ async function loadTestData(testId) {
         .from('Tests')
         .select('*')
         .eq('type', 'listening')
+        .is('center_id', null)
         .order('created_at', { ascending: true })
 
       if (!error && rows) {

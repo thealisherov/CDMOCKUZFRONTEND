@@ -61,7 +61,8 @@ export async function GET(req) {
       // Faqat kerakli 2 ta kichik JSON qiymatni so'raymiz.
       const { data: tests } = await supabaseAdmin
         .from('Tests')
-        .select('type, tution:data->>testTution, access:data->>access');
+        .select('type, tution:data->>testTution, access:data->>access')
+        .is('center_id', null);
       if (tests) {
         testStats.total = tests.length;
         tests.forEach(t => {

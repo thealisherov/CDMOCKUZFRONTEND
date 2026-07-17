@@ -7,6 +7,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import OpenAI from 'openai'
+import { evaluateObjective } from '@/lib/ielts-checker'
 
 // Increase Vercel serverless function timeout to 60 seconds (useful for OpenAI API calls)
 export const maxDuration = 60;
@@ -16,192 +17,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
 })
 
-// IELTS Listening band score — exact lookup table
-function calculateListeningBand(score) {
-  if (score >= 39) return '9.0'
-  if (score >= 37) return '8.5'
-  if (score >= 35) return '8.0'
-  if (score >= 32) return '7.5'
-  if (score >= 30) return '7.0'
-  if (score >= 26) return '6.5'
-  if (score >= 23) return '6.0'
-  if (score >= 18) return '5.5'
-  if (score >= 16) return '5.0'
-  if (score >= 13) return '4.5'
-  if (score >= 11) return '4.0'
-  if (score >= 8)  return '3.5'
-  if (score >= 6)  return '3.0'
-  if (score >= 4)  return '2.5'
-  return '2.0'
-}
-
-// IELTS Reading band score — exact lookup table
-function calculateReadingBand(score) {
-  if (score >= 39) return '9.0'
-  if (score >= 37) return '8.5'
-  if (score >= 35) return '8.0'
-  if (score >= 33) return '7.5'
-  if (score >= 30) return '7.0'
-  if (score >= 27) return '6.5'
-  if (score >= 23) return '6.0'
-  if (score >= 19) return '5.5'
-  if (score >= 15) return '5.0'
-  if (score >= 13) return '4.5'
-  if (score >= 10) return '4.0'
-  if (score >= 8)  return '3.5'
-  if (score >= 6)  return '3.0'
-  if (score >= 4)  return '2.5'
-  return '2.0'
-}
-
-// Generic fallback (for unknown types)
-function calculateBand(score, total) {
-  const percentage = (score / total) * 100
-  if (percentage >= 97) return '9.0'
-  if (percentage >= 93) return '8.5'
-  if (percentage >= 87) return '8.0'
-  if (percentage >= 82) return '7.5'
-  if (percentage >= 75) return '7.0'
-  if (percentage >= 67) return '6.5'
-  if (percentage >= 60) return '6.0'
-  if (percentage >= 52) return '5.5'
-  if (percentage >= 45) return '5.0'
-  if (percentage >= 37) return '4.5'
-  if (percentage >= 30) return '4.0'
-  if (percentage >= 22) return '3.5'
-  if (percentage >= 15) return '3.0'
-  return '2.5'
-}
-
-
-// ─────────────────────────────────────────────────────────────────────────────
-// EXTRACT ANSWERS
-// Builds a map: { qNum: { answer, alternatives, isMulti?, groupNums?, groupAnswers? } }
-// For multiple_choice_multiple (numbers[] + answers[]), we store group info
-// so we can evaluate the full set order-independently.
-// ─────────────────────────────────────────────────────────────────────────────
-function extractAnswers(data) {
-  const answerMap = {}
-
-  const processGroup = (group) => {
-    if (!group || !group.questions) return
-    const gt = (group.groupType || '')
-    const isMultiGroup = gt === 'multiple_choice_multiple' ||
-      gt === 'multiple_choice_multiple_answer'
-
-    if (isMultiGroup) {
-      // Detect whether this group uses shared answers[] or per-question answer
-      // Case A: one question with numbers[] + answers[]
-      //   { numbers: [21,22], answers: ['A','C'] }
-      // Case B: separate questions each with number + answer (listening style)
-      //   { number: 27, answer: 'B' }, { number: 28, answer: 'D' }
-      const allNums = []
-      const allCorrect = []
-
-      group.questions.forEach(q => {
-        if (q.numbers && q.answers) {
-          // Case A
-          q.numbers.forEach(n => allNums.push(n))
-          ;(Array.isArray(q.answers) ? q.answers : [q.answers]).forEach(a => allCorrect.push(String(a).trim().toUpperCase()))
-        } else if (q.number !== undefined) {
-          // Case B
-          allNums.push(q.number)
-          if (q.answer) allCorrect.push(String(q.answer).trim().toUpperCase())
-        }
-      })
-
-      // Store each number with a reference to the full group
-      allNums.forEach(num => {
-        answerMap[String(num)] = {
-          answer: allCorrect,          // full set of correct answers for the group
-          alternatives: [],
-          isMultiGroup: true,
-          groupNums: allNums.map(String),  // all question numbers in this group
-          groupAnswers: allCorrect,         // correct answer set (order-irrelevant)
-        }
-      })
-      return
-    }
-
-    // Normal questions
-    group.questions.forEach(q => {
-      if (q.number !== undefined) {
-        answerMap[String(q.number)] = {
-          answer: q.answer,
-          alternatives: q.alternativeAnswers || [],
-        }
-      }
-      if (q.numbers && q.answers) {
-        q.numbers.forEach(num => {
-          answerMap[String(num)] = {
-            answer: q.answers,
-            alternatives: [],
-            isMulti: true,
-          }
-        })
-      }
-    })
-  }
-
-  const processAllGroups = (groups) => {
-    ;(groups || []).forEach(group => processGroup(group))
-  }
-
-  if (data.parts) {
-    data.parts.forEach(part => processAllGroups(part.questionGroups))
-  }
-  if (data.passages) {
-    data.passages.forEach(passage => processAllGroups(passage.questionGroups))
-  }
-  return answerMap
-}
-
-// Order-independent set equality check
-function setsEqual(setA, setB) {
-  if (setA.length !== setB.length) return false
-  const a = [...setA].sort()
-  const b = [...setB].sort()
-  return a.every((v, i) => v === b[i])
-}
-
-function normalizeHeadingAnswer(ans) {
-  // Extract the leading roman numeral or letter from strings like "v. Some heading text" or "iii) heading"
-  if (!ans) return '';
-  const match = String(ans).trim().match(/^([ivxlcdmIVXLCDM]+|[a-zA-Z])[.\s):]/);
-  if (match) return match[1].toLowerCase();
-  return String(ans).trim().toLowerCase();
-}
-
-function isCorrect(userAnswer, correctData) {
-  if (!correctData) return false
-  const uRaw = String(userAnswer || '').trim()
-  if (!uRaw) return false
-
-  // Try both raw lower and heading-normalized forms
-  const uAnswer = uRaw.toLowerCase()
-  const uNormalized = normalizeHeadingAnswer(uRaw)
-
-  const matchesAnswer = (correctRaw) => {
-    const cLower = String(correctRaw || '').trim().toLowerCase()
-    if (!cLower) return false
-    if (uAnswer === cLower) return true
-    if (uNormalized === cLower) return true
-    // Also try normalizing the correct answer (in case stored as full text too)
-    const cNormalized = normalizeHeadingAnswer(correctRaw)
-    if (uNormalized === cNormalized) return true
-    if (uAnswer === cNormalized) return true
-    return false
-  }
-
-  if (correctData.isMulti && Array.isArray(correctData.answer)) {
-    return correctData.answer.some(a => matchesAnswer(a))
-  }
-  if (matchesAnswer(correctData.answer)) return true
-  if (correctData.alternatives && correctData.alternatives.length > 0) {
-    return correctData.alternatives.some(alt => matchesAnswer(alt))
-  }
-  return false
-}
 
 
 /**
@@ -704,6 +519,7 @@ export async function POST(request, { params }) {
         .from('Tests')
         .select('*')
         .eq('type', type)
+        .is('center_id', null)
         .order('created_at', { ascending: true })
 
       if (!error && rows) {
@@ -716,6 +532,7 @@ export async function POST(request, { params }) {
         .from('Tests')
         .select('*')
         .eq('test_id', id)
+        .is('center_id', null)
         .single()
       if (!error && row) testRow = row
     }
@@ -778,64 +595,9 @@ export async function POST(request, { params }) {
       return await checkWritingTest(userAnswers, testRow);
     }
 
-    // ── Reading / Listening Evaluation ──
-    const answerMap = extractAnswers(testRow.data)
-    const total = Object.keys(answerMap).length
-    let score = 0
-    const results = {}
-
-    // Track which multi-groups have already been evaluated (to avoid double-evaluating)
-    const evaluatedGroups = new Set()
-
-    Object.keys(answerMap).forEach(qNum => {
-      const correctData = answerMap[qNum]
-
-      // ── Multiple-choice-multiple GROUP evaluation ─────────────────────────
-      // Each slot is evaluated INDEPENDENTLY.
-      // Correct answer pool = {A, C} → if user picks A → ✅, D → ❌
-      // Order doesn't matter: C,A = A,C (both full marks)
-      if (correctData.isMultiGroup) {
-        const groupKey = correctData.groupNums.sort().join(',')
-        if (evaluatedGroups.has(groupKey)) return // already handled
-        evaluatedGroups.add(groupKey)
-
-        const correctSet = correctData.groupAnswers.map(a => String(a).trim().toUpperCase())
-
-        correctData.groupNums.forEach(n => {
-          const uAns = String(userAnswers[n] || '').trim().toUpperCase()
-          // Each answer is correct if it appears in the correct answer pool
-          const individualCorrect = uAns !== '' && correctSet.includes(uAns)
-          if (individualCorrect) score++
-          results[n] = {
-            correct: individualCorrect,
-            userAnswer: userAnswers[n] || '',
-            correctAnswer: correctSet,
-            isMultiGroup: true,
-          }
-        })
-        return
-      }
-
-      // ── Normal question evaluation ────────────────────────────────────────
-      const userAnswer = userAnswers[qNum] || ''
-      const correct = isCorrect(userAnswer, correctData)
-      if (correct) score++
-      results[qNum] = {
-        correct,
-        userAnswer: userAnswer || '',
-        correctAnswer: correctData.isMulti ? correctData.answer : correctData.answer,
-      }
-    })
-
+    // ── Reading / Listening Evaluation (umumiy lib orqali) ──
     const testType = testRow.type || type || ''
-    let band
-    if (testType === 'listening') {
-      band = calculateListeningBand(score)
-    } else if (testType === 'reading') {
-      band = calculateReadingBand(score)
-    } else {
-      band = calculateBand(score, total)
-    }
+    const { score, total, band, results } = evaluateObjective(testRow.data, userAnswers, testType)
 
     return NextResponse.json({ score, total, band, results })
   } catch (err) {

@@ -1,0 +1,119 @@
+{
+  "id": "full-mock-1",
+  "title": "IELTS Full Mock Test 1",
+  "testFormat": "full_mock",
+  "testType": "authentic_material",
+  "level": "medium",
+  "center": "istudy",
+  "sections": {
+    "listening": {
+      "title": "Full Mock 1 — Listening",
+      "timer": 40,
+      "totalQuestions": 40,
+      "audio": "https://YOUR-BUCKET.r2.dev/full-mock-1-listening.mp3",
+      "parts": [
+        {
+          "partNumber": 1,
+          "questionRange": "1-10",
+          "image": null,
+          "questionGroups": [
+            {
+              "groupType": "note_completion",
+              "instruction": "Complete the notes below. Write ONE WORD AND/OR A NUMBER for each answer.",
+              "questions": [
+                { "number": 1, "question": "<b>Booking details</b><ul><li>Name: James ______</li></ul>", "answer": "Carter", "alternativeAnswers": ["carter"] },
+                { "number": 2, "question": "<ul><li>Number of guests: ______</li></ul>", "answer": "4", "alternativeAnswers": ["four"] },
+                { "number": 3, "question": "<ul><li>Arrival date: ______ of June</li></ul>", "answer": "12th", "alternativeAnswers": ["12", "twelfth"] },
+                { "number": 4, "question": "<ul><li>Room type: ______</li></ul>", "answer": "double", "alternativeAnswers": ["Double"] },
+                { "number": 5, "question": "<ul><li>Special request: extra ______</li></ul>", "answer": "pillow", "alternativeAnswers": ["pillows"] }
+              ]
+            },
+            {
+              "groupType": "multiple_choice",
+              "instruction": "Choose the correct letter, A, B or C.",
+              "questions": [
+                { "number": 6, "question": "The customer wants to pay by", "options": ["A cash.", "B card.", "C bank transfer."], "answer": "B" },
+                { "number": 7, "question": "Breakfast is served until", "options": ["A 9 am.", "B 10 am.", "C 11 am."], "answer": "B" }
+              ]
+            },
+            {
+              "groupType": "multiple_choice_multiple_answer",
+              "instruction": "Choose TWO letters, A–E. Which TWO facilities are free for guests?",
+              "options": ["A parking", "B spa", "C wifi", "D breakfast", "E gym"],
+              "questions": [
+                { "number": 8, "question": "First answer:", "answer": "A" },
+                { "number": 9, "question": "Second answer:", "answer": "C" }
+              ]
+            },
+            {
+              "groupType": "note_completion",
+              "instruction": "Write ONE WORD ONLY for each answer.",
+              "questions": [
+                { "number": 10, "question": "<ul><li>Nearest station: ______ Street</li></ul>", "answer": "King", "alternativeAnswers": ["king"] }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "reading": {
+      "title": "Full Mock 1 — Reading",
+      "timer": 60,
+      "totalQuestions": 40,
+      "passages": [
+        {
+          "passageNumber": 1,
+          "title": "The History of Tea",
+          "image": null,
+          "content": "Tea is one of the most widely consumed beverages in the world, second only to water. Its origins can be traced back to ancient China, where according to legend it was discovered by the Emperor Shen Nong in 2737 BC.\n\nOver the centuries, tea spread along trade routes to Japan, the Middle East and eventually Europe. By the seventeenth century it had become a fashionable drink among the wealthy classes of Britain.\n\nToday, tea is cultivated in more than forty countries, with India and China remaining the largest producers. The global tea industry supports millions of workers and continues to grow steadily each year.",
+          "questionGroups": [
+            {
+              "groupType": "true_false_not_given",
+              "instruction": "Do the following statements agree with the information given in the passage? Write TRUE, FALSE or NOT GIVEN.",
+              "questions": [
+                { "number": 1, "question": "Tea is the most consumed drink in the world.", "answer": "FALSE" },
+                { "number": 2, "question": "Tea was first discovered in China.", "answer": "TRUE" },
+                { "number": 3, "question": "Tea reached Britain before Japan.", "answer": "FALSE" },
+                { "number": 4, "question": "Tea is grown in over forty countries today.", "answer": "TRUE" }
+              ]
+            },
+            {
+              "groupType": "note_completion",
+              "instruction": "Complete the notes below. Write NO MORE THAN TWO WORDS for each answer.",
+              "questions": [
+                { "number": 5, "question": "Tea was discovered by Emperor ______.", "answer": "Shen Nong", "alternativeAnswers": ["shen nong"] },
+                { "number": 6, "question": "Tea became fashionable in Britain in the ______ century.", "answer": "seventeenth", "alternativeAnswers": ["17th"] },
+                { "number": 7, "question": "The two largest producers are India and ______.", "answer": "China", "alternativeAnswers": ["china"] }
+              ]
+            },
+            {
+              "groupType": "multiple_choice_single",
+              "instruction": "Choose the correct letter, A, B, C or D.",
+              "questions": [
+                { "number": 8, "question": "According to the passage, the tea industry is", "options": ["A declining.", "B stable.", "C growing.", "D uncertain."], "answer": "C" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "writing": {
+      "title": "Full Mock 1 — Writing",
+      "timer": 60,
+      "tasks": [
+        {
+          "taskNumber": 1,
+          "title": "Writing Task 1",
+          "content": "The chart below shows the percentage of households in different income brackets that owned a computer between 2000 and 2020.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.\n\nWrite at least 150 words.",
+          "image": "https://YOUR-BUCKET.r2.dev/full-mock-1-task1-chart.png"
+        },
+        {
+          "taskNumber": 2,
+          "title": "Writing Task 2",
+          "content": "Some people believe that unpaid community service should be a compulsory part of high school programmes.\n\nTo what extent do you agree or disagree?\n\nGive reasons for your answer and include any relevant examples from your own knowledge or experience.\n\nWrite at least 250 words.",
+          "image": null
+        }
+      ]
+    }
+  }
+}

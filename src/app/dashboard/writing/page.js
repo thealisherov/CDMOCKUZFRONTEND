@@ -14,6 +14,7 @@ export default async function WritingPage() {
       supabase.from("Tests")
         .select("id, test_id, type, data, created_at")
         .eq("type", "writing")
+        .is("center_id", null)
         .order("created_at", { ascending: true }),
       supabase.auth.getUser().catch(() => ({ data: { user: null } }))
     ]);

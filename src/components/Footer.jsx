@@ -41,6 +41,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-secondary-foreground/80">
               <li><Link href="#about" className="hover:text-primary transition-colors">About Us</Link></li>
               <li><Link href="#founders" className="hover:text-primary transition-colors">Our Team</Link></li>
+              <li><Link href="/markaz" className="hover:text-primary transition-colors">O'quv markazlar uchun</Link></li>
               <li><Link href="#" className="hover:text-primary transition-colors">Contact</Link></li>
             </ul>
           </div>

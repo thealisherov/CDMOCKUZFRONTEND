@@ -21,7 +21,7 @@ import NotesSidebar from '@/components/ielts/NotesSidebar';
 import { usePersistedState } from '@/hooks/usePersistedState';
 
 // Inner component that can access NotesContext
-function ReadingTestInner({ id, rawData }) {
+function ReadingTestInner({ id, rawData, centerConfig = null }) {
   const router  = useRouter();
   const { clearNotes, clearHighlights } = useNotes();
 
@@ -33,10 +33,16 @@ function ReadingTestInner({ id, rawData }) {
   // Fetch user email for "Test taker ID"
   const [userEmail, setUserEmail] = useState('');
   useEffect(() => {
+    // O'quv Markaz rejimi: Supabase auth YO'Q — o'quvchi ismini ko'rsatamiz.
+    // (auth.getUser() chaqirilsa, /markaz da LockManager xatosi chiqadi)
+    if (centerConfig) {
+      setUserEmail([centerConfig.name, centerConfig.surname].filter(Boolean).join(' '));
+      return;
+    }
     createClient().auth.getUser().then(({ data }) => {
       if (data?.user?.email) setUserEmail(data.user.email);
     });
-  }, []);
+  }, [centerConfig]);
 
   const [userAnswers,   setUserAnswers, clearAnswers]   = usePersistedState(`answers_reading_${id}`, {});
   const [submitted,     setSubmitted, clearSubmitted]     = usePersistedState(`submitted_reading_${id}`, false);
@@ -168,8 +174,48 @@ function ReadingTestInner({ id, rawData }) {
     setServerResult(null);
     setEvalError(null);
   }, [clearNotes, clearHighlights, timerKey, notesKey, clearAnswers, clearSubmitted, clearServerResult, clearSavedAttemptId]);
+  // ── O'quv Markaz rejimi: javoblarni /api/centers/submit ga yuboradi ──
+  const submitCenter = async (answers) => {
+    setSubmitted(true);
+    setShowConfirm(false);
+    setIsEvaluating(true);
+    setEvalError(null);
+    try {
+      const res = await fetch(centerConfig.submitUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: centerConfig.type,
+          testNumericId: centerConfig.testNumericId,
+          name: centerConfig.name,
+          surname: centerConfig.surname,
+          answers,
+          timeSpent: centerConfig.startedAt ? Math.round((Date.now() - centerConfig.startedAt) / 1000) : null,
+        }),
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.error || 'Yuborishda xatolik');
+      }
+      const resData = await res.json().catch(() => ({}));
+      try { localStorage.removeItem(timerKey); } catch { /* */ }
+      centerConfig.onComplete?.(resData); // runner "done" ekraniga o'tadi (bu komponent unmount bo'ladi)
+    } catch (err) {
+      setEvalError(err.message || 'Yuborishda xatolik');
+      setIsEvaluating(false);
+    }
+  };
+
+  // ── Full Mock rejimi: bo'lim javoblarini runner'ga topshiradi (POST yo'q) ──
+  const finishSection = (answers) => {
+    try { localStorage.removeItem(timerKey); } catch { /* */ }
+    centerConfig.onSection(answers);
+  };
+
   // Unmount clearing logic removed so refreshing doesn't erase user answers
-  const handleSubmit = async () => { 
+  const handleSubmit = async () => {
+    if (centerConfig?.onSection) { finishSection(userAnswers); return; }
+    if (centerConfig) return submitCenter(userAnswers);
     setSubmitted(true);
     setShowConfirm(false);
     setIsEvaluating(true);
@@ -227,6 +273,8 @@ function ReadingTestInner({ id, rawData }) {
   const handleTimerEnd = useCallback(async () => {
     const latestAnswers = userAnswersRef.current;
     try { localStorage.removeItem(`timer_reading_${id}`); } catch { /* */ }
+    if (centerConfig?.onSection) { centerConfig.onSection(latestAnswers); return; }
+    if (centerConfig) { submitCenter(latestAnswers); return; }
     setSubmitted(true);
     setIsEvaluating(true);
     setEvalError(null);
@@ -287,6 +335,27 @@ function ReadingTestInner({ id, rawData }) {
           </pre>
         )}
         <Button onClick={handleExit}>Back to Tests</Button>
+      </div>
+    );
+  }
+
+  if (submitted && centerConfig) {
+    return (
+      <div className="ielts-test-view fixed inset-0 z-50 bg-white flex flex-col items-center justify-center text-center p-6">
+        {evalError ? (
+          <>
+            <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
+            <h2 className="text-xl font-bold mb-2">Yuborishda xatolik</h2>
+            <p className="text-gray-500 mb-4">{evalError}</p>
+            <Button onClick={() => submitCenter(userAnswers)}>Qayta yuborish</Button>
+          </>
+        ) : (
+          <>
+            <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <h2 className="text-xl font-bold text-indigo-800 mb-2">Javoblaringiz yuborilmoqda...</h2>
+            <p className="text-gray-500">Iltimos, kuting.</p>
+          </>
+        )}
       </div>
     );
   }
@@ -593,10 +662,10 @@ function ReadingTestInner({ id, rawData }) {
 }
 
 
-export default function ReadingTestClient({ id, rawData }) {
+export default function ReadingTestClient({ id, rawData, centerConfig = null }) {
   return (
     <NotesProvider testId={`reading_${id}`}>
-      <ReadingTestInner id={id} rawData={rawData} />
+      <ReadingTestInner id={id} rawData={rawData} centerConfig={centerConfig} />
     </NotesProvider>
   );
 }

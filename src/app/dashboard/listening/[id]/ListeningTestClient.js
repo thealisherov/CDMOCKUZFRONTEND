@@ -25,7 +25,7 @@ import { createClient } from '@/utils/supabase/client';
 
 
 // Inner component that can access the NotesContext
-function ListeningTestInner({ id, rawData }) {
+function ListeningTestInner({ id, rawData, centerConfig = null }) {
   const router = useRouter();
   const { clearNotes, clearHighlights } = useNotes();
   const audioPlayerRef = useRef(null);
@@ -35,10 +35,15 @@ function ListeningTestInner({ id, rawData }) {
   // Fetch user email for "Test taker ID"
   const [userEmail, setUserEmail] = useState('');
   useEffect(() => {
+    // O'quv Markaz rejimi: Supabase auth YO'Q — o'quvchi ismini ko'rsatamiz
+    if (centerConfig) {
+      setUserEmail([centerConfig.name, centerConfig.surname].filter(Boolean).join(' '));
+      return;
+    }
     createClient().auth.getUser().then(({ data }) => {
       if (data?.user?.email) setUserEmail(data.user.email);
     });
-  }, []);
+  }, [centerConfig]);
 
   useDynamicFavicon('/favicon.png');
   const [optionsOpen, setOptionsOpen] = usePersistedState(`opts_listening_${id}`, false);
@@ -245,8 +250,50 @@ function ListeningTestInner({ id, rawData }) {
     });
   }, []);
 
+  // ── O'quv Markaz rejimi: javoblarni /api/centers/submit ga yuboradi ──
+  const submitCenter = async (answers) => {
+    setSubmitted(true);
+    setShowConfirm(false);
+    setIsEvaluating(true);
+    setEvalError(null);
+    if (audioPlayerRef.current) { try { audioPlayerRef.current.stopAndReset(); } catch { /* */ } }
+    try {
+      const res = await fetch(centerConfig.submitUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: centerConfig.type,
+          testNumericId: centerConfig.testNumericId,
+          name: centerConfig.name,
+          surname: centerConfig.surname,
+          answers,
+          timeSpent: centerConfig.startedAt ? Math.round((Date.now() - centerConfig.startedAt) / 1000) : null,
+        }),
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.error || 'Yuborishda xatolik');
+      }
+      const resData = await res.json().catch(() => ({}));
+      try { localStorage.removeItem(timerKey); } catch { /* */ }
+      centerConfig.onComplete?.(resData);
+    } catch (err) {
+      setEvalError(err.message || 'Yuborishda xatolik');
+      setIsEvaluating(false);
+    }
+  };
+
+  // ── Full Mock rejimi: bo'lim javoblarini runner'ga topshiradi (POST yo'q) ──
+  const finishSection = (answers) => {
+    if (audioPlayerRef.current) { try { audioPlayerRef.current.stopAndReset(); } catch { /* */ } }
+    try { localStorage.removeItem(timerKey); } catch { /* */ }
+    centerConfig.onSection(answers);
+  };
+
   // Submit: Fetch eval results
   const handleSubmit = async () => {
+    if (centerConfig?.onSection) { finishSection(userAnswers); return; }
+    if (centerConfig) return submitCenter(userAnswers);
     setSubmitted(true);
     setShowConfirm(false);
     setIsEvaluating(true);
@@ -317,7 +364,9 @@ function ListeningTestInner({ id, rawData }) {
       audioPlayerRef.current.stopAndReset();
     }
     try { localStorage.removeItem(timerKey); } catch { /* */ }
-    
+    if (centerConfig?.onSection) { centerConfig.onSection(latestAnswers); return; }
+    if (centerConfig) { submitCenter(latestAnswers); return; }
+
     // Trigger full submit (evaluate + save to DB)
     setSubmitted(true);
     setIsEvaluating(true);
@@ -373,6 +422,27 @@ function ListeningTestInner({ id, rawData }) {
         <h2 className="text-xl font-bold mb-2" style={{ color: '#333' }}>Test not found</h2>
         <p className="text-gray-500 mb-4">Listening Test #{id} does not exist.</p>
         <Button onClick={() => router.push('/dashboard/listening')}>Back to Tests</Button>
+      </div>
+    );
+  }
+
+  if (submitted && centerConfig) {
+    return (
+      <div className="ielts-test-view fixed inset-0 z-50 bg-white flex flex-col items-center justify-center text-center p-6">
+        {evalError ? (
+          <>
+            <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
+            <h2 className="text-xl font-bold mb-2">Yuborishda xatolik</h2>
+            <p className="text-gray-500 mb-4">{evalError}</p>
+            <Button onClick={() => submitCenter(userAnswers)}>Qayta yuborish</Button>
+          </>
+        ) : (
+          <>
+            <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <h2 className="text-xl font-bold text-indigo-800 mb-2">Javoblaringiz yuborilmoqda...</h2>
+            <p className="text-gray-500">Iltimos, kuting.</p>
+          </>
+        )}
       </div>
     );
   }
@@ -696,10 +766,10 @@ function ListeningTestInner({ id, rawData }) {
 }
 
 
-export default function ListeningTestClient({ id, rawData }) {
+export default function ListeningTestClient({ id, rawData, centerConfig = null }) {
   return (
     <NotesProvider testId={`listening_${id}`}>
-      <ListeningTestInner id={id} rawData={rawData} />
+      <ListeningTestInner id={id} rawData={rawData} centerConfig={centerConfig} />
     </NotesProvider>
   );
 }

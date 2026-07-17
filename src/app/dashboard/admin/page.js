@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Users, TrendingUp, Settings as SettingsIcon } from "lucide-react";
+import { ShieldCheck, Users, TrendingUp, Settings as SettingsIcon, Building2 } from "lucide-react";
 import UsersList from "./UsersList";
 import StatsPanel from "./StatsPanel";
 import PricingEditor from "./PricingEditor";
+import CentersManager from "./CentersManager";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -52,12 +53,19 @@ export default function AdminPage() {
         >
           <SettingsIcon className="w-4 h-4" /> Pricing
         </button>
+        <button
+          onClick={() => setActiveTab("centers")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${activeTab === "centers" ? "bg-indigo-50 text-indigo-700" : "text-muted-foreground hover:bg-muted"}`}
+        >
+          <Building2 className="w-4 h-4" /> Centers
+        </button>
       </div>
 
       <div className="flex-1">
         {activeTab === "users" && <UsersList />}
         {activeTab === "stats" && <StatsPanel />}
         {activeTab === "pricing" && <PricingEditor />}
+        {activeTab === "centers" && <CentersManager />}
       </div>
     </div>
   );
