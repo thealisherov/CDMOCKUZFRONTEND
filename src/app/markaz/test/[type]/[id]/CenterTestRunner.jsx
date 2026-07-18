@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Building2, User, Loader2, Send, CheckCircle2, ArrowLeft } from "lucide-react";
 import ReadingTestClient from "@/app/dashboard/reading/[id]/ReadingTestClient";
@@ -9,28 +9,33 @@ import WritingTestClient from "@/app/dashboard/writing/[id]/WritingTestClient";
 
 export default function CenterTestRunner({ type, id, rawData, center }) {
   const router = useRouter();
-  const doneKey = `center_done_${center.slug}_${type}_${id}`;
 
-  const [phase, setPhase] = useState("loading"); // loading | gate | test | done
+  // Qulf YO'Q: har kirishda yangi ism/familiya so'raladi — bitta kompyuterda
+  // bir nechta o'quvchi ketma-ket topshira oladi. "Done" faqat shu sessiya
+  // ichida ko'rinadi; qayta kirilsa yana gate (ism/familiya) chiqadi.
+  const [phase, setPhase] = useState("gate"); // gate | test | done
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [startedAt, setStartedAt] = useState(0);
   const [isPreview, setIsPreview] = useState(false); // admin sinovi — natija saqlanmaydi
 
-  useEffect(() => {
+  // Test klientlari localStorage kalitlarida ishlatiladigan ID — platforma
+  // testlari bilan TO'QNASHMASLIGI uchun markaz nomi bilan ajratilgan.
+  const storageId = `mkz_${center.slug}_${id}`;
+
+  // Yangi o'quvchi boshlaganda oldingi o'quvchining saqlangan javoblari/
+  // timer/notes tozalanadi (qulf yo'q — bir kompyuterda ketma-ket topshiriladi).
+  const clearStaleState = () => {
     try {
-      if (localStorage.getItem(doneKey)) { setPhase("done"); return; }
+      Object.keys(localStorage).forEach((k) => {
+        if (k.includes(storageId)) localStorage.removeItem(k);
+      });
     } catch { /* ignore */ }
-    setPhase("gate");
-  }, [doneKey]);
+  };
 
   const handleComplete = (resData) => {
-    if (resData?.preview) {
-      // Admin sinovi — qulflamaymiz (qayta sinash mumkin), saqlanmagani haqida xabar
-      setIsPreview(true);
-    } else {
-      try { localStorage.setItem(doneKey, "1"); } catch { /* ignore */ }
-    }
+    if (resData?.preview) setIsPreview(true);
+    clearStaleState(); // keyingi o'quvchi toza boshlashi uchun
     setPhase("done");
   };
 
@@ -67,9 +72,6 @@ export default function CenterTestRunner({ type, id, rawData, center }) {
                 Sizning natijalaringiz <b className="text-indigo-600">{center.name}</b>ning
                 {center.telegram ? <> <b>{center.telegram}</b> telegram kanalida</> : " telegram kanalida"} e'lon qilinadi.
               </p>
-              <div className="mt-6 bg-amber-50 border border-amber-100 rounded-lg px-4 py-3 text-sm text-amber-700">
-                Diqqat: bu testga faqat bir marta kirish mumkin.
-              </div>
             </>
           )}
           <button
@@ -84,7 +86,7 @@ export default function CenterTestRunner({ type, id, rawData, center }) {
   }
 
   // ── GATE (ism / familiya) ────────────────────────────────────────────
-  if (phase === "gate" || phase === "loading") {
+  if (phase === "gate") {
     const canStart = name.trim().length >= 2 && surname.trim().length >= 2;
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -98,7 +100,7 @@ export default function CenterTestRunner({ type, id, rawData, center }) {
           </div>
 
           <form
-            onSubmit={(e) => { e.preventDefault(); if (canStart) { setStartedAt(Date.now()); setPhase("test"); } }}
+            onSubmit={(e) => { e.preventDefault(); if (canStart) { clearStaleState(); setStartedAt(Date.now()); setPhase("test"); } }}
             className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 space-y-4"
           >
             {center.preview && (
@@ -126,7 +128,7 @@ export default function CenterTestRunner({ type, id, rawData, center }) {
               </div>
             </div>
             <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-xs text-amber-700">
-              Diqqat: testga faqat <b>bir marta</b> kirasiz. Boshlagach, yakuniga yetkazing.
+              Diqqat: testni boshlagach, <b>yakuniga yetkazing</b> — chiqib ketsangiz javoblaringiz saqlanmaydi.
             </div>
             <button type="submit" disabled={!canStart}
               className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50">
@@ -149,7 +151,7 @@ export default function CenterTestRunner({ type, id, rawData, center }) {
     );
   }
 
-  if (type === "reading") return <ReadingTestClient id={id} rawData={rawData} centerConfig={centerConfig} />;
-  if (type === "listening") return <ListeningTestClient id={id} rawData={rawData} centerConfig={centerConfig} />;
-  return <WritingTestClient id={id} rawData={rawData} centerConfig={centerConfig} />;
+  if (type === "reading") return <ReadingTestClient id={storageId} rawData={rawData} centerConfig={centerConfig} />;
+  if (type === "listening") return <ListeningTestClient id={storageId} rawData={rawData} centerConfig={centerConfig} />;
+  return <WritingTestClient id={storageId} rawData={rawData} centerConfig={centerConfig} />;
 }

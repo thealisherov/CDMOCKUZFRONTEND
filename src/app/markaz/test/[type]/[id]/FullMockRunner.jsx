@@ -26,9 +26,10 @@ const STEPS = [
 
 export default function FullMockRunner({ id, title, center, sections, videos }) {
   const router = useRouter();
-  const doneKey = `center_done_${center.slug}_full_mock_${id}`;
 
-  const [phase, setPhase] = useState("loading"); // loading | gate | running | submitting | done | error
+  // Qulf YO'Q: har kirishda yangi ism/familiya so'raladi — bitta kompyuterda
+  // bir nechta o'quvchi ketma-ket topshira oladi.
+  const [phase, setPhase] = useState("gate"); // gate | running | submitting | done | error
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [stepIndex, setStepIndex] = useState(0);
@@ -39,10 +40,18 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
   const collectedRef = useRef({});          // { listening, reading, writing }
   const lastAdvancedRef = useRef(-1);        // qadam bir marta oldinga siljishi uchun
 
-  useEffect(() => {
-    try { if (localStorage.getItem(doneKey)) { setPhase("done"); return; } } catch { /* */ }
-    setPhase("gate");
-  }, [doneKey]);
+  // localStorage kalitlari uchun markaz nomi bilan ajratilgan prefiks —
+  // platforma testlari bilan to'qnashmaydi.
+  const storageTag = `mkz_${center.slug}_fm${id}`;
+
+  // Yangi o'quvchi boshlaganda oldingi urinishning javob/timer/notes qoldiqlari tozalanadi
+  const clearStaleState = useCallback(() => {
+    try {
+      Object.keys(localStorage).forEach((k) => {
+        if (k.includes(storageTag)) localStorage.removeItem(k);
+      });
+    } catch { /* ignore */ }
+  }, [storageTag]);
 
   const advanceFrom = useCallback((idx) => {
     if (lastAdvancedRef.current >= idx) return; // allaqachon siljigan
@@ -82,18 +91,14 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
         throw new Error(e.error || "Yuborishda xatolik");
       }
       const result = await res.json().catch(() => ({}));
-      if (result.preview) {
-        // Admin sinovi — natija saqlanmadi, testni ham qulflamaymiz (qayta sinash mumkin)
-        setIsPreview(true);
-      } else {
-        try { localStorage.setItem(doneKey, "1"); } catch { /* */ }
-      }
+      if (result.preview) setIsPreview(true);
+      clearStaleState(); // keyingi o'quvchi toza boshlashi uchun
       setPhase("done");
     } catch (err) {
       setErrorMsg(err.message || "Yuborishda xatolik");
       setPhase("error");
     }
-  }, [id, name, surname, doneKey]);
+  }, [id, name, surname, clearStaleState]);
 
   // Barcha qadamlar tugagach — yuborish
   useEffect(() => {
@@ -122,9 +127,6 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
                 Sizning natijalaringiz <b className="text-indigo-600">{center.name}</b>ning
                 {center.telegram ? <> <b>{center.telegram}</b> telegram kanalida</> : " telegram kanalida"} e'lon qilinadi.
               </p>
-              <div className="mt-6 bg-amber-50 border border-amber-100 rounded-lg px-4 py-3 text-sm text-amber-700">
-                Diqqat: bu testga faqat bir marta kirish mumkin.
-              </div>
             </>
           )}
           <button onClick={() => router.replace("/markaz/tests")} className="mt-6 inline-flex items-center gap-2 text-indigo-600 font-medium hover:gap-3 transition-all">
@@ -159,7 +161,7 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
   }
 
   // ── GATE (ism / familiya) ────────────────────────────────────────────
-  if (phase === "gate" || phase === "loading") {
+  if (phase === "gate") {
     const canStart = name.trim().length >= 2 && surname.trim().length >= 2;
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -172,7 +174,7 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
             <p className="text-sm text-slate-500">{title || "IELTS Full Mock"}</p>
           </div>
           <form
-            onSubmit={(e) => { e.preventDefault(); if (canStart) { startedAtRef.current = Date.now(); setPhase("running"); } }}
+            onSubmit={(e) => { e.preventDefault(); if (canStart) { clearStaleState(); startedAtRef.current = Date.now(); setPhase("running"); } }}
             className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 space-y-4"
           >
             {center.preview && (
@@ -198,7 +200,7 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
               </div>
             </div>
             <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-xs text-amber-700">
-              Diqqat: test <b>bir marta</b> ishlanadi va <b>to'xtatib bo'lmaydi</b>. Har bo'lim oldidan ko'rsatma video chiqadi.
+              Diqqat: testni boshlagach, <b>yakuniga yetkazing</b> — to'xtatib bo'lmaydi, chiqib ketsangiz javoblaringiz saqlanmaydi. Har bo'lim oldidan ko'rsatma video chiqadi.
             </div>
             <button type="submit" disabled={!canStart}
               className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50">
@@ -240,7 +242,7 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
     onSection: (answers) => handleSection(step.section, answers),
   };
   const secData = sections[step.section];
-  const secId = `fm${id}_${step.section}`;
+  const secId = `${storageTag}_${step.section}`;
 
   if (step.section === "listening") return <ListeningTestClient key={secId} id={secId} rawData={secData} centerConfig={centerConfig} />;
   if (step.section === "reading") return <ReadingTestClient key={secId} id={secId} rawData={secData} centerConfig={centerConfig} />;
