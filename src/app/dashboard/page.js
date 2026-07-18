@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   CheckCircle2, TrendingUp, Globe, ArrowRight,
   Headphones, BookOpen, PenTool, Clock, ChevronRight,
-  Sparkles, Target, Flame,
+  Sparkles, Target, Flame, Lock,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
@@ -74,6 +74,53 @@ function StatCard({ icon: Icon, label, value, subtitle, gradient }) {
         </div>
       </div>
     </motion.div>
+  );
+}
+
+// ── Global Rank Card (premium-gated) ──
+// Premium bo'lsa — nechanchi o'rinda ekanini ko'rsatadi.
+// Aks holda — o'rin yashiriladi va Premium olish taklifi chiqadi.
+// Bu sayt bo'ylab (profil, leaderboard) bir xil qoida.
+function RankCard({ loading, rank, isPremium }) {
+  const gradient = "linear-gradient(135deg, oklch(0.65 0.2 40), oklch(0.7 0.18 60))";
+
+  // Premium foydalanuvchi — haqiqiy o'rinni ko'rsatamiz
+  if (isPremium) {
+    return (
+      <StatCard
+        icon={Globe}
+        label="Global Rank"
+        value={loading ? "—" : rank === "—" || rank == null ? "—" : `#${rank}`}
+        gradient={gradient}
+      />
+    );
+  }
+
+  // Premium emas — o'rin yashirilgan, Premium olish taklifi
+  return (
+    <Link href="/dashboard/payment">
+      <motion.div
+        variants={itemVariants}
+        className="group relative overflow-hidden rounded-2xl border border-dashed border-border bg-card p-6 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 cursor-pointer h-full"
+      >
+        <div className="absolute top-0 left-0 right-0 h-1 opacity-80" style={{ background: gradient }} />
+        <div className="flex items-start justify-between">
+          <div className="space-y-3">
+            <p className="text-[13px] font-medium text-muted-foreground">Global Rank</p>
+            <div className="flex flex-col gap-0.5">
+              <span className="text-base font-bold tracking-tight text-foreground">O&apos;rin yashirilgan</span>
+              <span className="text-xs font-medium text-primary group-hover:underline">
+                Ko&apos;rish uchun Premium oling →
+              </span>
+            </div>
+          </div>
+          <div className="relative flex items-center justify-center w-11 h-11 rounded-xl overflow-hidden transition-transform duration-300 group-hover:scale-110">
+            <div className="absolute inset-0" style={{ background: gradient, opacity: 0.15 }} />
+            <Lock className="relative z-10 h-5 w-5" style={{ color: "oklch(0.65 0.2 40)" }} />
+          </div>
+        </div>
+      </motion.div>
+    </Link>
   );
 }
 
@@ -329,14 +376,7 @@ export default function DashboardPage() {
           subtitle="/ 9.0"
           gradient="linear-gradient(135deg, oklch(0.52 0.16 145), oklch(0.58 0.18 160))"
         />
-        <StatCard
-          icon={Globe}
-          label="Global Rank"
-          value={
-            loading ? "—" : stats.globalRank === "—" ? "—" : `#${stats.globalRank}`
-          }
-          gradient="linear-gradient(135deg, oklch(0.65 0.2 40), oklch(0.7 0.18 60))"
-        />
+        <RankCard loading={loading} rank={stats.globalRank} isPremium={!!user?.isPremium} />
       </div>
 
       {/* ── Test turi bo'yicha tarix ── */}

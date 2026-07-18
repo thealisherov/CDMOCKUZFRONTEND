@@ -8,12 +8,32 @@ export async function GET(req) {
     
     if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Fetch user stats
-    const { data: stats } = await supabase
-      .from('user_stats')
-      .select('*')
-      .eq('user_id', user.id)
-      .maybeSingle();
+    // Stats, payments va testResults ni PARALLEL tortamiz (ilgari ketma-ket
+    // 4 ta round-trip edi — sekin). Rank faqat stats.xp ga bog'liq, shuning
+    // uchun u ikkinchi fazada (bitta count so'rovi) hisoblanadi.
+    const [statsResult, paymentsResult, testResultsResult] = await Promise.all([
+      supabase
+        .from('user_stats')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle(),
+      supabase
+        .from('payments')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20),
+      supabase
+        .from('TestAttempts')
+        .select('id, test_type, test_title, correct_count, total_questions, band_score, completed_at')
+        .eq('user_id', user.id)
+        .order('completed_at', { ascending: false })
+        .limit(50),
+    ]);
+
+    const stats = statsResult.data;
+    const payments = paymentsResult.data;
+    const testResults = testResultsResult.data;
 
     // Fetch user rank (based on XP)
     let rank = null;
@@ -28,22 +48,6 @@ export async function GET(req) {
         console.error('Error fetching user rank in profile API:', rankErr);
       }
     }
-
-    // Fetch payments
-    const { data: payments } = await supabase
-      .from('payments')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(20);
-
-    // Fetch test results — TestAttempts jadvalidan (test_results ga hech narsa yozilmaydi)
-    const { data: testResults } = await supabase
-      .from('TestAttempts')
-      .select('id, test_type, test_title, correct_count, total_questions, band_score, completed_at')
-      .eq('user_id', user.id)
-      .order('completed_at', { ascending: false })
-      .limit(50);
 
     return NextResponse.json({
       user,

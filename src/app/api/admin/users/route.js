@@ -18,11 +18,34 @@ export async function GET(req) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Fetch ALL users (Supabase defaults to 50 per page, so we must paginate)
+    // TEZ YO'L: `admin_list_users()` RPC — auth.users ni bitta indekslangan
+    // SQL so'rovi bilan o'qiydi (GoTrue listUsers'dan o'nlab marta tezroq).
+    // RPC qaytargan tekis qatorlarni frontend kutayotgan shaklga moslaymiz
+    // (u.user_metadata.{...}).
+    const { data: rpcUsers, error: rpcError } = await supabaseAdmin.rpc('admin_list_users');
+
+    if (!rpcError && Array.isArray(rpcUsers)) {
+      const shaped = rpcUsers.map((u) => ({
+        id: u.id,
+        email: u.email,
+        created_at: u.created_at,
+        user_metadata: {
+          full_name: u.full_name,
+          avatar_url: u.avatar_url,
+          role: u.role,
+          premium_until: u.premium_until,
+        },
+      }));
+      return NextResponse.json(shaped);
+    }
+
+    // FALLBACK: RPC hali qo'shilmagan bo'lsa (supabase_admin_users_fast.sql
+    // ishga tushirilmagan) — eski listUsers usuliga qaytamiz.
+    console.warn('[admin/users] admin_list_users RPC unavailable, falling back to listUsers:', rpcError?.message);
     let allUsers = [];
     let page = 1;
     const perPage = 1000;
-    
+
     while (true) {
       const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
       if (error) {
@@ -33,7 +56,7 @@ export async function GET(req) {
       if (data.users.length < perPage) break;
       page++;
     }
-    
+
     return NextResponse.json(allUsers);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });

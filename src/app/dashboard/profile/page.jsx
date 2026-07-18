@@ -14,7 +14,7 @@ import {
 import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
-  const { user: authUser, loading: authLoading } = useAuth();
+  const { user: authUser } = useAuth();
   const { t, lang } = useTranslation();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,46 +23,27 @@ export default function ProfilePage() {
   const router = useRouter();
   const supabase = createClient();
 
+  // Profil ma'lumotini DARHOL yuklaymiz. /api/profile cookie orqali o'zini
+  // autentifikatsiya qiladi, shuning uchun client auth (getSession → getUser)
+  // yakunlanishini KUTMAYMIZ. Ilgari `authLoading` tugaguncha kutilar edi —
+  // bu "My Stats sekin ochiladi" muammosini keltirib chiqarardi.
   useEffect(() => {
-    if (authLoading) return;
-    if (!authUser?.id) {
-      setLoading(false);
-      return;
-    }
     fetchProfile();
-  }, [authUser?.id, authLoading]);
+  }, []);
 
   const fetchProfile = async () => {
     try {
-      const userId = authUser.id;
-
-      // Fetch all profile data in parallel — no API route needed
-      const [statsResult, paymentsResult, testResultsResult] = await Promise.all([
-        supabase.from('user_stats').select('*').eq('user_id', userId).maybeSingle(),
-        supabase.from('payments').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(20),
-        supabase.from('TestAttempts')
-          .select('id, test_type, test_title, correct_count, total_questions, band_score, completed_at')
-          .eq('user_id', userId)
-          .order('completed_at', { ascending: false })
-          .limit(50),
-      ]);
-
-      const stats = statsResult.data;
-
-      // Calculate rank
-      let rank = null;
-      if (stats) {
-        try {
-          const { count } = await supabase
-            .from('user_stats')
-            .select('user_id', { count: 'exact', head: true })
-            .gt('xp', stats.xp || 0);
-          rank = (count || 0) + 1;
-        } catch (e) { /* ignore rank errors */ }
+      // Barcha ma'lumot bitta so'rovda, server tomonda parallel tortiladi.
+      const res = await fetch('/api/profile');
+      if (res.status === 401) {
+        setLoading(false);
+        return;
       }
+      if (!res.ok) throw new Error('Failed to load profile');
+      const data = await res.json();
 
       // TestAttempts ustunlarini UI kutayotgan formatga moslaymiz
-      const mappedResults = (testResultsResult.data || []).map((a) => ({
+      const mappedResults = (data.testResults || []).map((a) => ({
         id: a.id,
         test_type: a.test_type,
         test_name: a.test_title,
@@ -73,11 +54,11 @@ export default function ProfilePage() {
       }));
 
       setProfileData({
-        user: authUser,
-        stats: stats || { xp: 0, tests_taken: 0, correct_answers: 0, total_time_seconds: 0, daily_streak: 0, last_active_date: null },
-        payments: paymentsResult.data || [],
+        user: data.user || authUser,
+        stats: data.stats || { xp: 0, tests_taken: 0, correct_answers: 0, total_time_seconds: 0, daily_streak: 0, last_active_date: null },
+        payments: data.payments || [],
         testResults: mappedResults,
-        rank,
+        rank: data.rank,
       });
     } catch (err) {
       console.error(err);
@@ -154,7 +135,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading || authLoading) return (
+  if (loading) return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-8 pb-12 pt-4 animate-pulse">
       {/* Hero skeleton */}
       <div className="rounded-2xl sm:rounded-3xl overflow-hidden border border-border bg-white dark:bg-gray-900">

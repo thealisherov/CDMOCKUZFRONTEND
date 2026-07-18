@@ -22,22 +22,34 @@ export async function GET(req) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    // 1. Get total users and premium users across all pages
-    let allUsers = [];
-    let page = 1;
-    let hasMore = true;
-    while (hasMore) {
-      const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
-      if (error) throw error;
-      allUsers = allUsers.concat(data.users);
-      if (data.users.length < 1000) hasMore = false;
-      else page++;
-    }
+    // 1. Get total users and premium users.
+    // TEZ YO'L: `admin_user_counts()` RPC — barcha foydalanuvchilarni
+    // tortmasdan bitta so'rovda 2 ta COUNT qaytaradi.
+    let totalUsers = 0;
+    let premiumUsers = 0;
+    const { data: counts, error: countsError } = await supabaseAdmin.rpc('admin_user_counts');
 
-    const totalUsers = allUsers.length;
-    const premiumUsers = allUsers.filter(u => 
-      u.user_metadata?.premium_until && new Date(u.user_metadata.premium_until) > new Date()
-    ).length;
+    if (!countsError && counts) {
+      totalUsers = counts.total || 0;
+      premiumUsers = counts.premium || 0;
+    } else {
+      // FALLBACK: RPC yo'q bo'lsa — eski listUsers usuli.
+      console.warn('[admin/stats] admin_user_counts RPC unavailable, falling back to listUsers:', countsError?.message);
+      let allUsers = [];
+      let page = 1;
+      let hasMore = true;
+      while (hasMore) {
+        const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+        if (error) throw error;
+        allUsers = allUsers.concat(data.users);
+        if (data.users.length < 1000) hasMore = false;
+        else page++;
+      }
+      totalUsers = allUsers.length;
+      premiumUsers = allUsers.filter(u =>
+        u.user_metadata?.premium_until && new Date(u.user_metadata.premium_until) > new Date()
+      ).length;
+    }
 
     // 2. Get payments/revenue
     let query = supabaseAdmin.from('payments').select('*');

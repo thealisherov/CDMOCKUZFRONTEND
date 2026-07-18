@@ -145,10 +145,26 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (!error) {
+    // Logout HAR DOIM ishlashi kerak. Ilgari signOut() xato bersa (tarmoq,
+    // "Lock broken" AbortError, sessiya allaqachon yo'q bo'lsa) — hech narsa
+    // bo'lmasdi: state tozalanmasdi, redirect yo'q edi. Bu "chiqish tugmasi
+    // ishlamayapti" muammosini keltirib chiqarardi.
+    // Endi: xato bo'lsa ham state ni tozalab, qattiq (hard) redirect qilamiz.
+    try {
+      // scope:'local' — faqat shu qurilma sessiyasini o'chiradi, global
+      // signout tarmoq so'roviga bog'lanib qolmaydi (tezroq va ishonchliroq).
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (e) {
+      console.error("Logout error (ignored, forcing sign-out):", e);
+    } finally {
       setUser(null);
-      router.push("/");
+      // router.push() o'rniga qattiq redirect: server komponentlari va
+      // middleware qayta baholanadi, sessiya cookie'lari to'liq tozalanadi.
+      if (typeof window !== 'undefined') {
+        window.location.href = "/";
+      } else {
+        router.push("/");
+      }
     }
   };
 
