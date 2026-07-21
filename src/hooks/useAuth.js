@@ -13,73 +13,89 @@ export function AuthProvider({ children }) {
   const supabase = createClient();
 
   useEffect(() => {
-    const handleUserUpdate = async (sessionUser) => {
-      if (!sessionUser) {
-        setUser(null);
-        return;
-      }
-      
-      // Set temporary state from session to avoid delay
-      const tempMeta = sessionUser.user_metadata || {};
-      sessionUser.isPremium = tempMeta.role === 'admin' || (tempMeta.premium_until && new Date(tempMeta.premium_until) > new Date());
-      setUser({ ...sessionUser });
+    let cancelled = false;
+    let channel = null;
+    let realtimeReady = false;
 
-      // Fetch fresh user from server to ensure metadata (premium_until, etc) is not stale
+    const withPremium = (u) => {
+      const meta = u.user_metadata || {};
+      u.isPremium = meta.role === 'admin' || (meta.premium_until && new Date(meta.premium_until) > new Date());
+      return u;
+    };
+
+    // MUHIM: bu funksiya `onAuthStateChange` callback ICHIDA await qilinmaydi.
+    // Supabase callback'ni auth lock'ni ushlab turgan holda chaqiradi; agar
+    // callback ichida `getUser()` (yoki boshqa auth so'rovi) kutilsa, o'sha
+    // lock hech qachon bo'shamaydi va butun client muzlab qoladi — keyin
+    // getSession() ham, from() ham abadiy osilib turadi (admin panel
+    // "Loading..." holatida qotib qolgani shundan edi).
+    const refreshFromServer = async () => {
       try {
         const { data: { user: freshUser } } = await supabase.auth.getUser();
-        if (freshUser) {
-          const meta = freshUser.user_metadata || {};
-          freshUser.isPremium = meta.role === 'admin' || (meta.premium_until && new Date(meta.premium_until) > new Date());
-          setUser(freshUser);
-        }
+        if (freshUser && !cancelled) setUser(withPremium(freshUser));
       } catch (e) {
         console.error("Error fetching fresh user:", e);
       }
     };
 
-    // Check initial session
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        await handleUserUpdate(session?.user ?? null);
-      } finally {
-        setLoading(false);
+    // Faqat sessiyadagi ma'lumot bilan darhol state ni yangilaymiz (sinxron).
+    const applySession = (sessionUser) => {
+      if (cancelled) return;
+      if (!sessionUser) {
+        setUser(null);
+        return;
       }
+      setUser(withPremium({ ...sessionUser }));
     };
 
-    checkSession();
-
-    // Listen for auth state changes
+    // Listen for auth state changes.
+    // Callback SINXRON — ichida hech qanday await yo'q. Server so'rovi
+    // lock bo'shagandan keyin (setTimeout 0) alohida bajariladi.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        await handleUserUpdate(session?.user ?? null);
+      (event, session) => {
+        applySession(session?.user ?? null);
+        setLoading(false);
+
+        if (session?.user) {
+          setTimeout(() => {
+            if (cancelled) return;
+            refreshFromServer();
+            if (!realtimeReady) {
+              realtimeReady = true;
+              setupRealtimePremium(session.user.id);
+            }
+          }, 0);
+        }
       }
     );
 
-    // Initial check completed
-    let channel = null;
-
     // Listen to changes in the 'payments' table to automatically refresh session for Premium status
-    const setupRealtimePremium = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id;
-      if (userId) {
-        channel = supabase
-          .channel('premium-updates')
-          .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'payments', filter: `user_id=eq.${userId}` },
-            async () => {
-              console.log('[Auth] Payment detected, refreshing session for premium...');
-              await supabase.auth.refreshSession();
-            }
-          )
-          .subscribe();
-      }
+    const setupRealtimePremium = (userId) => {
+      if (!userId || channel) return;
+      channel = supabase
+        .channel('premium-updates')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'payments', filter: `user_id=eq.${userId}` },
+          () => {
+            console.log('[Auth] Payment detected, refreshing session for premium...');
+            // Bu ham callback ichida await qilinmaydi.
+            supabase.auth.refreshSession().catch(() => {});
+          }
+        )
+        .subscribe();
     };
-    setupRealtimePremium();
+
+    // Xavfsizlik chorasi: supabase-js har doim INITIAL_SESSION hodisasini
+    // yuboradi, lekin agar biror sababga ko'ra yubormasa — butun ilova
+    // `loading` holatida qotib qolmasin.
+    const loadingFallback = setTimeout(() => {
+      if (!cancelled) setLoading(false);
+    }, 5000);
 
     return () => {
+      cancelled = true;
+      clearTimeout(loadingFallback);
       subscription.unsubscribe();
       if (channel) supabase.removeChannel(channel);
     };

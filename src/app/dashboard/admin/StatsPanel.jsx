@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { getAccessToken } from "@/utils/supabase/token";
 import { Users, CreditCard, DollarSign, Wallet, Calendar, ArrowUpRight, TrendingUp, BookOpen, Headphones, PenTool, Gift, Star, FileText } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 
 export default function StatsPanel() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [dateRange, setDateRange] = useState("30d"); 
+  const [loadError, setLoadError] = useState(null);
+  const [dateRange, setDateRange] = useState("30d");
   const [customRange, setCustomRange] = useState({ 
     start: format(subDays(new Date(), 30), "yyyy-MM-dd"), 
     end: format(new Date(), "yyyy-MM-dd") 
@@ -46,8 +48,10 @@ export default function StatsPanel() {
     // background=true bo'lsa, jadval "Loading..." holatiga o'tmaydi (miltillash yo'q)
     if (!background) setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      setLoadError(null);
+      const token = await getAccessToken();
+      if (!token) throw new Error("Sessiya o'qilmadi. Sahifani yangilang yoki qayta kiring.");
+
       let url = "/api/admin/stats";
       if (dateRange === "custom") {
         url += `?startDate=${startOfDay(new Date(customRange.start)).toISOString()}&endDate=${endOfDay(new Date(customRange.end)).toISOString()}`;
@@ -58,18 +62,34 @@ export default function StatsPanel() {
       }
 
       const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${session?.access_token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `Statistikani yuklab bo'lmadi (${res.status})`);
       setStats(data);
     } catch (err) {
         console.error(err);
+        setLoadError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   if (loading && !stats) return <div className="p-8 text-center text-muted-foreground">Loading statistics...</div>;
+
+  if (loadError && !stats) {
+    return (
+      <div className="p-10 text-center space-y-4">
+        <p className="text-sm text-muted-foreground">{loadError}</p>
+        <button
+          onClick={() => fetchStats()}
+          className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors"
+        >
+          Qayta urinish
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

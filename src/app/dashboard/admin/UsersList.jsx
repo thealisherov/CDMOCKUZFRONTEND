@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { createClient } from "@/utils/supabase/client";
+import { getAccessToken } from "@/utils/supabase/token";
 import { useRouter } from "next/navigation";
 import { Search, UserPlus, Shield, X, Check, DollarSign, Wallet, ExternalLink, AlertTriangle, Trash2 } from "lucide-react";
 import toast, { Toaster } from 'react-hot-toast';
@@ -13,6 +14,7 @@ export default function UsersList() {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("all");
   const [selectedUser, setSelectedUser] = useState(null); // For Premium Modal
@@ -71,16 +73,23 @@ export default function UsersList() {
 
   const fetchUsers = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      setLoadError(null);
+      const token = await getAccessToken();
+      if (!token) throw new Error("Sessiya o'qilmadi. Sahifani yangilang yoki qayta kiring.");
+
       const res = await fetch("/api/admin/users", {
-        headers: { Authorization: `Bearer ${session?.access_token}` }
+        headers: { Authorization: `Bearer ${token}` }
       });
-      if (!res.ok) throw new Error("Failed to load users");
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || `Foydalanuvchilarni yuklab bo'lmadi (${res.status})`);
+      }
       const data = await res.json();
       setUsers(data);
       setFilteredUsers(data);
     } catch (err) {
       console.error(err);
+      setLoadError(err.message);
     } finally {
       setLoading(false);
     }
@@ -177,6 +186,23 @@ export default function UsersList() {
   };
 
   if (loading) return <div className="p-10 text-center animate-pulse text-muted-foreground">Loading user database...</div>;
+
+  if (loadError && users.length === 0) {
+    return (
+      <div className="p-10 text-center space-y-4">
+        <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 flex items-center justify-center mx-auto">
+          <AlertTriangle className="w-6 h-6" />
+        </div>
+        <p className="text-sm text-muted-foreground">{loadError}</p>
+        <button
+          onClick={() => { setLoading(true); fetchUsers(); }}
+          className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors"
+        >
+          Qayta urinish
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

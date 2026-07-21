@@ -17,12 +17,19 @@ export default function PricingEditor() {
 
   const fetchPlans = async () => {
     try {
-      const { data, error } = await supabase.from('pricing_plans').select('*').order('created_at');
-      if (error) throw error;
-      setPlans(data || []);
+      // Supabase so'rovi auth lock tufayli osilib qolsa ham UI abadiy
+      // "Fetching configuration..." holatida qolmasligi uchun timeout.
+      const result = await Promise.race([
+        supabase.from('pricing_plans').select('*').order('created_at'),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("So'rov 10 soniyada javob bermadi")), 10000)
+        ),
+      ]);
+      if (result.error) throw result.error;
+      setPlans(result.data || []);
     } catch (err) {
       console.error("Error fetching plans:", err);
-      // Fallback or empty
+      toast.error(err.message || "Tariflarni yuklab bo'lmadi");
     } finally {
       setLoading(false);
     }
