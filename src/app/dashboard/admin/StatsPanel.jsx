@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { getAccessToken } from "@/utils/supabase/token";
-import { Users, CreditCard, DollarSign, Wallet, Calendar, ArrowUpRight, TrendingUp, BookOpen, Headphones, PenTool, Gift, Star, FileText } from "lucide-react";
+import { Users, CreditCard, DollarSign, Wallet, Calendar, ArrowUpRight, TrendingUp, BookOpen, Headphones, PenTool, Gift, Star, FileText, Send } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
 
 export default function StatsPanel() {
@@ -20,11 +20,6 @@ export default function StatsPanel() {
   useEffect(() => {
     fetchStats();
 
-    // ── Supabase Realtime: Tests + payments o'zgarganda yangilaymiz ──
-    // 20 soniyalik polling OLIB TASHLANDI — u har safar BARCHA userlar,
-    // to'lovlar va testlarni qayta tortib serverni bo'g'ib qo'yardi.
-    // Realtime hodisalarini debounce qilamiz: ketma-ket o'zgarishlar bitta
-    // yangilashga birlashadi va UI miltillamaydi (background = true).
     let debounceTimer = null;
     const scheduleRefresh = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
@@ -45,7 +40,6 @@ export default function StatsPanel() {
   }, [dateRange, customRange]);
 
   const fetchStats = async (background = false) => {
-    // background=true bo'lsa, jadval "Loading..." holatiga o'tmaydi (miltillash yo'q)
     if (!background) setLoading(true);
     try {
       setLoadError(null);
@@ -137,13 +131,20 @@ export default function StatsPanel() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatCard 
           title="Total Users" 
           value={stats?.totalUsers || 0} 
           icon={Users} 
           color="blue" 
           subtitle="Registered accounts"
+        />
+        <StatCard 
+          title="Telegram Users" 
+          value={stats?.telegramUsers || 0} 
+          icon={Send} 
+          color="purple" 
+          subtitle="Bot auth users"
         />
         <StatCard 
           title="Premium Users" 

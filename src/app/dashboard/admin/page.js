@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Users, TrendingUp, Settings as SettingsIcon, Building2 } from "lucide-react";
+import { ShieldCheck, Users, TrendingUp, Settings as SettingsIcon, Building2, Send } from "lucide-react";
 import UsersList from "./UsersList";
 import StatsPanel from "./StatsPanel";
 import PricingEditor from "./PricingEditor";
 import CentersManager from "./CentersManager";
+import TelegramBotManager from "./TelegramBotManager";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -42,6 +43,12 @@ export default function AdminPage() {
           <Users className="w-4 h-4" /> Users
         </button>
         <button
+          onClick={() => setActiveTab("telegram")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${activeTab === "telegram" ? "bg-blue-50 text-blue-700 font-semibold" : "text-muted-foreground hover:bg-muted"}`}
+        >
+          <Send className="w-4 h-4 text-blue-600" /> Telegram Bot
+        </button>
+        <button
           onClick={() => setActiveTab("stats")}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${activeTab === "stats" ? "bg-indigo-50 text-indigo-700" : "text-muted-foreground hover:bg-muted"}`}
         >
@@ -63,6 +70,7 @@ export default function AdminPage() {
 
       <div className="flex-1">
         {activeTab === "users" && <UsersList />}
+        {activeTab === "telegram" && <TelegramBotManager />}
         {activeTab === "stats" && <StatsPanel />}
         {activeTab === "pricing" && <PricingEditor />}
         {activeTab === "centers" && <CentersManager />}

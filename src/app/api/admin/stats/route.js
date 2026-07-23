@@ -65,7 +65,19 @@ export async function GET(req) {
     const revenueUZS = payments?.filter(p => p.currency === 'UZS').reduce((sum, p) => sum + Number(p.amount), 0) || 0;
     const revenueUSD = payments?.filter(p => p.currency === 'USD').reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
-    // 3. Get test statistics
+    // 3. Get Telegram users count
+    let telegramUsers = 0;
+    try {
+      const { count: tgCount } = await supabaseAdmin
+        .from('users')
+        .select('*', { count: 'exact', head: true })
+        .not('telegram_id', 'is', null);
+      telegramUsers = tgCount || 0;
+    } catch (e) {
+      console.warn("Error fetching telegram users count:", e);
+    }
+
+    // 4. Get test statistics
     let testStats = { total: 0, reading: 0, listening: 0, writing: 0, free: 0, premium: 0 };
     try {
       // MUHIM: butun `data` JSONB ustunini tortmaymiz (u har bir testda
@@ -92,14 +104,15 @@ export async function GET(req) {
     return NextResponse.json({
       totalUsers,
       premiumUsers,
+      telegramUsers,
       revenueUZS,
       revenueUSD,
       paymentCount: payments?.length || 0,
       newUsers: 0,
       tests: testStats,
     });
-
-  } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error) {
+    console.error("Admin stats error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
