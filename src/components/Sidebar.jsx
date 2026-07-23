@@ -41,6 +41,7 @@ export default function Sidebar({ collapsed, onToggle }) {
 
   const mainNav = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, exact: true },
+    { name: "Premium", href: "/dashboard/premium", icon: Crown, badge: "PRO" },
     { name: "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy },
     { name: "My Stats", href: "/dashboard/profile", icon: BarChart3 },
     { name: "Comments", href: "/dashboard/comments", icon: MessageCircle },
@@ -103,18 +104,27 @@ export default function Sidebar({ collapsed, onToggle }) {
           <Icon
             className={cn(
               "h-[18px] w-[18px] shrink-0 transition-transform duration-200 group-hover:scale-110",
-              active ? "text-primary" : "text-slate-400 dark:text-slate-500"
+              active 
+                ? "text-primary" 
+                : item.name === "Premium" 
+                ? "text-amber-500 dark:text-amber-400" 
+                : "text-slate-400 dark:text-slate-500"
             )}
           />
           {!collapsed && (
-            <span className={cn("font-medium", active && "font-semibold")}>
+            <span className={cn("font-medium", active && "font-semibold", item.name === "Premium" && !active && "text-amber-600 dark:text-amber-400 font-semibold")}>
               {displayName}
             </span>
           )}
           
           {/* Badge */}
           {!collapsed && item.badge && (
-            <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-orange-100 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400 animate-pulse">
+            <span className={cn(
+              "ml-auto text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider",
+              item.badge === "PRO"
+                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xs"
+                : "bg-orange-100 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400 animate-pulse"
+            )}>
               {item.badge}
             </span>
           )}
