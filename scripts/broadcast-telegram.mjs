@@ -33,6 +33,17 @@ if (!supabaseUrl || !serviceKey || !botToken) {
 
 const supabase = createClient(supabaseUrl, serviceKey);
 
+function getTelegramIdFromRecord(user) {
+  if (user.telegram_id) return user.telegram_id.toString().trim();
+  const metaTgId = user.user_metadata?.telegram_id || user.raw_user_meta_data?.telegram_id;
+  if (metaTgId) return metaTgId.toString().trim();
+  if (user.email) {
+    const match = user.email.match(/^tg_(\d+)@auth\.internal$/i);
+    if (match) return match[1];
+  }
+  return null;
+}
+
 const messageText = process.argv[2];
 
 if (!messageText) {
@@ -51,34 +62,47 @@ const buttonText = process.argv[4] || null;
 const buttonUrl = process.argv[5] || null;
 
 async function runBroadcast() {
-  console.log("🔍 Telegram foydalanuvchilar ma'lumotlar bazasidan qidirilmoqda...");
+  console.log("🔍 Telegram foydalanuvchilar ma'lumotlar bazasidan (users, auth.users, sessions) qidirilmoqda...");
 
   const uniqueChatIds = new Set();
 
-  const { data: tgUsers, error: uErr } = await supabase
+  const { data: tgUsers } = await supabase
     .from('users')
-    .select('telegram_id')
-    .not('telegram_id', 'is', null);
+    .select('telegram_id, email');
 
-  if (!uErr && tgUsers) {
-    tgUsers.forEach(u => {
-      if (u.telegram_id) uniqueChatIds.add(u.telegram_id.toString().trim());
-    });
+  (tgUsers || []).forEach(u => {
+    const tid = getTelegramIdFromRecord(u);
+    if (tid) uniqueChatIds.add(tid);
+  });
+
+  try {
+    let page = 1;
+    let hasMore = true;
+    while (hasMore) {
+      const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+      if (error) break;
+      (data.users || []).forEach(au => {
+        const tid = getTelegramIdFromRecord(au);
+        if (tid) uniqueChatIds.add(tid);
+      });
+      if ((data.users || []).length < 1000) hasMore = false;
+      else page++;
+    }
+  } catch (e) {
+    console.error("Auth users list error:", e);
   }
 
-  const { data: sessions, error: sErr } = await supabase
+  const { data: sessions } = await supabase
     .from('telegram_auth_sessions')
     .select('chat_id, telegram_id');
 
-  if (!sErr && sessions) {
-    sessions.forEach(s => {
-      if (s.chat_id) uniqueChatIds.add(s.chat_id.toString().trim());
-      if (s.telegram_id) uniqueChatIds.add(s.telegram_id.toString().trim());
-    });
-  }
+  (sessions || []).forEach(s => {
+    if (s.chat_id) uniqueChatIds.add(s.chat_id.toString().trim());
+    if (s.telegram_id) uniqueChatIds.add(s.telegram_id.toString().trim());
+  });
 
   const recipients = Array.from(uniqueChatIds);
-  console.log(`📢 Jami ${recipients.length} ta noyob Telegram foydalanuvchilari topildi.`);
+  console.log(`📢 Jami ${recipients.length} ta noyob Telegram foydalanuvchilari topildi!`);
 
   if (recipients.length === 0) {
     console.log("⚠️ Yuborish uchun foydalanuvchilar topilmadi.");

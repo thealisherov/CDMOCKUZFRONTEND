@@ -6,6 +6,17 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY || 'fake'
 );
 
+function getTelegramIdFromRecord(user) {
+  if (user.telegram_id) return user.telegram_id.toString().trim();
+  const metaTgId = user.user_metadata?.telegram_id || user.raw_user_meta_data?.telegram_id;
+  if (metaTgId) return metaTgId.toString().trim();
+  if (user.email) {
+    const match = user.email.match(/^tg_(\d+)@auth\.internal$/i);
+    if (match) return match[1];
+  }
+  return null;
+}
+
 export async function GET(req) {
   try {
     const authHeader = req.headers.get('authorization');
@@ -23,8 +34,6 @@ export async function GET(req) {
     const endDate = searchParams.get('endDate');
 
     // 1. Get total users and premium users.
-    // TEZ YO'L: `admin_user_counts()` RPC — barcha foydalanuvchilarni
-    // tortmasdan bitta so'rovda 2 ta COUNT qaytaradi.
     let totalUsers = 0;
     let premiumUsers = 0;
     const { data: counts, error: countsError } = await supabaseAdmin.rpc('admin_user_counts');
@@ -33,8 +42,6 @@ export async function GET(req) {
       totalUsers = counts.total || 0;
       premiumUsers = counts.premium || 0;
     } else {
-      // FALLBACK: RPC yo'q bo'lsa — eski listUsers usuli.
-      console.warn('[admin/stats] admin_user_counts RPC unavailable, falling back to listUsers:', countsError?.message);
       let allUsers = [];
       let page = 1;
       let hasMore = true;
@@ -58,21 +65,22 @@ export async function GET(req) {
 
     const { data: payments, error: paymentError } = await query;
     if (paymentError) {
-        // If table doesn't exist yet, we return 0s instead of failing
-        console.error("Stats payment fetch error:", paymentError);
+      console.error("Stats payment fetch error:", paymentError);
     }
 
     const revenueUZS = payments?.filter(p => p.currency === 'UZS').reduce((sum, p) => sum + Number(p.amount), 0) || 0;
     const revenueUSD = payments?.filter(p => p.currency === 'USD').reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
-    // 3. Get Telegram users count
+    // 3. Get Telegram users count (scans both telegram_id and tg_<ID>@auth.internal)
     let telegramUsers = 0;
     try {
-      const { count: tgCount } = await supabaseAdmin
-        .from('users')
-        .select('*', { count: 'exact', head: true })
-        .not('telegram_id', 'is', null);
-      telegramUsers = tgCount || 0;
+      const tgIdSet = new Set();
+      const { data: pUsers } = await supabaseAdmin.from('users').select('telegram_id, email');
+      (pUsers || []).forEach(u => {
+        const tid = getTelegramIdFromRecord(u);
+        if (tid) tgIdSet.add(tid);
+      });
+      telegramUsers = tgIdSet.size;
     } catch (e) {
       console.warn("Error fetching telegram users count:", e);
     }
@@ -80,9 +88,6 @@ export async function GET(req) {
     // 4. Get test statistics
     let testStats = { total: 0, reading: 0, listening: 0, writing: 0, free: 0, premium: 0 };
     try {
-      // MUHIM: butun `data` JSONB ustunini tortmaymiz (u har bir testda
-      // bir necha MB bo'lishi mumkin — passages, transcript, savollar...).
-      // Faqat kerakli 2 ta kichik JSON qiymatni so'raymiz.
       const { data: tests } = await supabaseAdmin
         .from('Tests')
         .select('type, tution:data->>testTution, access:data->>access')

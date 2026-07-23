@@ -6,6 +6,19 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+function getTelegramIdFromRecord(user) {
+  if (user.telegram_id) return user.telegram_id.toString().trim();
+  
+  const metaTgId = user.user_metadata?.telegram_id || user.raw_user_meta_data?.telegram_id;
+  if (metaTgId) return metaTgId.toString().trim();
+
+  if (user.email) {
+    const match = user.email.match(/^tg_(\d+)@auth\.internal$/i);
+    if (match) return match[1];
+  }
+  return null;
+}
+
 export async function POST(req) {
   try {
     const authHeader = req.headers.get('authorization');
@@ -32,18 +45,37 @@ export async function POST(req) {
       return NextResponse.json({ error: "TELEGRAM_BOT_TOKEN muhit o'zgaruvchisi sozlanmagan!" }, { status: 500 });
     }
 
-    // 1. Gather all unique Telegram Chat IDs from users table & telegram_auth_sessions table
     const uniqueChatIds = new Set();
 
-    const { data: tgUsers } = await supabaseAdmin
+    // 1. Scan public.users
+    const { data: publicUsers } = await supabaseAdmin
       .from('users')
-      .select('telegram_id')
-      .not('telegram_id', 'is', null);
+      .select('telegram_id, email');
 
-    (tgUsers || []).forEach(u => {
-      if (u.telegram_id) uniqueChatIds.add(u.telegram_id.toString().trim());
+    (publicUsers || []).forEach(u => {
+      const tgId = getTelegramIdFromRecord(u);
+      if (tgId) uniqueChatIds.add(tgId);
     });
 
+    // 2. Scan auth.users for any email matching tg_<ID>@auth.internal
+    try {
+      let page = 1;
+      let hasMore = true;
+      while (hasMore) {
+        const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+        if (error) break;
+        (data.users || []).forEach(au => {
+          const tgId = getTelegramIdFromRecord(au);
+          if (tgId) uniqueChatIds.add(tgId);
+        });
+        if ((data.users || []).length < 1000) hasMore = false;
+        else page++;
+      }
+    } catch (e) {
+      console.error('[Admin Tg Broadcast] Error listing auth users:', e);
+    }
+
+    // 3. Scan telegram_auth_sessions
     const { data: sessions } = await supabaseAdmin
       .from('telegram_auth_sessions')
       .select('chat_id, telegram_id');
@@ -80,7 +112,7 @@ export async function POST(req) {
     let failCount = 0;
     const sampleErrors = [];
 
-    // Broadcast loop with 35ms delay (rate-limit safety: max ~28-30 requests/sec)
+    // Broadcast loop with 35ms throttling delay
     for (const chatId of recipientList) {
       try {
         const payload = {
@@ -122,7 +154,6 @@ export async function POST(req) {
         }
       }
 
-      // Throttling delay
       await new Promise(res => setTimeout(res, 35));
     }
 
