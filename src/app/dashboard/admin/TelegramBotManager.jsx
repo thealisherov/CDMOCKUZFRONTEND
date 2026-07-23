@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getAccessToken } from "@/utils/supabase/token";
 import { 
   Send, Users, MessageSquare, ShieldCheck, RefreshCw, 
   CheckCircle2, AlertCircle, Image as ImageIcon, Link as LinkIcon, 
-  Search, Eye, Sparkles, UserCheck, Smartphone
+  Search, Eye, Sparkles, UserCheck, Smartphone, Upload, X, FileImage
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -17,9 +17,15 @@ export default function TelegramBotManager() {
 
   // Broadcast Form State
   const [message, setMessage] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [useUrlMode, setUseUrlMode] = useState(false);
   const [buttonText, setButtonText] = useState("");
   const [buttonUrl, setButtonUrl] = useState("");
+
+  // File input ref
+  const fileInputRef = useRef(null);
 
   // Sending status
   const [sending, setSending] = useState(false);
@@ -52,6 +58,30 @@ export default function TelegramBotManager() {
     }
   };
 
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        alert("Iltimos, faqat rasm faylini yuklang (JPG, PNG, WEBP, GIF)");
+        return;
+      }
+      setImageFile(file);
+      const objectUrl = URL.createObjectURL(file);
+      setImagePreviewUrl(objectUrl);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setImageFile(null);
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+      setImagePreviewUrl("");
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const handleSendBroadcast = async () => {
     setShowConfirmModal(false);
     setSending(true);
@@ -61,25 +91,36 @@ export default function TelegramBotManager() {
       const token = await getAccessToken();
       if (!token) throw new Error("Sessiya topilmadi.");
 
-      const res = await fetch("/api/admin/telegram/broadcast", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      let body;
+      let headers = { Authorization: `Bearer ${token}` };
+
+      if (imageFile && !useUrlMode) {
+        const formData = new FormData();
+        formData.append("message", message);
+        formData.append("buttonText", buttonText);
+        formData.append("buttonUrl", buttonUrl);
+        formData.append("imageFile", imageFile);
+        body = formData;
+      } else {
+        headers["Content-Type"] = "application/json";
+        body = JSON.stringify({
           message,
-          imageUrl,
+          imageUrl: useUrlMode ? imageUrl : "",
           buttonText,
           buttonUrl
-        })
+        });
+      }
+
+      const res = await fetch("/api/admin/telegram/broadcast", {
+        method: "POST",
+        headers,
+        body
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Xabar yuborishda xatolik yuz berdi");
 
       setBroadcastResult(data);
-      // Refresh stats after broadcast
       fetchTgStats();
     } catch (err) {
       console.error(err);
@@ -101,6 +142,8 @@ export default function TelegramBotManager() {
       (u.email && u.email.toLowerCase().includes(q))
     );
   });
+
+  const activePreviewImage = (!useUrlMode && imagePreviewUrl) ? imagePreviewUrl : imageUrl;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -156,7 +199,7 @@ export default function TelegramBotManager() {
             {loading ? "..." : (stats?.uniqueBroadcastableUsers || 0).toLocaleString()}
           </div>
           <p className="text-xs text-muted-foreground">
-            Barcha chat_id / telegram_id 'lar yig'indisi
+            Barcha telegram_id / internal email 'lar yig'indisi
           </p>
         </div>
 
@@ -181,9 +224,19 @@ export default function TelegramBotManager() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Form Controls (Left / 7 cols) */}
         <div className="lg:col-span-7 bg-card border border-border rounded-2xl p-6 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 pb-4 border-b border-border">
-            <Sparkles className="w-5 h-5 text-indigo-600" />
-            <h3 className="font-bold text-lg">Broadcast Studio (Xabar Tayyorlash)</h3>
+          <div className="flex items-center justify-between pb-4 border-b border-border">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-indigo-600" />
+              <h3 className="font-bold text-lg">Broadcast Studio (Xabar Tayyorlash)</h3>
+            </div>
+
+            {/* Toggle URL / File Mode */}
+            <button
+              onClick={() => setUseUrlMode(!useUrlMode)}
+              className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+            >
+              {useUrlMode ? "📁 Kompyuterdan rasm yuklash" : "🔗 URL havola orqali rasm"}
+            </button>
           </div>
 
           {/* Message Textarea */}
@@ -203,19 +256,71 @@ Yangi testlar va imkoniyatlar qo'shildi. Hoziroq kirib sinab ko'ring! 🚀"
             />
           </div>
 
-          {/* Image URL (Optional) */}
+          {/* Image Input Section */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-muted-foreground" />
-              <span>Rasm URL havolasi (Ixtiyoriy)</span>
+            <label className="text-sm font-semibold flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                Rasm (Ixtiyoriy)
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {useUrlMode ? "URL kiritish" : "Fayl yuklash"}
+              </span>
             </label>
-            <input
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://example.com/banner.jpg"
-              className="w-full px-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
-            />
+
+            {!useUrlMode ? (
+              /* Direct File Upload Drop Zone */
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
+                {imageFile ? (
+                  <div className="flex items-center justify-between p-3.5 rounded-xl border border-indigo-500/30 bg-indigo-500/5 text-sm">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="w-12 h-12 rounded-lg bg-cover bg-center border shrink-0" style={{ backgroundImage: `url(${imagePreviewUrl})` }} />
+                      <div className="truncate">
+                        <p className="font-semibold truncate text-foreground">{imageFile.name}</p>
+                        <p className="text-xs text-muted-foreground">{(imageFile.size / 1024).toFixed(1)} KB</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveFile}
+                      className="p-2 rounded-lg hover:bg-rose-500/10 text-rose-600 transition-colors shrink-0"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-border hover:border-indigo-500/50 rounded-2xl p-6 text-center cursor-pointer transition-all hover:bg-muted/40 space-y-2"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-indigo-500/10 text-indigo-600 mx-auto flex items-center justify-center">
+                      <Upload className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">Kompyuteringizdan rasmni tanlang</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG, WEBP yoki GIF fayllar (bosing)</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* URL Input Mode */
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://example.com/banner.jpg"
+                className="w-full px-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
+              />
+            )}
           </div>
 
           {/* Inline Keyboard Button */}
@@ -328,10 +433,10 @@ Yangi testlar va imkoniyatlar qo'shildi. Hoziroq kirib sinab ko'ring! 🚀"
 
             {/* Preview Card Body */}
             <div className="bg-[#182533] p-3 rounded-xl space-y-3 text-sm leading-relaxed border border-slate-700/50">
-              {imageUrl && (
+              {activePreviewImage && (
                 <div className="rounded-lg overflow-hidden border border-slate-700 bg-slate-900 aspect-video flex items-center justify-center">
                   <img
-                    src={imageUrl}
+                    src={activePreviewImage}
                     alt="Broadcast attachment"
                     className="w-full h-full object-cover"
                     onError={(e) => {

@@ -8,10 +8,8 @@ const supabaseAdmin = createClient(
 
 function getTelegramIdFromRecord(user) {
   if (user.telegram_id) return user.telegram_id.toString().trim();
-  
   const metaTgId = user.user_metadata?.telegram_id || user.raw_user_meta_data?.telegram_id;
   if (metaTgId) return metaTgId.toString().trim();
-
   if (user.email) {
     const match = user.email.match(/^tg_(\d+)@auth\.internal$/i);
     if (match) return match[1];
@@ -33,8 +31,30 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const body = await req.json();
-    const { message, imageUrl, buttonText, buttonUrl } = body;
+    const contentType = req.headers.get('content-type') || '';
+    let message = '';
+    let imageUrl = '';
+    let buttonText = '';
+    let buttonUrl = '';
+    let imageFile = null;
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      message = formData.get('message') || '';
+      imageUrl = formData.get('imageUrl') || '';
+      buttonText = formData.get('buttonText') || '';
+      buttonUrl = formData.get('buttonUrl') || '';
+      const file = formData.get('imageFile');
+      if (file && typeof file === 'object' && file.size > 0) {
+        imageFile = file;
+      }
+    } else {
+      const body = await req.json();
+      message = body.message || '';
+      imageUrl = body.imageUrl || '';
+      buttonText = body.buttonText || '';
+      buttonUrl = body.buttonUrl || '';
+    }
 
     if (!message || !message.trim()) {
       return NextResponse.json({ error: "Xabar matni bo'sh bo'lishi mumkin emas." }, { status: 400 });
@@ -96,7 +116,6 @@ export async function POST(req) {
       });
     }
 
-    // Build Telegram API payload helper
     let replyMarkup = null;
     if (buttonText && buttonUrl) {
       replyMarkup = {
@@ -106,41 +125,96 @@ export async function POST(req) {
       };
     }
 
-    const apiMethod = (imageUrl && imageUrl.trim()) ? 'sendPhoto' : 'sendMessage';
-
     let successCount = 0;
     let failCount = 0;
     const sampleErrors = [];
 
+    // Telegram photo upload handler
+    let telegramUploadedFileId = null;
+    let imageBlob = null;
+    if (imageFile) {
+      const arrayBuffer = await imageFile.arrayBuffer();
+      imageBlob = new Blob([arrayBuffer], { type: imageFile.type || 'image/jpeg' });
+    }
+
+    const hasPhoto = !!(imageBlob || (imageUrl && imageUrl.trim()));
+
     // Broadcast loop with 35ms throttling delay
-    for (const chatId of recipientList) {
+    for (let i = 0; i < recipientList.length; i++) {
+      const chatId = recipientList[i];
       try {
-        const payload = {
-          chat_id: chatId,
-          parse_mode: 'HTML'
-        };
+        let res;
 
-        if (apiMethod === 'sendPhoto') {
-          payload.photo = imageUrl.trim();
-          payload.caption = message;
+        if (hasPhoto) {
+          if (telegramUploadedFileId) {
+            // Re-use uploaded Telegram file_id for extreme speed!
+            const payload = {
+              chat_id: chatId,
+              photo: telegramUploadedFileId,
+              caption: message,
+              parse_mode: 'HTML'
+            };
+            if (replyMarkup) payload.reply_markup = JSON.stringify(replyMarkup);
+
+            res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+          } else if (imageBlob) {
+            // First user: upload the image file to Telegram
+            const tgForm = new FormData();
+            tgForm.append('chat_id', chatId);
+            tgForm.append('caption', message);
+            tgForm.append('parse_mode', 'HTML');
+            tgForm.append('photo', imageBlob, imageFile.name || 'photo.jpg');
+            if (replyMarkup) tgForm.append('reply_markup', JSON.stringify(replyMarkup));
+
+            res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+              method: 'POST',
+              body: tgForm
+            });
+          } else {
+            // Send via image URL string
+            const payload = {
+              chat_id: chatId,
+              photo: imageUrl.trim(),
+              caption: message,
+              parse_mode: 'HTML'
+            };
+            if (replyMarkup) payload.reply_markup = JSON.stringify(replyMarkup);
+
+            res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+          }
         } else {
-          payload.text = message;
-        }
+          // Plain message (no photo)
+          const payload = {
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'HTML'
+          };
+          if (replyMarkup) payload.reply_markup = JSON.stringify(replyMarkup);
 
-        if (replyMarkup) {
-          payload.reply_markup = JSON.stringify(replyMarkup);
+          res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
         }
-
-        const res = await fetch(`https://api.telegram.org/bot${botToken}/${apiMethod}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
 
         const resData = await res.json();
 
         if (resData.ok) {
           successCount++;
+          // Save telegram file_id if image was uploaded as File
+          if (imageBlob && !telegramUploadedFileId && resData.result?.photo?.length) {
+            const photoArray = resData.result.photo;
+            telegramUploadedFileId = photoArray[photoArray.length - 1].file_id;
+          }
         } else {
           failCount++;
           if (sampleErrors.length < 5) {
