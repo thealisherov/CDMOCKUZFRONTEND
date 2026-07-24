@@ -1,13 +1,10 @@
-/**
- * Reading Test Page — Server Component
- *
- * Fetches SANITISED test data from Supabase,
- * then passes it to the Client Component for rendering.
- */
+import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { sanitizeTestData } from '@/utils/sanitizeTestData'
 import { adaptReadingData } from '@/utils/readingDataAdapter'
+import { isUserPremium, isTestPremium } from '@/lib/premium-guard'
 import ReadingTestClient from './ReadingTestClient'
+import { generateTestMetadata } from '@/utils/seoTestMetadata'
 
 async function loadTestData(testId) {
   try {
@@ -46,21 +43,19 @@ async function loadTestData(testId) {
 
     if (!testRow) {
       console.log('CRITICAL: testRow still null after both strategies. testId:', testId);
-      return null;
+      return { testRow: null, rawData: null };
     }
 
     // SECURITY: Strip answers before sending to client
     const safeData = sanitizeTestData(testRow.data)
 
     // Apply adapter to transform into internal format
-    return adaptReadingData(safeData)
+    return { testRow, rawData: adaptReadingData(safeData) }
   } catch (err) {
     console.error('[ReadingTestPage] Error loading test:', err)
-    return { isError: true, message: err.message, stack: err.stack }
+    return { testRow: null, rawData: { isError: true, message: err.message, stack: err.stack } }
   }
 }
-
-import { generateTestMetadata } from '@/utils/seoTestMetadata';
 
 export async function generateMetadata({ params }) {
   const resolvedParams = await Promise.resolve(params);
@@ -70,7 +65,19 @@ export async function generateMetadata({ params }) {
 export default async function ReadingTestPage({ params }) {
   const resolvedParams = await Promise.resolve(params);
   const id = resolvedParams?.id;
-  const rawData = await loadTestData(id)
+  const { testRow, rawData } = await loadTestData(id)
+
+  if (!testRow) {
+    redirect('/dashboard/reading');
+  }
+
+  // SECURITY GUARD: Check if test is Premium and user has active Premium access
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (isTestPremium(testRow) && !isUserPremium(user)) {
+    redirect('/dashboard/payment');
+  }
 
   return <ReadingTestClient id={id} rawData={rawData} />
 }

@@ -15,6 +15,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { sanitizeTestData } from '@/utils/sanitizeTestData'
+import { isUserPremium, isTestPremium } from '@/lib/premium-guard'
 
 export async function GET(request, { params }) {
   try {
@@ -62,6 +63,17 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Test topilmadi' }, { status: 404 })
     }
 
+    // ── SECURITY: Check if test is Premium and user is non-premium ──
+    if (isTestPremium(testRow)) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!isUserPremium(user)) {
+        return NextResponse.json(
+          { error: 'Bu testdan foydalanish uchun Premium obuna kerak', isLocked: true },
+          { status: 403 }
+        )
+      }
+    }
+
     // ── SECURITY: Strip all answers before sending to client ──
     const safeData = sanitizeTestData(testRow.data)
 
@@ -71,3 +83,4 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: 'Server xatoligi' }, { status: 500 })
   }
 }
+

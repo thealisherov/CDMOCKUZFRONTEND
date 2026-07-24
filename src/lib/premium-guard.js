@@ -1,5 +1,20 @@
 export const isPremium = (user) => {
-  return user?.role === 'premium' || user?.subscription?.status === 'active';
+  if (!user) return false;
+  const meta = user.user_metadata || {};
+  if (meta.role === 'admin' || meta.role === 'premium') return true;
+  if (user.role === 'admin' || user.role === 'premium') return true;
+  if (meta.premium_until && new Date(meta.premium_until) > new Date()) return true;
+  if (user?.subscription?.status === 'active') return true;
+  return false;
+};
+
+export const isUserPremium = isPremium;
+
+export const isTestPremium = (testRow) => {
+  if (!testRow) return false;
+  const d = testRow.data || testRow;
+  const accessVal = (d.testTution || d.access || testRow.access || 'free').toString().toLowerCase();
+  return accessVal === 'paid' || accessVal === 'premium';
 };
 
 export const canAccessFeature = (user, feature) => {
@@ -9,3 +24,4 @@ export const canAccessFeature = (user, feature) => {
   }
   return true;
 };
+

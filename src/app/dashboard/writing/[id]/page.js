@@ -1,12 +1,8 @@
-/**
- * Writing Test Page — Server Component
- *
- * Fetches writing test data from Supabase and passes to client.
- * Writing tests have NO answers to sanitize (user writes freely),
- * so we pass the full data as-is.
- */
+import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
+import { isUserPremium, isTestPremium } from '@/lib/premium-guard'
 import WritingTestClient from './WritingTestClient'
+import { generateTestMetadata } from '@/utils/seoTestMetadata'
 
 async function loadTestData(testId) {
   try {
@@ -43,16 +39,14 @@ async function loadTestData(testId) {
       }
     }
 
-    if (!testRow) return null
+    if (!testRow) return { testRow: null, rawData: null }
 
-    return testRow.data
+    return { testRow, rawData: testRow.data }
   } catch (err) {
     console.error('[WritingTestPage] Error loading test:', err)
-    return null
+    return { testRow: null, rawData: null }
   }
 }
-
-import { generateTestMetadata } from '@/utils/seoTestMetadata';
 
 export async function generateMetadata({ params }) {
   const resolvedParams = await Promise.resolve(params);
@@ -62,7 +56,20 @@ export async function generateMetadata({ params }) {
 export default async function WritingTestPage({ params }) {
   const resolvedParams = await Promise.resolve(params);
   const id = resolvedParams?.id;
-  const rawData = await loadTestData(id)
+  const { testRow, rawData } = await loadTestData(id)
+
+  if (!testRow) {
+    redirect('/dashboard/writing');
+  }
+
+  // SECURITY GUARD: Check if test is Premium and user has active Premium access
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (isTestPremium(testRow) && !isUserPremium(user)) {
+    redirect('/dashboard/payment');
+  }
 
   return <WritingTestClient id={id} rawData={rawData} />
 }
+

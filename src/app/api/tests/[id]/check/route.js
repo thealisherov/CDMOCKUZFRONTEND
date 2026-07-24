@@ -8,6 +8,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import OpenAI from 'openai'
 import { evaluateObjective } from '@/lib/ielts-checker'
+import { isUserPremium, isTestPremium } from '@/lib/premium-guard'
 
 // Increase Vercel serverless function timeout to 60 seconds (useful for OpenAI API calls)
 export const maxDuration = 60;
@@ -539,6 +540,17 @@ export async function POST(request, { params }) {
 
     if (!testRow) {
       return NextResponse.json({ error: 'Test topilmadi' }, { status: 404 })
+    }
+
+    // ── SECURITY: Check if test is Premium and user is non-premium ──
+    if (isTestPremium(testRow)) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!isUserPremium(user)) {
+        return NextResponse.json(
+          { error: 'Bu test Premium obuna talab qiladi', isLocked: true },
+          { status: 403 }
+        );
+      }
     }
 
     // ── Route to Writing Evaluator if type is 'writing' ──
