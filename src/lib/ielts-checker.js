@@ -102,7 +102,8 @@ export function extractAnswers(data) {
     }
 
     group.questions.forEach(q => {
-      if (q.number !== undefined) {
+      // number: 0 — table_completion sarlavha satri, savol emas (ballga kirmaydi)
+      if (q.number !== undefined && Number(q.number) > 0) {
         answerMap[String(q.number)] = {
           answer: q.answer,
           alternatives: q.alternativeAnswers || [],

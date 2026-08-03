@@ -50,8 +50,11 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1, layout, userAnswers = {
   // The letters to show in the dropdown list (e.g. ["A", "B", "C", "D", "E"])
   const optionLetters = data.options || [];
 
+  // When image is present (map/diagram), parent already constrains width — use full width here
+  const hasVisibleOptions = !data.image && data.optionDescriptions && data.optionDescriptions.length > 0;
+
   return (
-    <div className={`mb-8 font-sans ${isStacked ? 'w-full' : 'w-full lg:w-[60%]'}`} ref={dropdownRef}>
+    <div className={`mb-8 font-sans ${isStacked || data.image ? 'w-full' : 'w-full lg:w-[60%]'}`} ref={dropdownRef}>
       {/* instruction */}
       {data.instruction && (
         <p className="mb-4" style={{ fontSize: '1.1em', color: 'var(--test-fg)' }}>
@@ -62,8 +65,8 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1, layout, userAnswers = {
       {/* Layout wrapper for side-by-side or stacked display */}
       <div className={`flex flex-col ${isStacked ? 'gap-6' : 'lg:flex-row gap-10'} items-start mt-6`}>
         
-        {/* List Box (e.g. List of Researchers) */}
-        {data.optionDescriptions && data.optionDescriptions.length > 0 && (
+        {/* Hide "List of Options" when a map/diagram image is present — the image already shows labels */}
+        {!data.image && data.optionDescriptions && data.optionDescriptions.length > 0 && (
           <div className={`w-full ${isStacked ? '' : 'lg:w-1/2'} p-6 rounded-md border`} style={{ backgroundColor: 'var(--test-strip-bg)', borderColor: 'var(--test-border)', color: 'var(--test-fg)' }}>
             <h3 className="text-center font-bold mb-5" style={{ color: 'var(--test-fg)', fontSize: '1.15em' }}>
               List of Options
@@ -79,7 +82,7 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1, layout, userAnswers = {
         )}
 
         {/* Questions list */}
-        <div className={`w-full ${isStacked ? '' : 'lg:w-1/2'} space-y-5`}>
+        <div className={`w-full ${!isStacked && hasVisibleOptions ? 'lg:w-1/2' : ''} space-y-5`}>
           {data.questions.map((q, qIdx) => {
             const globalNum = startIndex + qIdx;
             const questionId = String(globalNum);

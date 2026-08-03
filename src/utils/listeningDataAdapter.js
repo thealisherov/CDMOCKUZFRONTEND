@@ -236,7 +236,8 @@ function buildAnswersMap(questions) {
       q.numbers.forEach((num) => {
         answers[String(num)] = q.answers || null; // Store full array for each number
       });
-    } else if (q.number !== undefined) {
+    } else if (q.number !== undefined && Number(q.number) > 0) {
+      // number: 0 — table_completion sarlavha satri, savol emas (ballga kirmaydi)
       if (q.alternativeAnswers && q.alternativeAnswers.length > 0) {
         answers[String(q.number)] = [q.answer, ...q.alternativeAnswers];
       } else {
@@ -394,7 +395,10 @@ function convertQuestionGroup(group, partNumber, partTitle) {
 
     case 'matching': {
       // Options are at group level (e.g. "A the realistic colours", ...)
-      const groupOptions = group.options || [];
+      // Fall back to per-question options if group-level options are missing
+      const groupOptions = (group.options && group.options.length > 0)
+        ? group.options
+        : (group.questions[0]?.options || []);
       const optionLetters = extractOptionLetters(groupOptions);
 
       block.questions = group.questions.map((q) => ({
@@ -402,8 +406,8 @@ function convertQuestionGroup(group, partNumber, partTitle) {
         text: q.question,
       }));
       block.options = optionLetters;
-      // Show full option descriptions
-      block.optionDescriptions = groupOptions;
+      // NOTE: optionDescriptions intentionally NOT set for listening tests.
+      // In listening, the dropdown alone is sufficient — no "List of Options" box needed.
       break;
     }
 
@@ -479,20 +483,16 @@ export function adaptListeningData(rawData) {
         block.image = group.image;
       } else if (part.image) {
         // Determine which group should get the part-level image:
-        // 1. Map/plan labeling groups (image = map)
-        // 2. Groups with "diagram" or "label" in instruction (image = diagram)
+        // 1. Map/plan labeling groups by groupType (image = map)
+        // 2. Groups with map/diagram/label keywords in instruction
         // 3. Fallback: first group only
-        const hasMapGroup = groups.some(g => ['map_labeling', 'plan_labeling'].includes(g.groupType));
-        const hasDiagramGroup = groups.some(g => /diagram|label/i.test(g.instruction || ''));
-        const isDiagramGroup = /diagram|label/i.test(group.instruction || '');
+        const isMapGroupType = (g) => ['map_labeling', 'plan_labeling'].includes(g.groupType);
+        const isMapInstruction = (g) => /\bmap\b|\bdiagram\b|\blabel\b/i.test(g.instruction || '');
+        const hasMapGroup = groups.some(g => isMapGroupType(g) || isMapInstruction(g));
 
         if (hasMapGroup) {
-          if (['map_labeling', 'plan_labeling'].includes(group.groupType)) {
-            block.image = part.image;
-          }
-        } else if (hasDiagramGroup) {
-          // Attach image only to the group that mentions diagram/label
-          if (isDiagramGroup) {
+          // Attach image only to the map/diagram/label group
+          if (isMapGroupType(group) || isMapInstruction(group)) {
             block.image = part.image;
           }
         } else if (groupIdx === 0) {

@@ -376,7 +376,8 @@ function buildAnswersMap(questions) {
       q.numbers.forEach((num) => {
         answers[String(num)] = q.answers || null; // Store full array for each number
       });
-    } else if (q.number !== undefined) {
+    } else if (q.number !== undefined && Number(q.number) > 0) {
+      // number: 0 — table_completion sarlavha satri, savol emas (ballga kirmaydi)
       if (q.alternativeAnswers && q.alternativeAnswers.length > 0) {
         answers[String(q.number)] = [q.answer, ...q.alternativeAnswers];
       } else {

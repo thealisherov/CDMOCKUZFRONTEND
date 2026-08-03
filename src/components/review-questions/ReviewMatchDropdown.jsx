@@ -14,9 +14,9 @@ export default function ReviewMatchDropdown({ data, startIndex = 1, userAnswers 
 
   return (
     <div className="mb-8 font-sans w-full">
-      <div className={`flex flex-col ${data.optionDescriptions?.length ? 'lg:flex-row gap-10' : ''} items-start mt-2`}>
-        {/* Option descriptions box */}
-        {data.optionDescriptions && data.optionDescriptions.length > 0 && (
+      <div className={`flex flex-col ${(!data.image && data.optionDescriptions?.length) ? 'lg:flex-row gap-10' : ''} items-start mt-2`}>
+        {/* Option descriptions box — hidden when image (map/diagram) is present */}
+        {!data.image && data.optionDescriptions && data.optionDescriptions.length > 0 && (
           <div className="w-full lg:w-1/2 p-6 rounded-md border" style={{ backgroundColor: '#f9fafb', borderColor: '#e5e7eb', color: '#111827' }}>
             <h3 className="text-center font-bold mb-5 text-[18px]">List of Options</h3>
             <div className="space-y-3">
@@ -28,7 +28,7 @@ export default function ReviewMatchDropdown({ data, startIndex = 1, userAnswers 
         )}
 
         {/* Questions */}
-        <div className={`w-full ${data.optionDescriptions?.length ? 'lg:w-1/2' : ''} space-y-4`}>
+        <div className={`w-full ${(!data.image && data.optionDescriptions?.length) ? 'lg:w-1/2' : ''} space-y-4`}>
           {data.questions.map((q, qIdx) => {
             const globalNum = startIndex + qIdx;
             const qId = String(globalNum);
