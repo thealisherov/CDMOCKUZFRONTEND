@@ -238,6 +238,7 @@ export default function Sidebar({ collapsed, onToggle }) {
             )}
             <div className="space-y-1">
               {renderNavItem({ name: "Admin Panel", href: "/dashboard/admin", icon: ShieldCheck })}
+              {renderNavItem({ name: "Testlar", href: "/dashboard/admin/tests", icon: FileText })}
             </div>
           </div>
         )}
