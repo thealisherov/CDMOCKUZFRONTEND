@@ -131,6 +131,17 @@ function ListeningTestInner({ id, rawData, centerConfig = null }) {
     setEvalError(null);
   }, [clearNotes, clearHighlights, timerKey, notesKey, audioKey, clearAnswers, clearSubmitted, clearActivePart, id, clearServerResult, clearSavedAttemptId]);
 
+  // Retake from dashboard (?retake=1): force a full reset instead of resuming the old result
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('retake') === '1') {
+      clearAllTestData();
+      router.replace(`/dashboard/listening/${id}`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Removed unmount clearAllTestData so refreshing doesn't clear answers
 
   const allSections = useMemo(() => rawData?.sections || [], [rawData]);

@@ -369,6 +369,14 @@ function ShareButton({ test, moduleType }) {
   );
 }
 
+const NEW_BADGE_DAYS = 10;
+
+function isNewTest(createdAt) {
+  if (!createdAt) return false;
+  const ageMs = Date.now() - new Date(createdAt).getTime();
+  return ageMs >= 0 && ageMs < NEW_BADGE_DAYS * 24 * 60 * 60 * 1000;
+}
+
 function DefaultTestItem({ test, moduleType, meta, t, user }) {
   const isLocked = test.access === "premium" && !user?.isPremium;
 
@@ -402,6 +410,15 @@ function DefaultTestItem({ test, moduleType, meta, t, user }) {
                 style={{ background: meta.bg, color: meta.color }}
               >
                 {TEST_TYPE_LABEL[test.testType] || test.testType}
+              </span>
+            )}
+
+            {isNewTest(test.createdAt) && (
+              <span
+                className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full animate-pulse"
+                style={{ background: 'oklch(0.62 0.24 25 / 0.12)', color: 'oklch(0.55 0.22 25)', border: '1px solid oklch(0.62 0.24 25 / 0.3)' }}
+              >
+                <Zap className="w-2.5 h-2.5" /> {t("testList.new", { defaultValue: "NEW" })}
               </span>
             )}
 
@@ -463,7 +480,7 @@ function DefaultTestItem({ test, moduleType, meta, t, user }) {
           </Link>
         ) : (
           <a
-            href={`/dashboard/${moduleType}/${test.id}`}
+            href={`/dashboard/${moduleType}/${test.id}${test.completed ? '?retake=1' : ''}`}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
             style={test.completed ? {
               background: 'transparent',

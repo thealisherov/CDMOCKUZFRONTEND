@@ -118,8 +118,12 @@ export async function GET(request) {
         access: (d.testTution === 'paid' || d.access === 'paid') ? 'premium' : (d.testTution || d.access || 'free'),
         completed: attemptInfo?.completed || false,
         bestBand: attemptInfo?.bestBand || null,
+        createdAt: row.created_at,
       }
     })
+
+    // Newest-added tests first (numeric #id stays position-based for routing)
+    testList.reverse()
 
     return NextResponse.json(testList)
   } catch (err) {

@@ -76,8 +76,12 @@ export default async function ListeningPage() {
             : d.testTution || d.access || "free",
         completed: attemptInfo?.completed || false,
         bestBand: attemptInfo?.bestBand || null,
+        createdAt: row.created_at,
       };
     });
+
+    // Newest-added tests first (numeric #id stays position-based for routing)
+    initialTests.reverse();
   } catch (err) {
     console.error("[ListeningPage] Server fetch error:", err);
   }

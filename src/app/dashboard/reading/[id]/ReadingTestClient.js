@@ -174,6 +174,18 @@ function ReadingTestInner({ id, rawData, centerConfig = null }) {
     setServerResult(null);
     setEvalError(null);
   }, [clearNotes, clearHighlights, timerKey, notesKey, clearAnswers, clearSubmitted, clearServerResult, clearSavedAttemptId]);
+
+  // Retake from dashboard (?retake=1): force a full reset instead of resuming the old result
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('retake') === '1') {
+      clearAllTestData();
+      router.replace(`/dashboard/reading/${id}`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── O'quv Markaz rejimi: javoblarni /api/centers/submit ga yuboradi ──
   const submitCenter = async (answers) => {
     setSubmitted(true);

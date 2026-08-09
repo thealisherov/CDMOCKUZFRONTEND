@@ -316,6 +316,17 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
 
   // Removed unmount clearAllTestData so refreshing the page preserves the currently entered essay
 
+  // Retake from dashboard (?retake=1): force a full reset instead of resuming the old result
+  useEffect(() => {
+    if (typeof window === 'undefined' || isReviewMode) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('retake') === '1') {
+      clearAllTestData();
+      router.replace(`/dashboard/writing/${id}`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleRetry = () => { clearAllTestData(); };
   const handleExit = useCallback(() => { clearAllTestData(); router.back(); }, [clearAllTestData, router]);
   // Timer expired: just submit current essays (don't clear first!)
