@@ -103,8 +103,9 @@ const CheckboxMultiple = ({ data, onAnswer, userAnswers = {} }) => {
                   const isChecked = currentSelections.includes(value);
                   const isDisabled = !isChecked && isAtLimit;
 
-                  // Strip leading letter+dot e.g. "A. They are less..." → "They are less..."
-                  const labelText = opt.replace(/^[A-Z][.\s:)]\s*/, '').trim();
+                  // Keep the option text as-is — show the leading letter when present
+                  // (e.g. "A People like...") instead of stripping it, matching TrueFalse.jsx.
+                  const labelText = opt;
 
                   return (
                     <label
