@@ -50,6 +50,17 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1, layout, userAnswers = {
   // The letters to show in the dropdown list (e.g. ["A", "B", "C", "D", "E"])
   const optionLetters = data.options || [];
 
+  // Build a map from letter -> full description text for dropdown display
+  const optionTextMap = {};
+  if (data.optionDescriptions && data.optionDescriptions.length > 0) {
+    data.optionDescriptions.forEach((desc) => {
+      const m = desc.match(/^([A-Z])[.\s:)]\s*(.*)/i);
+      if (m) {
+        optionTextMap[m[1].toUpperCase()] = m[2].trim();
+      }
+    });
+  }
+
   // When image is present (map/diagram), parent already constrains width — use full width here
   const hasVisibleOptions = !data.image && data.optionDescriptions && data.optionDescriptions.length > 0;
 
@@ -129,15 +140,17 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1, layout, userAnswers = {
 
                   {/* Dropdown Menu */}
                   {isOpen && (
-                    <div className="absolute right-0 top-full mt-1 w-full min-w-[80px] border rounded-md shadow-lg z-50 py-1" style={{ backgroundColor: 'var(--opts-bg)', borderColor: 'var(--opts-border)' }}>
+                    <div className="absolute right-0 top-full mt-1 min-w-[250px] max-w-[420px] border rounded-md shadow-lg z-50 py-1" style={{ backgroundColor: 'var(--opts-bg)', borderColor: 'var(--opts-border)', width: 'max-content' }}>
                       {optionLetters.map((opt) => (
                         <div
                           key={opt}
                           onClick={() => handleSelect(questionId, opt)}
-                          className={`px-4 py-2 cursor-pointer text-center font-medium transition-colors`}
+                          className={`px-4 py-2.5 cursor-pointer text-left transition-colors`}
                           style={{
                             backgroundColor: selected === opt ? 'rgba(239, 68, 68, 0.9)' : 'transparent',
                             color: selected === opt ? '#fff' : 'var(--opts-fg)',
+                            fontSize: '0.95em',
+                            lineHeight: '1.4',
                           }}
                           onMouseEnter={(e) => {
                             if (selected !== opt) {
@@ -150,7 +163,8 @@ const MatchDropdown = ({ data, onAnswer, startIndex = 1, layout, userAnswers = {
                             }
                           }}
                         >
-                          {opt}
+                          <span className="font-bold">{opt}</span>
+                          {optionTextMap[opt] && <span className="ml-2">{optionTextMap[opt]}</span>}
                         </div>
                       ))}
                     </div>

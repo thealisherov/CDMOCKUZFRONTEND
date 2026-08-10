@@ -406,8 +406,8 @@ function convertQuestionGroup(group, partNumber, partTitle) {
         text: q.question,
       }));
       block.options = optionLetters;
-      // NOTE: optionDescriptions intentionally NOT set for listening tests.
-      // In listening, the dropdown alone is sufficient — no "List of Options" box needed.
+      // Store full option descriptions so the dropdown can show descriptive text
+      block.optionDescriptions = groupOptions;
       break;
     }
 
