@@ -5,14 +5,17 @@
  * shart emas). Bugun yoki ertaga qanday full_mock yuklansa ham, test
  * ishlanayotganda har bo'lim oldidan mos video ko'rsatiladi.
  *
+ * Safe Exam Browser (CEF) va barcha zamonaviy brauzerlarda 100% ishlashi uchun
+ * WebM (ochiq manbali video formati) ishlatiladi.
+ *
  * Agar kelajakda biror testga boshqa video kerak bo'lsa, JSON ichida
  * "instructionVideos": { listening, reading, writing } berib override qilса
  * bo'ladi (getMockVideos shu holatni ham qo'llaydi).
  */
 export const MOCK_INSTRUCTION_VIDEOS = {
-  listening: 'https://pub-e1b4bb7172ab47648a4ad3899784693e.r2.dev/IELTS%20Listening%20Test%20Instruction.mp4',
-  reading:   'https://pub-e1b4bb7172ab47648a4ad3899784693e.r2.dev/IELTS%20Reading%20Test%20Instruction.mp4',
-  writing:   'https://pub-e1b4bb7172ab47648a4ad3899784693e.r2.dev/IELTS%20Writing%20Test%20Instruction.mp4',
+  listening: 'https://pub-e1b4bb7172ab47648a4ad3899784693e.r2.dev/IELTS%20Listening%20Test%20Instruction.webm',
+  reading:   'https://pub-e1b4bb7172ab47648a4ad3899784693e.r2.dev/IELTS%20Reading%20Test%20Instruction.webm',
+  writing:   'https://pub-e1b4bb7172ab47648a4ad3899784693e.r2.dev/IELTS%20Writing%20Test%20Instruction.webm',
 };
 
 /** Test JSON dagi override bilan birlashtirilgan videolar. */

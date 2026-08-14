@@ -262,6 +262,7 @@ export default function InstructionVideo({ url, sectionLabel, onContinue }) {
       <div className="relative w-full max-w-5xl aspect-video max-h-[76vh] bg-black rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 flex items-center justify-center group">
         <video
           ref={videoRef}
+          src={url}
           playsInline
           preload="metadata"
           onLoadedMetadata={() => {
@@ -286,7 +287,17 @@ export default function InstructionVideo({ url, sectionLabel, onContinue }) {
           onClick={togglePlay}
           className="w-full h-full object-contain cursor-pointer"
         >
-          <source src={url} type="video/mp4" />
+          {url?.includes(".webm") ? (
+            <>
+              <source src={url} type="video/webm" />
+              <source src={url.replace(".webm", ".mp4")} type="video/mp4" />
+            </>
+          ) : (
+            <>
+              <source src={url} type="video/mp4" />
+              <source src={url?.replace(".mp4", ".webm")} type="video/webm" />
+            </>
+          )}
         </video>
 
         {/* ── Error Fallback Screen ──────────────────────────────── */}
