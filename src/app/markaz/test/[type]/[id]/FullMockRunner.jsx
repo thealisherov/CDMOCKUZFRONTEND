@@ -7,6 +7,7 @@ import ReadingTestClient from "@/app/dashboard/reading/[id]/ReadingTestClient";
 import ListeningTestClient from "@/app/dashboard/listening/[id]/ListeningTestClient";
 import WritingTestClient from "@/app/dashboard/writing/[id]/WritingTestClient";
 import InstructionVideo from "./InstructionVideo";
+import BreakScreen from "./BreakScreen";
 
 const SECTION_LABEL = {
   listening: "Listening bo'limi",
@@ -200,7 +201,7 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
               </div>
             </div>
             <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-xs text-amber-700">
-              Diqqat: testni boshlagach, <b>yakuniga yetkazing</b> — to'xtatib bo'lmaydi, chiqib ketsangiz javoblaringiz saqlanmaydi. Har bo'lim oldidan ko'rsatma video chiqadi.
+              Diqqat: testni boshlagach, <b>yakuniga yetkazing</b> — to'xtatib bo'lmaydi, chiqib ketsangiz javoblaringiz saqlanmaydi. {center?.slug === "istudy" ? "Har bo'lim oldidan ko'rsatma video chiqadi." : "Har bo'lim oldidan 1 daqiqalik tanaffus beriladi."}
             </div>
             <button type="submit" disabled={!canStart}
               className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50">
@@ -213,7 +214,7 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
     );
   }
 
-  // ── RUNNING (video / section) ────────────────────────────────────────
+  // ── RUNNING (video / break / section) ────────────────────────────────
   const step = STEPS[stepIndex];
   if (!step) {
     // stepIndex >= STEPS.length — submit useEffect ishga tushadi
@@ -223,10 +224,21 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
   }
 
   if (step.kind === "video") {
+    const isIstudy = center?.slug === "istudy";
+    if (isIstudy) {
+      return (
+        <InstructionVideo
+          key={`video-${stepIndex}`}
+          url={videos[step.section]}
+          sectionLabel={SECTION_LABEL[step.section]}
+          onContinue={() => advanceFrom(stepIndex)}
+        />
+      );
+    }
     return (
-      <InstructionVideo
-        key={`video-${stepIndex}`}
-        url={videos[step.section]}
+      <BreakScreen
+        key={`break-${stepIndex}`}
+        section={step.section}
         sectionLabel={SECTION_LABEL[step.section]}
         onContinue={() => advanceFrom(stepIndex)}
       />
