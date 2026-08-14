@@ -21,7 +21,7 @@ export default async function CenterTestPage({ params }) {
   const { type, id } = await params;
   if (!VALID.includes(type)) redirect('/markaz/tests');
 
-  const session = await getCenterSession('student');
+  const session = await getCenterSession();
   if (!session) redirect('/markaz');
 
   const supabase = createAdminClient();
@@ -33,13 +33,13 @@ export default async function CenterTestPage({ params }) {
     .order('created_at', { ascending: true });
 
   const testRow = rows?.[Number(id) - 1] || null;
-  if (!testRow) redirect('/markaz/tests');
+  if (!testRow) redirect(session.kind === 'admin' ? '/markaz/panel' : '/markaz/tests');
 
   const center = {
     name: session.name,
     slug: session.slug,
     telegram: session.telegram || null,
-    preview: session.preview || false, // admin sinov sessiyasi
+    preview: session.preview || session.kind === 'admin', // admin sinov sessiyasi
   };
 
   // ── FULL MOCK: 3 bo'lim + har bo'lim oldidan instruction video ──
