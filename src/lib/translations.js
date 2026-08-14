@@ -121,6 +121,21 @@ export const translations = {
       ],
       noteUSD: "All prices are in USD. Transfer directly to the provided VISA card.",
     },
+    centers: {
+      badge: "For Learning Centers",
+      title: "O'quv Markazlar Uchun",
+      desc: "Elevate your learning center's IELTS preparation with a professional-grade mock testing platform trusted by top educators.",
+      ctaTitle: "Use MEGA IELTS for Professional Mock Exams at Your Learning Center",
+      ctaDesc: "Give your students access to realistic IELTS mock tests with instant grading, detailed analytics, and AI-powered writing evaluation. Partner with us to provide the highest quality preparation experience.",
+      contactBtn: "Contact Admin on Telegram",
+      priceNote: "starting from / month",
+      benefits: [
+        { title: "Professional Mock Tests", desc: "Official format tests that replicate the real IELTS exam environment." },
+        { title: "Student Analytics", desc: "Track each student's progress with detailed score breakdowns and reports." },
+        { title: "Bulk Student Access", desc: "Special pricing and group management for learning centers." },
+        { title: "Dedicated Support", desc: "Priority support and custom solutions for your center's needs." },
+      ],
+    },
     payment: {
       title: "Payment & Subscription",
       subtitle: "Secure your premium access by completing the offline payment via card transfer.",
@@ -301,7 +316,7 @@ export const translations = {
       title1: "O'z",
       titleHighlight: "IELTS maqsadingizga",
       title2: "har qachongidan tezroq erishing.",
-      desc: "Mukammal amaliy testlar, oniy AI tahlili (tez orada) va eng yuqori ball olishingiz uchun ekspertlar tuzgan materiallar.",
+      desc: "Mukammal amaliy testlar, tezkor AI tahlili (tez orada) va eng yuqori ball olishingiz uchun ekspertlar tuzgan materiallar.",
       btnPrimary: "Bepul mashqni boshlash",
       btnSecondary: "Imkoniyatlarni ko'rish",
     },
@@ -310,7 +325,7 @@ export const translations = {
       desc: "Band 7.0+ olishingiz uchun barcha kerakli narsalar bitta joyda.",
       items: [
         { title: "Rasmiy formatdagi testlar", desc: "Haqiqiy IELTS imtihoni tuzilishi va vaqti bilan bir xil testlar yordamida mashq qiling." },
-        { title: "Oniy natijalar", desc: "O'sishingizni kuzatish uchun Listening va Reading modullaridan darhol ball oling." },
+        { title: "Tezkor natijalar", desc: "O'sishingizni kuzatish uchun Listening va Reading modullaridan darhol ball oling." },
         { title: "Batafsil tahlil", desc: "Qulay dashboard orqali vaqt o'tishi bilan qanchalik rivojlanganingizni ko'rib boring." },
         { title: "Ekspertlar hamjamiyati", desc: "Minglab o'quvchilarga qo'shiling va eng yaxshi IELTS ustozlaridan maslahatlar oling." }
       ]
@@ -402,6 +417,21 @@ export const translations = {
         "Ustozlar bilan doimiy aloqa",
       ],
       noteUSD: "Barcha narxlar USD da. Ko'rsatilgan VISA kartaga to'g'ridan to'g'ri pul o'tkazishingiz mumkin.",
+    },
+    centers: {
+      badge: "O'quv markazlar uchun",
+      title: "O'quv Markazlar Uchun",
+      desc: "O'quv markazingizda professional darajadagi IELTS mock testlarini taqdim eting — eng ishonchli platforma bilan.",
+      ctaTitle: "O'quv markazingizda professional darajada mock olish uchun MEGA IELTSDAN FOYDALANING",
+      ctaDesc: "Talabalaringizga real IELTS mock testlari, tezkor natijalar, batafsil tahlil va AI yordamida insho baholash imkoniyatini bering. Eng yuqori sifatli tayyorgarlik tajribasini ta'minlash uchun biz bilan hamkorlik qiling.",
+      contactBtn: "Admin bilan bog'lanish (Telegram)",
+      priceNote: "dan boshlab / oyiga",
+      benefits: [
+        { title: "Professional Mock Testlar", desc: "Haqiqiy IELTS imtihoni muhitini to'liq takrorlovchi rasmiy formatdagi testlar." },
+        { title: "Talabalar Tahlili", desc: "Har bir talabaning rivojlanishini batafsil ball taqsimoti va hisobotlar bilan kuzating." },
+        { title: "Guruhli Kirish", desc: "O'quv markazlar uchun maxsus narxlar va guruh boshqaruvi." },
+        { title: "Maxsus Qo'llab-quvvatlash", desc: "Markazingiz ehtiyojlariga moslashtirilgan ustuvor yordam va yechimlar." },
+      ],
     },
     payment: {
       title: "To'lov va Obuna",
@@ -524,7 +554,7 @@ export const translations = {
       filteredTestsCount: "Jami total tadan filtered tasi topildi",
       readingDesc: "60 daqiqalik mashg'ulotni boshlash uchun testni tanlang.",
       listeningDesc: "Tinglash qobiliyatingizni sinash uchun testni tanlang (taxminan 30-40 daq).",
-      writingDesc: "AI tomonidan oniy baholash uchun inshoni tanlang va topshiring.",
+      writingDesc: "AI tomonidan tezkor baholash uchun inshoni tanlang va topshiring.",
       tasks: "Vazifalar",
       qs: "Savollar",
       mobileWarningTitle: "Diqqat!",
@@ -683,6 +713,21 @@ export const translations = {
         "Прямая связь с преподавателями",
       ],
       noteUSD: "Все цены указаны в USD. Платежи осуществляются напрямую на предоставленную карту VISA.",
+    },
+    centers: {
+      badge: "Для учебных центров",
+      title: "Для Учебных Центров",
+      desc: "Поднимите подготовку к IELTS в вашем учебном центре на профессиональный уровень с проверенной платформой.",
+      ctaTitle: "Используйте MEGA IELTS для профессиональных пробных экзаменов в вашем учебном центре",
+      ctaDesc: "Предоставьте своим студентам доступ к реалистичным пробным тестам IELTS с мгновенной оценкой, детальной аналитикой и AI-проверкой эссе. Сотрудничайте с нами для обеспечения подготовки высшего качества.",
+      contactBtn: "Связаться с Админом в Telegram",
+      priceNote: "от / в месяц",
+      benefits: [
+        { title: "Профессиональные пробные тесты", desc: "Тесты в официальном формате, воспроизводящие реальную среду экзамена IELTS." },
+        { title: "Аналитика студентов", desc: "Отслеживайте прогресс каждого студента с детальной разбивкой баллов и отчётами." },
+        { title: "Групповой доступ", desc: "Специальные цены и управление группами для учебных центров." },
+        { title: "Приоритетная поддержка", desc: "Приоритетная помощь и индивидуальные решения для нужд вашего центра." },
+      ],
     },
     payment: {
       title: "Оплата и Подписка",

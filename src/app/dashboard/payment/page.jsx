@@ -250,11 +250,7 @@ function PaymentContent() {
                   </div>
                 </div>
 
-                {/* Valid Thru */}
-                <div className="absolute bottom-[25%] right-[15%] z-10 flex items-center gap-2 uppercase">
-                  <span className="text-[7px] text-white/60 font-bold leading-tight text-right">Valid<br/>Thru</span>
-                  <span className="text-[17px] text-white font-bold tracking-widest">03/29</span>
-                </div>
+
 
                 {/* Name */}
                 <div className="absolute bottom-[10%] left-[8%] z-10">
