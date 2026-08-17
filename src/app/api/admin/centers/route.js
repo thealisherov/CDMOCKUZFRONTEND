@@ -23,9 +23,7 @@ async function requireAdmin() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Auth talab qilinadi', status: 401 };
   const role = user.user_metadata?.role;
-  if (role !== 'admin' || !isSuperAdminEmail(user.email)) {
-    return { error: 'Ruxsat yo\'q. Centers bo\'limi faqat maxsus admin uchun.', status: 403 };
-  }
+  if (role !== 'admin') return { error: 'Ruxsat yo\'q', status: 403 };
   return { user };
 }
 
@@ -40,9 +38,14 @@ export async function GET() {
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const admin = createAdminClient();
+  const isSuper = isSuperAdminEmail(auth.user.email);
+
+  // Super admin to'liq parollar bilan ko'radi, oddiy admin faqat testlar uchun slug/nomini ko'radi
+  const selectQuery = isSuper ? '*' : 'id, name, slug, is_active, telegram_channel, image_url';
+
   const { data, error } = await admin
     .from('centers')
-    .select('*')
+    .select(selectQuery)
     .order('created_at', { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -52,6 +55,10 @@ export async function GET() {
 export async function POST(request) {
   const auth = await requireAdmin();
   if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+  if (!isSuperAdminEmail(auth.user.email)) {
+    return NextResponse.json({ error: 'Markaz qo\'shish faqat bosh admin uchun ruxsat etilgan' }, { status: 403 });
+  }
 
   const body = await request.json();
   const name = (body.name || '').trim();
