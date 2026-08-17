@@ -14,18 +14,12 @@ import { DailyLimitBadge, DailyLimitModal } from "./components/DailyLimitNotice"
 
 export default function TypingPage() {
   const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState("practice"); // 'practice' | 'leaderboard' | 'badges' | 'history'
   const [statusData, setStatusData] = useState(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login?next=/dashboard/typing");
-    }
-  }, [user, authLoading, router]);
-
   const fetchStatus = useCallback(async () => {
+    if (!user) return;
     try {
       const res = await fetch("/api/typing/status");
       if (res.ok) {
@@ -35,23 +29,15 @@ export default function TypingPage() {
     } catch (e) {
       console.warn("Could not fetch typing status:", e);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (user) {
       fetchStatus();
+    } else {
+      setStatusData(null);
     }
   }, [user, fetchStatus]);
-
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-      </div>
-    );
-  }
-
-  if (!user) return null;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-300 pb-16">

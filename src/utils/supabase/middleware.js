@@ -47,7 +47,6 @@ export async function updateSession(request) {
   const protectedPrefixes = [
     '/dashboard/profile',
     '/dashboard/admin',
-    '/dashboard/typing',
     '/dashboard/payment',
     '/dashboard/premium',
     '/dashboard/support',

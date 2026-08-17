@@ -1,26 +1,37 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { History, Zap, Target, Timer, Clock, Award, Loader2 } from "lucide-react";
+import { History, Zap, Target, Timer, Clock, Award, Loader2, Sparkles, LogIn } from "lucide-react";
+import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
 import toast from "react-hot-toast";
 
 export default function TypingHistory() {
+  const { user } = useAuth();
   const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchHistory();
-  }, []);
+    if (user) {
+      fetchHistory();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
   const fetchHistory = async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/typing/attempts?limit=50");
+      if (res.status === 401) {
+        setAttempts([]);
+        return;
+      }
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Tarixni yuklashda xatolik");
       setAttempts(json.attempts || []);
     } catch (err) {
-      toast.error(err.message);
+      console.warn("History fetch error:", err.message);
     } finally {
       setLoading(false);
     }
@@ -30,6 +41,25 @@ export default function TypingHistory() {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="max-w-md mx-auto p-8 sm:p-10 text-center rounded-3xl border border-border bg-card shadow-lg space-y-4 my-8">
+        <div className="w-14 h-14 rounded-3xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center mx-auto shadow-xs">
+          <History className="w-7 h-7" />
+        </div>
+        <h4 className="text-xl font-bold text-foreground">Mashqlar tarixini ko&apos;rish</h4>
+        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+          O&apos;tgan barcha typing mashqlaringiz, WPM o&apos;sish grafigi va statistikalaringizni ko&apos;rish uchun tizimga kiring.
+        </p>
+        <Link href="/login?next=/dashboard/typing" className="inline-block pt-2">
+          <button className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-600/25 flex items-center gap-2 cursor-pointer">
+            <LogIn className="w-4 h-4" /> Tizimga Kirish
+          </button>
+        </Link>
       </div>
     );
   }
