@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   Keyboard, Trophy, Award, History, Zap, Crown, Flame, Sparkles, Target
 } from "lucide-react";
@@ -12,10 +13,17 @@ import TypingHistory from "./components/TypingHistory";
 import { DailyLimitBadge, DailyLimitModal } from "./components/DailyLimitNotice";
 
 export default function TypingPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("practice"); // 'practice' | 'leaderboard' | 'badges' | 'history'
   const [statusData, setStatusData] = useState(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login?next=/dashboard/typing");
+    }
+  }, [user, authLoading, router]);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -30,8 +38,20 @@ export default function TypingPage() {
   }, []);
 
   useEffect(() => {
-    fetchStatus();
-  }, [fetchStatus]);
+    if (user) {
+      fetchStatus();
+    }
+  }, [user, fetchStatus]);
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-300 pb-16">

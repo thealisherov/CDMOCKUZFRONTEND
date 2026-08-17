@@ -47,6 +47,10 @@ export async function updateSession(request) {
   const protectedPrefixes = [
     '/dashboard/profile',
     '/dashboard/admin',
+    '/dashboard/typing',
+    '/dashboard/payment',
+    '/dashboard/premium',
+    '/dashboard/support',
   ];
 
   // Test detail & attempts pages: /dashboard/{skill}/{id} or /dashboard/{skill}/attempts
