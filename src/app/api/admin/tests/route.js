@@ -130,5 +130,24 @@ export async function POST(request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // ── AUTO-REGISTER: public full mock test ──
+  // center_id bo'lmasa (platforma testi) va turi full_mock bo'lsa,
+  // avtomatik ravishda full_mock_tests jadvaliga meta-yozuv qo'shiladi
+  if (type === 'full_mock' && !inserted.center_id) {
+    try {
+      const title = data?.title || `IELTS Full Mock Test`;
+      await admin.from('full_mock_tests').insert({
+        test_row_id: inserted.id,
+        title,
+        price_uzs: 0,
+        price_usd: 0,
+        expire_hours: 48,
+        is_active: true,
+      });
+    } catch (fmErr) {
+      console.warn('[admin/tests POST] full_mock_tests auto-register failed (non-fatal):', fmErr);
+    }
+  }
+
   return NextResponse.json({ test: inserted, issues }, { status: 201 });
 }

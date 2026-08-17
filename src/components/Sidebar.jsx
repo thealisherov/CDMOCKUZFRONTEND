@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Trophy, BarChart3, Headphones, BookOpen, PenTool, Mic,
   LogOut, PanelLeftClose, PanelLeftOpen, Zap, Crown, Settings, ShieldCheck,
-  User, X, Sparkles, MessageCircle, FileText, LifeBuoy, Keyboard
+  User, X, Sparkles, MessageCircle, FileText, LifeBuoy, Keyboard, Layers
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -51,6 +51,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     { name: "Listening", href: "/dashboard/listening", icon: Headphones },
     { name: "Reading", href: "/dashboard/reading", icon: BookOpen },
     { name: "Writing", href: "/dashboard/writing", icon: PenTool },
+    { name: "Full Mock", href: "/dashboard/fullmock", icon: Layers },
     { name: "Typing", href: "/dashboard/typing", icon: Keyboard },
     { name: "Speaking", href: "#", icon: Mic, locked: true, badge: "Soon" },
     { name: "Predictions", href: "#", icon: Sparkles, locked: true, badge: "Soon" },

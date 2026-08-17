@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Users, TrendingUp, Settings as SettingsIcon, Building2, Send, FileText, Keyboard } from "lucide-react";
+import { ShieldCheck, Users, TrendingUp, Settings as SettingsIcon, Building2, Send, FileText, Keyboard, Layers } from "lucide-react";
 import UsersList from "./UsersList";
 import StatsPanel from "./StatsPanel";
 import PricingEditor from "./PricingEditor";
 import CentersManager from "./CentersManager";
 import TelegramBotManager from "./TelegramBotManager";
+import FullMockManager from "./FullMockManager";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -76,6 +77,12 @@ export default function AdminPage() {
           <FileText className="w-4 h-4" /> Testlar
         </button>
         <button
+          onClick={() => setActiveTab("fullmock")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${activeTab === "fullmock" ? "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 font-semibold" : "text-muted-foreground hover:bg-muted"}`}
+        >
+          <Layers className="w-4 h-4 text-purple-600" /> Full Mocks
+        </button>
+        <button
           onClick={() => router.push("/dashboard/admin/typing")}
           className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all text-muted-foreground hover:bg-muted hover:text-indigo-600"
         >
@@ -96,6 +103,7 @@ export default function AdminPage() {
         {activeTab === "telegram" && <TelegramBotManager />}
         {activeTab === "stats" && <StatsPanel />}
         {activeTab === "pricing" && <PricingEditor />}
+        {activeTab === "fullmock" && <FullMockManager />}
         {isSuperAdmin && activeTab === "centers" && <CentersManager />}
       </div>
     </div>

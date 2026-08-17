@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   CheckCircle2, TrendingUp, Globe, ArrowRight,
   Headphones, BookOpen, PenTool, Clock, ChevronRight,
-  Sparkles, Target, Flame, Lock, Keyboard
+  Sparkles, Target, Flame, Lock, Keyboard, Layers
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
@@ -434,7 +434,14 @@ export default function DashboardPage() {
       {/* ── Tezkor harakatlar ── */}
       <motion.div variants={itemVariants} className="space-y-4">
         <h2 className="text-lg font-bold text-foreground">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <QuickAction
+            icon={Layers}
+            title="Full Mock Test"
+            description="L + R + W to'liq mock imtihon"
+            href="/dashboard/fullmock"
+            gradient="linear-gradient(135deg, oklch(0.55 0.22 270), oklch(0.65 0.2 300))"
+          />
           <QuickAction
             icon={Keyboard}
             title="Typing Practice"

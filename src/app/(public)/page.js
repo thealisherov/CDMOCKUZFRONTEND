@@ -15,6 +15,9 @@ const ReviewCarousel = dynamic(() => import("@/components/ReviewCarousel"), {
 const ForCenters = dynamic(() => import("@/components/landing/ForCenters"), {
   loading: () => <section className="py-24" />,
 });
+const FullMockSection = dynamic(() => import("@/components/landing/FullMockSection"), {
+  loading: () => <section className="py-20" />,
+});
 const Pricing = dynamic(() => import("@/components/landing/Pricing"), {
   loading: () => <section className="py-24" />,
 });
@@ -25,11 +28,12 @@ export default function Home() {
       <Hero />
       <Features />
       <About />
+      <FullMockSection />
+      <ForCenters />
       <Founders />
       <section id="reviews" className="py-20 bg-center bg-no-repeat bg-cover">
         <ReviewCarousel />
       </section>
-      <ForCenters />
       <Pricing />
     </>
   );
