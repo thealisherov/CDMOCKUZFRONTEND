@@ -13,10 +13,16 @@ import { signCenterSession, CENTER_COOKIE, CENTER_COOKIE_OPTIONS } from '@/lib/c
 
 export const dynamic = 'force-dynamic';
 
+function isSuperAdminEmail(email) {
+  if (!email) return false;
+  const e = email.toLowerCase().trim();
+  return e.includes('aziz0826') || e === 'aziz0826@gmail.com' || e === 'aziz0826alisheroc@gmail.com';
+}
+
 export async function GET(request, { params }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.user_metadata?.role !== 'admin') {
+  if (!user || user.user_metadata?.role !== 'admin' || !isSuperAdminEmail(user.email)) {
     return NextResponse.json({ error: 'Ruxsat yo\'q' }, { status: 403 });
   }
 

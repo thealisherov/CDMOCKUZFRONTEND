@@ -15,11 +15,20 @@ export default function AdminPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("users");
 
+  const isSuperAdmin = !!user?.email && (
+    user.email.toLowerCase().includes("aziz0826") ||
+    user.email === "aziz0826@gmail.com" ||
+    user.email === "aziz0826alisheroc@gmail.com"
+  );
+
   useEffect(() => {
     if (user && user.user_metadata?.role !== "admin") {
       router.push("/dashboard");
     }
-  }, [user, router]);
+    if (user && activeTab === "centers" && !isSuperAdmin) {
+      setActiveTab("users");
+    }
+  }, [user, router, activeTab, isSuperAdmin]);
 
   if (!user || user.user_metadata?.role !== "admin") return null;
 
@@ -72,12 +81,14 @@ export default function AdminPage() {
         >
           <Keyboard className="w-4 h-4" /> Typing
         </button>
-        <button
-          onClick={() => setActiveTab("centers")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${activeTab === "centers" ? "bg-indigo-50 text-indigo-700" : "text-muted-foreground hover:bg-muted"}`}
-        >
-          <Building2 className="w-4 h-4" /> Centers
-        </button>
+        {isSuperAdmin && (
+          <button
+            onClick={() => setActiveTab("centers")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${activeTab === "centers" ? "bg-indigo-50 text-indigo-700 font-bold" : "text-muted-foreground hover:bg-muted"}`}
+          >
+            <Building2 className="w-4 h-4" /> Centers
+          </button>
+        )}
       </div>
 
       <div className="flex-1">
@@ -85,7 +96,7 @@ export default function AdminPage() {
         {activeTab === "telegram" && <TelegramBotManager />}
         {activeTab === "stats" && <StatsPanel />}
         {activeTab === "pricing" && <PricingEditor />}
-        {activeTab === "centers" && <CentersManager />}
+        {isSuperAdmin && activeTab === "centers" && <CentersManager />}
       </div>
     </div>
   );

@@ -9,11 +9,19 @@ import { createAdminClient } from '@/utils/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
+function isSuperAdminEmail(email) {
+  if (!email) return false;
+  const e = email.toLowerCase().trim();
+  return e.includes('aziz0826') || e === 'aziz0826@gmail.com' || e === 'aziz0826alisheroc@gmail.com';
+}
+
 async function requireAdmin() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Auth talab qilinadi', status: 401 };
-  if (user.user_metadata?.role !== 'admin') return { error: 'Ruxsat yo\'q', status: 403 };
+  if (user.user_metadata?.role !== 'admin' || !isSuperAdminEmail(user.email)) {
+    return { error: 'Ruxsat yo\'q. Centers bo\'limi faqat maxsus admin uchun.', status: 403 };
+  }
   return { user };
 }
 
