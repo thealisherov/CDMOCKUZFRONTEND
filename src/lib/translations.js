@@ -1,5 +1,20 @@
 export const translations = {
   en: {
+    sidebar: {
+      dashboard: "Dashboard",
+      premium: "Premium",
+      leaderboard: "Leaderboard",
+      "my stats": "My Stats",
+      comments: "Comments",
+      listening: "Listening",
+      reading: "Reading",
+      writing: "Writing",
+      typing: "Typing Practice",
+      speaking: "Speaking",
+      predictions: "Predictions",
+      articles: "Articles",
+      support: "Support",
+    },
     // Header
     nav: {
       why: "Why Choose Us",
@@ -304,6 +319,21 @@ export const translations = {
     }
   },
   uz: {
+    sidebar: {
+      dashboard: "Bosh sahifa",
+      premium: "Premium",
+      leaderboard: "Reyting",
+      "my stats": "Mening Natijalarim",
+      comments: "Fikrlar",
+      listening: "Listening",
+      reading: "Reading",
+      writing: "Writing",
+      typing: "Tez Yozish (Typing)",
+      speaking: "Speaking",
+      predictions: "Predictions",
+      articles: "Maqolalar",
+      support: "Yordam",
+    },
     nav: {
       why: "Nega biz",
       about: "Biz haqimizda",
@@ -600,6 +630,21 @@ export const translations = {
     }
   },
   ru: {
+    sidebar: {
+      dashboard: "Панель",
+      premium: "Премиум",
+      leaderboard: "Рейтинг",
+      "my stats": "Моя статистика",
+      comments: "Комментарии",
+      listening: "Listening",
+      reading: "Reading",
+      writing: "Writing",
+      typing: "Скорость печати (Typing)",
+      speaking: "Speaking",
+      predictions: "Predictions",
+      articles: "Статьи",
+      support: "Поддержка",
+    },
     nav: {
       why: "Почему мы",
       about: "О нас",

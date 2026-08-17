@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Users, TrendingUp, Settings as SettingsIcon, Building2, Send, FileText } from "lucide-react";
+import { ShieldCheck, Users, TrendingUp, Settings as SettingsIcon, Building2, Send, FileText, Keyboard } from "lucide-react";
 import UsersList from "./UsersList";
 import StatsPanel from "./StatsPanel";
 import PricingEditor from "./PricingEditor";
@@ -65,6 +65,12 @@ export default function AdminPage() {
           className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all text-muted-foreground hover:bg-muted"
         >
           <FileText className="w-4 h-4" /> Testlar
+        </button>
+        <button
+          onClick={() => router.push("/dashboard/admin/typing")}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all text-muted-foreground hover:bg-muted hover:text-indigo-600"
+        >
+          <Keyboard className="w-4 h-4" /> Typing
         </button>
         <button
           onClick={() => setActiveTab("centers")}

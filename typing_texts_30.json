@@ -1,0 +1,242 @@
+[
+  {
+    "title": "Academic Essay Writing",
+    "category": "academic",
+    "difficulty": "easy",
+    "language": "en",
+    "is_active": true,
+    "content": "The ability to write clearly and effectively is one of the most critical skills required for success in higher education. Academic essays demand precise vocabulary, logical organization of ideas, and well-supported arguments."
+  },
+  {
+    "title": "Global Climate Change",
+    "category": "academic",
+    "difficulty": "medium",
+    "language": "en",
+    "is_active": true,
+    "content": "Climate change represents one of the most pressing challenges of our modern era. Rising global temperatures contribute to significant changes in weather patterns, sea level rise, and widespread ecological transformations across the planet."
+  },
+  {
+    "title": "Artificial Intelligence and Society",
+    "category": "tech",
+    "difficulty": "hard",
+    "language": "en",
+    "is_active": true,
+    "content": "Modern computing has transformed the paradigm of problem solving. Autonomous systems and machine learning algorithms analyze vast datasets in milliseconds, enabling scientific breakthroughs that were once thought to be purely theoretical."
+  },
+  {
+    "title": "Space Exploration and Mars",
+    "category": "academic",
+    "difficulty": "medium",
+    "language": "en",
+    "is_active": true,
+    "content": "Humanity stands on the verge of becoming a multi-planetary species. Advanced propulsion technologies and orbital habitats are paving the way for sustainable exploration missions to Mars and beyond."
+  },
+  {
+    "title": "The Power of Atomic Habits",
+    "category": "general",
+    "difficulty": "easy",
+    "language": "en",
+    "is_active": true,
+    "content": "Small changes often appear to make no difference until you cross a critical threshold. Tiny habits compound over time into remarkable personal transformations, proving that consistency matters far more than intensity."
+  },
+  {
+    "title": "Renewable Energy Transitions",
+    "category": "tech",
+    "difficulty": "medium",
+    "language": "en",
+    "is_active": true,
+    "content": "Transitioning toward sustainable energy systems is vital for reducing greenhouse gas emissions. Solar photovoltaic cells and offshore wind turbines are becoming increasingly efficient and cost-effective worldwide."
+  },
+  {
+    "title": "Cognitive Psychology and Memory",
+    "category": "academic",
+    "difficulty": "hard",
+    "language": "en",
+    "is_active": true,
+    "content": "Human memory is not a passive recording device, but an active constructive process. Neuroscientists have discovered that neural pathways strengthen through spaced repetition and deliberate recall practice."
+  },
+  {
+    "title": "Marine Biodiversity and Reefs",
+    "category": "academic",
+    "difficulty": "medium",
+    "language": "en",
+    "is_active": true,
+    "content": "Coral reefs support more than twenty-five percent of all marine life despite occupying less than one percent of the ocean floor. Protecting these delicate ecosystems is essential for maintaining oceanic equilibrium."
+  },
+  {
+    "title": "Modern Urban Architecture",
+    "category": "academic",
+    "difficulty": "easy",
+    "language": "en",
+    "is_active": true,
+    "content": "Contemporary urban planners design smart cities that prioritize public green spaces, energy-efficient transport networks, and sustainable building materials to enhance citizen wellbeing."
+  },
+  {
+    "title": "Evolution of Human Language",
+    "category": "literature",
+    "difficulty": "hard",
+    "language": "en",
+    "is_active": true,
+    "content": "Linguistic evolution demonstrates the remarkable adaptability of human cognition. Over thousands of years, dialects diverged and syntax developed, creating intricate symbolic communication systems."
+  },
+  {
+    "title": "Economic Globalization and Trade",
+    "category": "academic",
+    "difficulty": "medium",
+    "language": "en",
+    "is_active": true,
+    "content": "International trade agreements and supply chain logistics have interconnected national economies. Understanding exchange rates and comparative advantage is essential for analyzing international economic development."
+  },
+  {
+    "title": "Deep Ocean Exploration",
+    "category": "general",
+    "difficulty": "medium",
+    "language": "en",
+    "is_active": true,
+    "content": "The deep sea remains one of the least explored frontiers on Earth. Benthic zones harbor bioluminescent organisms that thrive under extreme pressure and perpetual darkness near hydrothermal vents."
+  },
+  {
+    "title": "Mindfulness and Mental Resilience",
+    "category": "quotes",
+    "difficulty": "easy",
+    "language": "en",
+    "is_active": true,
+    "content": "You cannot always control external events, but you can cultivate internal serenity. Practicing mindfulness allows the mind to respond thoughtfully rather than reacting impulsively to daily stresses."
+  },
+  {
+    "title": "Cybersecurity and Digital Privacy",
+    "category": "tech",
+    "difficulty": "medium",
+    "language": "en",
+    "is_active": true,
+    "content": "In an increasingly interconnected digital world, safeguarding sensitive information is crucial. Cryptographic protocols and multi-factor authentication form the primary defense against sophisticated cyber threats."
+  },
+  {
+    "title": "History of the Printing Press",
+    "category": "literature",
+    "difficulty": "easy",
+    "language": "en",
+    "is_active": true,
+    "content": "The invention of the movable type printing press in the fifteenth century democratized knowledge. It enabled rapid dissemination of literature, scientific discoveries, and philosophical ideas across Europe."
+  },
+  {
+    "title": "Biotechnology and Gene Editing",
+    "category": "tech",
+    "difficulty": "hard",
+    "language": "en",
+    "is_active": true,
+    "content": "CRISPR-Cas9 molecular tools have revolutionized genomic research. Targeted gene editing allows scientists to study hereditary diseases with unprecedented precision, opening novel therapeutic avenues."
+  },
+  {
+    "title": "Sustainable Agriculture and Food",
+    "category": "academic",
+    "difficulty": "medium",
+    "language": "en",
+    "is_active": true,
+    "content": "Feeding a growing global population requires regenerative agricultural practices. Crop rotation, precision irrigation, and organic soil management preserve nutrients while minimizing environmental degradation."
+  },
+  {
+    "title": "Archaeology and Ancient Ruins",
+    "category": "academic",
+    "difficulty": "medium",
+    "language": "en",
+    "is_active": true,
+    "content": "Archaeologists use satellite imagery and ground-penetrating radar to unearth lost civilizations. Every discovered artifact provides invaluable insights into ancient trade routes and social structures."
+  },
+  {
+    "title": "Psychology of Decision Making",
+    "category": "academic",
+    "difficulty": "hard",
+    "language": "en",
+    "is_active": true,
+    "content": "Behavioral economists have shown that human rationality is bounded by cognitive biases. Heuristic shortcuts often lead to predictable systematic errors when evaluating risks and probabilities."
+  },
+  {
+    "title": "Nanotechnology Innovations",
+    "category": "tech",
+    "difficulty": "hard",
+    "language": "en",
+    "is_active": true,
+    "content": "Manipulating matter at the nanoscale unveils unique physical and chemical properties. Carbon nanotubes and quantum dots facilitate breakthroughs in targeted drug delivery and high-capacity battery electrodes."
+  },
+  {
+    "title": "Classical Literature and Themes",
+    "category": "literature",
+    "difficulty": "easy",
+    "language": "en",
+    "is_active": true,
+    "content": "Great literature explores timeless themes of courage, redemption, and identity. Through storytelling, authors illuminate the human condition and inspire readers across diverse cultures and generations."
+  },
+  {
+    "title": "The Science of Sleep and Rest",
+    "category": "general",
+    "difficulty": "easy",
+    "language": "en",
+    "is_active": true,
+    "content": "Quality sleep is essential for optimal brain function, emotional regulation, and physical health. During deep non-REM stages, the brain consolidates memories and clears metabolic waste products."
+  },
+  {
+    "title": "Quantum Computing Principles",
+    "category": "tech",
+    "difficulty": "hard",
+    "language": "en",
+    "is_active": true,
+    "content": "Quantum computing leverages superposition and quantum entanglement to process complex mathematical calculations exponentially faster than classical supercomputers."
+  },
+  {
+    "title": "Wildlife Conservation Strategies",
+    "category": "academic",
+    "difficulty": "medium",
+    "language": "en",
+    "is_active": true,
+    "content": "Establishing protected wildlife corridors prevents habitat fragmentation and allows migratory species to thrive. Global conservation treaties play a vital role in curbing illegal poaching."
+  },
+  {
+    "title": "The Social Media Landscape",
+    "category": "general",
+    "difficulty": "easy",
+    "language": "en",
+    "is_active": true,
+    "content": "Digital social platforms have transformed communication, community building, and information sharing, but they also require users to cultivate critical digital literacy."
+  },
+  {
+    "title": "Astrophysics and Black Holes",
+    "category": "academic",
+    "difficulty": "hard",
+    "language": "en",
+    "is_active": true,
+    "content": "General relativity predicts that massive dying stars collapse into gravitational singularities. The boundary surrounding a black hole is the event horizon, beyond which nothing can escape."
+  },
+  {
+    "title": "Clean Water Accessibility",
+    "category": "academic",
+    "difficulty": "medium",
+    "language": "en",
+    "is_active": true,
+    "content": "Access to clean potable water is a fundamental human right. Solar-powered desalination plants and innovative filtration membranes offer sustainable solutions for water-scarce regions."
+  },
+  {
+    "title": "Philosophy of Stoic Wisdom",
+    "category": "quotes",
+    "difficulty": "medium",
+    "language": "en",
+    "is_active": true,
+    "content": "Stoic philosophers taught that true freedom comes from distinguishing between things within our control and things outside our control. Focus your energy solely on virtue and purposeful action."
+  },
+  {
+    "title": "Microplastics in Ecosystems",
+    "category": "academic",
+    "difficulty": "hard",
+    "language": "en",
+    "is_active": true,
+    "content": "Synthetic polymers degrade into microscopic plastic particles that accumulate in aquatic organisms. Bioaccumulation across trophic levels poses emerging ecological and biological concerns."
+  },
+  {
+    "title": "The Art of Public Speaking",
+    "category": "general",
+    "difficulty": "easy",
+    "language": "en",
+    "is_active": true,
+    "content": "Confident public speaking is developed through preparation and practice. Structuring a clear message, maintaining eye contact, and pacing your delivery effectively engages any audience."
+  }
+]

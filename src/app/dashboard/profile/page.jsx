@@ -9,7 +9,8 @@ import { useRouter } from "next/navigation";
 import {
   Mail, Calendar, Shield, Crown, Clock, Flame,
   BookOpen, CheckCircle2, Timer, Camera, Trash2,
-  Trophy, Target, Zap, CreditCard, TrendingUp, Lock
+  Trophy, Target, Zap, CreditCard, TrendingUp, Lock,
+  Keyboard, Award
 } from "lucide-react";
 import toast from 'react-hot-toast';
 
@@ -34,13 +35,30 @@ export default function ProfilePage() {
   const fetchProfile = async () => {
     try {
       // Barcha ma'lumot bitta so'rovda, server tomonda parallel tortiladi.
-      const res = await fetch('/api/profile');
-      if (res.status === 401) {
+      const [profileRes, typingBadgesRes, typingStatusRes] = await Promise.all([
+        fetch('/api/profile'),
+        fetch('/api/typing/badges').catch(() => null),
+        fetch('/api/typing/status').catch(() => null)
+      ]);
+
+      if (profileRes.status === 401) {
         setLoading(false);
         return;
       }
-      if (!res.ok) throw new Error('Failed to load profile');
-      const data = await res.json();
+      if (!profileRes.ok) throw new Error('Failed to load profile');
+      const data = await profileRes.json();
+
+      let typingBadges = [];
+      let typingStatus = null;
+
+      if (typingBadgesRes && typingBadgesRes.ok) {
+        const tbJson = await typingBadgesRes.json();
+        typingBadges = tbJson.badges || [];
+      }
+
+      if (typingStatusRes && typingStatusRes.ok) {
+        typingStatus = await typingStatusRes.json();
+      }
 
       // TestAttempts ustunlarini UI kutayotgan formatga moslaymiz
       const mappedResults = (data.testResults || []).map((a) => ({
@@ -59,6 +77,8 @@ export default function ProfilePage() {
         payments: data.payments || [],
         testResults: mappedResults,
         rank: data.rank,
+        typingBadges,
+        typingStatus
       });
     } catch (err) {
       console.error(err);
@@ -365,6 +385,62 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Typing & Achievements */}
+          <div className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-border shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <Keyboard className="w-4 h-4 text-indigo-500" /> Typing Yutuqlari
+              </h3>
+              {profileData.typingStatus?.bestWpm > 0 && (
+                <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-1 rounded-full">
+                  Eng yaxshi: {profileData.typingStatus.bestWpm} WPM
+                </span>
+              )}
+            </div>
+
+            {profileData.typingBadges && profileData.typingBadges.length > 0 ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {profileData.typingBadges.map((badge) => (
+                    <div
+                      key={badge.id}
+                      className={`p-3 rounded-2xl border text-center transition-all ${
+                        badge.unlocked
+                          ? "bg-amber-50/50 dark:bg-amber-950/20 border-amber-300 dark:border-amber-700/40 shadow-xs"
+                          : "bg-muted/20 border-border/60 opacity-40 grayscale"
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center mx-auto mb-1.5 shadow-sm text-xs font-bold">
+                        <Award className="w-4 h-4" />
+                      </div>
+                      <p className="text-[11px] font-bold text-foreground truncate">{badge.name}</p>
+                      <p className="text-[9px] text-muted-foreground truncate">{badge.unlocked ? "Ochilgan" : "Qulflangan"}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-2 text-right">
+                  <button
+                    onClick={() => router.push('/dashboard/typing')}
+                    className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+                  >
+                    Typing mashqlariga o&apos;tish →
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-xs text-muted-foreground">Hozircha yutuqlar ochilmagan</p>
+                <button
+                  onClick={() => router.push('/dashboard/typing')}
+                  className="mt-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+                >
+                  Birinchi mashqni boshlash →
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Payments */}

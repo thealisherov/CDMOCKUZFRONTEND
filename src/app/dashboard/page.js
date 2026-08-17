@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   CheckCircle2, TrendingUp, Globe, ArrowRight,
   Headphones, BookOpen, PenTool, Clock, ChevronRight,
-  Sparkles, Target, Flame, Lock,
+  Sparkles, Target, Flame, Lock, Keyboard
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
@@ -434,7 +434,14 @@ export default function DashboardPage() {
       {/* ── Tezkor harakatlar ── */}
       <motion.div variants={itemVariants} className="space-y-4">
         <h2 className="text-lg font-bold text-foreground">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <QuickAction
+            icon={Keyboard}
+            title="Typing Practice"
+            description="Boost WPM speed and accuracy"
+            href="/dashboard/typing"
+            gradient="linear-gradient(135deg, oklch(0.48 0.22 270), oklch(0.55 0.2 290))"
+          />
           <QuickAction
             icon={BookOpen}
             title="Reading Practice"
