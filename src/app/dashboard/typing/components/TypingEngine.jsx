@@ -43,12 +43,31 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
   const [showLimitModal, setShowLimitModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // DOM Refs
+  // DOM & State Refs (Prevents any stale closure bugs!)
   const inputRef = useRef(null);
   const textContainerRef = useRef(null);
   const timerIntervalRef = useRef(null);
 
-  // 1. Matnni serverdan yuklash (Faqat ingliz tilida)
+  const userInputRef = useRef("");
+  const targetTextRef = useRef("");
+  const statusRef = useRef("idle");
+  const startTimeRef = useRef(null);
+  const modeRef = useRef("time");
+  const modeValueRef = useRef(30);
+  const currentTextIdRef = useRef(null);
+  const userStatusRef = useRef(userStatus);
+
+  // Synchronize refs with state
+  useEffect(() => { userInputRef.current = userInput; }, [userInput]);
+  useEffect(() => { targetTextRef.current = targetText; }, [targetText]);
+  useEffect(() => { statusRef.current = status; }, [status]);
+  useEffect(() => { startTimeRef.current = startTime; }, [startTime]);
+  useEffect(() => { modeRef.current = mode; }, [mode]);
+  useEffect(() => { modeValueRef.current = modeValue; }, [modeValue]);
+  useEffect(() => { currentTextIdRef.current = currentTextId; }, [currentTextId]);
+  useEffect(() => { userStatusRef.current = userStatus; }, [userStatus]);
+
+  // 1. Matnni serverdan yuklash
   const loadText = useCallback(async () => {
     setLoadingText(true);
     setNoTextsAvailable(false);
@@ -58,7 +77,6 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
       const textsList = json.texts || [];
 
       if (textsList.length === 0) {
-        // Agar tanlangan difficulty bo'yicha yo'q bo'lsa, har qanday active en matnni olamiz
         const fallbackRes = await fetch(`/api/typing/texts?lang=en`);
         const fallbackJson = await fallbackRes.json();
         const fallbackList = fallbackJson.texts || [];
@@ -86,9 +104,8 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
   }, [difficulty, mode, modeValue]);
 
   const prepareTextContent = (content, id) => {
-    let chosenText = content.trim();
+    let chosenText = (content || "").trim();
 
-    // Agar 'words' rejimida bo'lsa, so'zlar sonini moslashtiramiz
     if (mode === "words") {
       const wordsArr = chosenText.split(/\s+/).filter(Boolean);
       if (wordsArr.length < modeValue) {
@@ -101,7 +118,6 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
         chosenText = wordsArr.slice(0, modeValue).join(" ");
       }
     } else {
-      // Time rejimida 60s/120s uchun yetarli bo'lishi uchun
       if (modeValue >= 60) {
         const wordsArr = chosenText.split(/\s+/).filter(Boolean);
         let expanded = [...wordsArr];
@@ -113,16 +129,21 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
     }
 
     setTargetText(chosenText);
+    targetTextRef.current = chosenText;
     setCurrentTextId(id);
+    currentTextIdRef.current = id;
     setNoTextsAvailable(false);
   };
 
-  // Restart / Reset
+  // 2. Restart / Reset funksiyasi
   const handleReset = useCallback(() => {
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     setStatus("idle");
+    statusRef.current = "idle";
     setUserInput("");
+    userInputRef.current = "";
     setStartTime(null);
+    startTimeRef.current = null;
     setElapsedSeconds(0);
     setTimeLeft(mode === "time" ? modeValue : 0);
     setWpm(0);
@@ -132,9 +153,10 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
     setIncorrectChars(0);
     setResultData(null);
     loadText();
+
     setTimeout(() => {
       inputRef.current?.focus();
-    }, 50);
+    }, 80);
   }, [mode, modeValue, loadText]);
 
   // Initial mount va rejim o'zgarganda yuklash
@@ -142,43 +164,50 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
     handleReset();
   }, [handleReset]);
 
-  // 2. Taymer va Live Metrics hisoblash
-  useEffect(() => {
-    if (status !== "running") return;
-
-    timerIntervalRef.current = setInterval(() => {
-      const now = Date.now();
-      const elapsed = Math.max(1, Math.floor((now - startTime) / 1000));
-      setElapsedSeconds(elapsed);
-
-      if (mode === "time") {
-        const remaining = Math.max(0, modeValue - elapsed);
-        setTimeLeft(remaining);
-
-        if (remaining <= 0) {
-          clearInterval(timerIntervalRef.current);
-          handleFinish(elapsed);
-        }
-      }
-    }, 200);
-
-    return () => {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    };
-  }, [status, startTime, mode, modeValue]);
-
   // 3. Testni yakunlash va Natijani saqlash
-  const handleFinish = async (totalDuration) => {
+  const handleFinish = useCallback(async (forcedDuration) => {
+    if (statusRef.current === "finished") return;
     setStatus("finished");
+    statusRef.current = "finished";
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
 
-    const duration = Math.max(1, totalDuration || elapsedSeconds || 1);
-    const correctCount = correctChars;
-    const incorrectCount = incorrectChars;
+    const now = Date.now();
+    const st = startTimeRef.current || now;
+    const computedDuration = Math.max(1, forcedDuration || Math.floor((now - st) / 1000) || 1);
+
+    const currentInput = userInputRef.current || "";
+    const currentTarget = targetTextRef.current || "";
+
+    let correctCount = 0;
+    let incorrectCount = 0;
+
+    for (let i = 0; i < currentInput.length; i++) {
+      if (currentInput[i] === currentTarget[i]) {
+        correctCount++;
+      } else {
+        incorrectCount++;
+      }
+    }
+
     const totalTyped = correctCount + incorrectCount;
 
-    const finalWpm = Math.round((correctCount / 5) / (duration / 60));
-    const finalRawWpm = Math.round((totalTyped / 5) / (duration / 60));
+    // Agar juda kam harf yozilgan bo'lsa (< 5 ta), saqlamaymiz
+    if (totalTyped < 5) {
+      setResultData({
+        wpm: 0,
+        rawWpm: 0,
+        accuracy: 0,
+        correctChars: correctCount,
+        incorrectChars: incorrectCount,
+        durationSeconds: computedDuration,
+        earnedXp: 0,
+        tooShort: true
+      });
+      return;
+    }
+
+    const finalWpm = Math.max(1, Math.round((correctCount / 5) / (computedDuration / 60)));
+    const finalRawWpm = Math.max(1, Math.round((totalTyped / 5) / (computedDuration / 60)));
     const finalAccuracy = totalTyped > 0 ? Math.round((correctCount / totalTyped) * 1000) / 10 : 100;
 
     const result = {
@@ -187,7 +216,7 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
       accuracy: finalAccuracy,
       correctChars: correctCount,
       incorrectChars: incorrectCount,
-      durationSeconds: duration,
+      durationSeconds: computedDuration,
       earnedXp: 15 + Math.floor(finalWpm / 10) * 2 + (finalAccuracy >= 98 ? 10 : 0)
     };
 
@@ -200,15 +229,15 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          text_id: currentTextId,
-          mode,
-          mode_value: modeValue,
+          text_id: currentTextIdRef.current,
+          mode: modeRef.current,
+          mode_value: modeValueRef.current,
           wpm: finalWpm,
           raw_wpm: finalRawWpm,
           accuracy: finalAccuracy,
           correct_chars: correctCount,
           incorrect_chars: incorrectCount,
-          duration_seconds: duration
+          duration_seconds: computedDuration
         })
       });
 
@@ -220,55 +249,75 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
         return;
       }
 
-      if (!res.ok) {
-        throw new Error(json.error || "Natijani saqlashda xatolik");
-      }
-
-      // Yangi ochilgan badge bo'lsa ko'rsatamiz
       if (json.newlyEarnedBadges && json.newlyEarnedBadges.length > 0) {
         setEarnedBadge(json.newlyEarnedBadges[0]);
       }
 
-      // Ota komponent statistikasini yangilash
       onStatsUpdated?.();
-
     } catch (err) {
       console.warn("Attempt save error:", err.message);
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [onStatsUpdated]);
 
-  // 4. Harflar kiritilishini boshqarish
-  const handleInputChange = (e) => {
-    if (status === "finished" || !targetText) return;
+  // 4. Taymer va Live Metrics hisoblash (Interval)
+  useEffect(() => {
+    if (status !== "running") return;
 
-    const value = e.target.value;
+    timerIntervalRef.current = setInterval(() => {
+      const now = Date.now();
+      const st = startTimeRef.current || now;
+      const elapsed = Math.max(1, Math.floor((now - st) / 1000));
+      setElapsedSeconds(elapsed);
+
+      if (modeRef.current === "time") {
+        const remaining = Math.max(0, modeValueRef.current - elapsed);
+        setTimeLeft(remaining);
+
+        if (remaining <= 0) {
+          clearInterval(timerIntervalRef.current);
+          handleFinish(modeValueRef.current);
+        }
+      }
+    }, 200);
+
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    };
+  }, [status, handleFinish]);
+
+  // 5. Harflar kiritilishini boshqarish
+  const processKeyInput = useCallback((newValue) => {
+    if (statusRef.current === "finished" || !targetTextRef.current) return;
 
     // Birinchi harf kiritilganda taymer boshlanadi
-    if (status === "idle" && value.length > 0) {
-      // Agar free limit allaqachon tugagan bo'lsa
-      if (!userStatus?.isPremium && userStatus?.remainingToday <= 0) {
+    if (statusRef.current === "idle" && newValue.length > 0) {
+      const uStat = userStatusRef.current;
+      if (!uStat?.isPremium && uStat?.remainingToday <= 0) {
         setShowLimitModal(true);
         return;
       }
 
       setStatus("running");
+      statusRef.current = "running";
       const now = Date.now();
       setStartTime(now);
-      if (mode === "time") {
-        setTimeLeft(modeValue);
+      startTimeRef.current = now;
+      if (modeRef.current === "time") {
+        setTimeLeft(modeValueRef.current);
       }
     }
 
-    setUserInput(value);
+    setUserInput(newValue);
+    userInputRef.current = newValue;
 
-    // To'g'ri va xato harflarni hisoblash
+    const currentTarget = targetTextRef.current;
     let correct = 0;
     let incorrect = 0;
 
-    for (let i = 0; i < value.length; i++) {
-      if (value[i] === targetText[i]) {
+    for (let i = 0; i < newValue.length; i++) {
+      if (newValue[i] === currentTarget[i]) {
         correct++;
       } else {
         incorrect++;
@@ -279,7 +328,8 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
     setIncorrectChars(incorrect);
 
     const now = Date.now();
-    const currentElapsed = startTime ? Math.max(1, Math.floor((now - startTime) / 1000)) : 1;
+    const st = startTimeRef.current || now;
+    const currentElapsed = Math.max(1, Math.floor((now - st) / 1000));
     const currentTotal = correct + incorrect;
 
     const currentWpm = Math.round((correct / 5) / (currentElapsed / 60));
@@ -291,18 +341,38 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
     setAccuracy(currentAcc);
 
     // Words rejimida matn oxiriga yetganda testni yakunlash
-    if (mode === "words" && value.length >= targetText.length) {
+    if (modeRef.current === "words" && newValue.length >= currentTarget.length) {
       handleFinish(currentElapsed);
     }
-  };
+  }, [handleFinish]);
 
-  // Klaviatura qisqa buyruqlari (Tab + Enter -> Qayta boshlash)
-  const handleKeyDown = (e) => {
-    if (e.key === "Tab") {
-      e.preventDefault();
-      handleReset();
-    }
-  };
+  // Global window keydown listener — Monkeytype kabi qayerda bosilsa ham ishlaydi
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      // Agar modal ochiq bo'lsa yoki finished bo'lsa
+      if (statusRef.current === "finished") return;
+
+      if (e.key === "Tab") {
+        e.preventDefault();
+        handleReset();
+        return;
+      }
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        handleReset();
+        return;
+      }
+
+      // Inputga fokus berish
+      if (document.activeElement !== inputRef.current) {
+        inputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [handleReset]);
 
   // Belgilarni render qilish uchun array
   const renderedChars = useMemo(() => {
@@ -443,7 +513,7 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
         <div className="flex items-center justify-between px-2 text-muted-foreground">
           <div className="flex items-center gap-6">
             <div className="space-y-0.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">Speed</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">Live Speed</span>
               <p className="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400 tabular-nums">
                 {wpm} <span className="text-xs font-bold text-muted-foreground">WPM</span>
               </p>
@@ -471,42 +541,30 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
       {status !== "finished" ? (
         <div
           onClick={() => inputRef.current?.focus()}
-          className="relative min-h-[260px] sm:min-h-[300px] p-6 sm:p-10 rounded-[2.5rem] bg-card border-2 border-border/80 shadow-lg hover:border-indigo-500/40 transition-all cursor-text select-none flex flex-col justify-center"
+          className="relative min-h-[260px] sm:min-h-[300px] p-6 sm:p-10 rounded-[2.5rem] bg-card border-2 border-border/80 shadow-lg hover:border-indigo-500/40 transition-all cursor-text select-none flex flex-col justify-center overflow-hidden"
         >
-          {/* Hidden input catching keystrokes */}
+          {/* Transparent Input covering whole surface */}
           <input
             ref={inputRef}
             type="text"
             value={userInput}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
+            onChange={(e) => processKeyInput(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             autoCapitalize="off"
             autoCorrect="off"
             autoComplete="off"
             spellCheck="false"
-            className="absolute opacity-0 pointer-events-none w-0 h-0"
+            className="absolute inset-0 opacity-0 w-full h-full cursor-text z-10"
           />
-
-          {/* Blur Focus Overlay */}
-          {!isFocused && (
-            <div className="absolute inset-0 z-20 rounded-[2.5rem] bg-background/80 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-150">
-              <Zap className="w-8 h-8 text-indigo-600 animate-bounce mb-2" />
-              <h4 className="text-base font-extrabold text-foreground">Click to Focus</h4>
-              <p className="text-xs text-muted-foreground mt-1">
-                Press any key or click here to resume typing
-              </p>
-            </div>
-          )}
 
           {/* Text Characters Render */}
           <div
             ref={textContainerRef}
-            className="text-lg sm:text-2xl font-mono leading-relaxed tracking-wider text-justify break-words relative overflow-hidden max-h-[320px]"
+            className="text-lg sm:text-2xl font-mono leading-relaxed tracking-wider text-justify break-words relative overflow-hidden max-h-[320px] pointer-events-none"
           >
             {renderedChars.map((item) => {
-              let charColor = "text-muted-foreground/45"; // pending
+              let charColor = "text-muted-foreground/40"; // pending
               let bg = "";
 
               if (item.state === "correct") {
@@ -522,7 +580,7 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
                     <motion.span
                       layoutId="typingCaret"
                       transition={{ type: "spring", damping: 28, stiffness: 350 }}
-                      className="absolute -left-[1px] top-1 bottom-1 w-[2.5px] rounded-full bg-indigo-600 dark:bg-indigo-400 animate-pulse z-10"
+                      className="absolute -left-[1px] top-1 bottom-1 w-[2.5px] rounded-full bg-indigo-600 dark:bg-indigo-400 animate-pulse z-20"
                     />
                   )}
                   <span className={`${charColor} ${bg} transition-colors duration-75`}>
@@ -534,7 +592,7 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
           </div>
 
           {/* Bottom Hint */}
-          <div className="mt-8 flex items-center justify-between text-xs text-muted-foreground opacity-60">
+          <div className="mt-8 flex items-center justify-between text-xs text-muted-foreground opacity-70 z-20">
             <span className="flex items-center gap-1.5 font-medium">
               <kbd className="px-2 py-0.5 rounded-md bg-muted border border-border font-mono text-[10px]">Tab</kbd>
               <span>— Restart test</span>
@@ -548,10 +606,10 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
           </div>
         </div>
       ) : (
-        /* ── 4. Glorious Monkeytype Results Screen ── */
+        /* ── 4. Monkeytype Results Screen ── */
         resultData && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.96, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             className="p-6 sm:p-10 rounded-[2.5rem] bg-card border border-border shadow-xl space-y-8 animate-in fade-in duration-300"
           >
@@ -611,9 +669,7 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
               </button>
 
               <button
-                onClick={() => {
-                  handleReset();
-                }}
+                onClick={handleReset}
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl border border-border bg-card hover:bg-muted font-bold text-sm text-foreground transition-all cursor-pointer"
               >
                 Next Text <ArrowRight className="w-4 h-4" />

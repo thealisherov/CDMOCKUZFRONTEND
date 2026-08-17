@@ -100,6 +100,17 @@ export async function POST(request) {
     const parsedRawWpm = Math.round(Number(raw_wpm) || 0);
     const parsedAccuracy = Math.min(100, Math.max(0, Math.round((Number(accuracy) || 0) * 10) / 10));
     const parsedDuration = Math.round(Number(duration_seconds) || 0);
+    const parsedCorrect = Number(correct_chars) || 0;
+    const parsedIncorrect = Number(incorrect_chars) || 0;
+
+    // Bekor qilingan yoki juda qisqa urinishlarni (0 WPM va < 5 harf) bazaga yozmaymiz
+    if (parsedWpm === 0 && parsedCorrect < 5) {
+      return NextResponse.json({
+        skipped: true,
+        message: 'Juda qisqa urinish saqlanmadi',
+        remainingToday: isPremium ? 999 : Math.max(0, FREE_LIMIT - attemptsToday)
+      });
+    }
 
     // 3. typing_attempts jadvaliga kiritish
     const { data: attemptData, error: attemptError } = await supabaseAdmin
@@ -112,8 +123,8 @@ export async function POST(request) {
         wpm: parsedWpm,
         raw_wpm: parsedRawWpm,
         accuracy: parsedAccuracy,
-        correct_chars: Number(correct_chars) || 0,
-        incorrect_chars: Number(incorrect_chars) || 0,
+        correct_chars: parsedCorrect,
+        incorrect_chars: parsedIncorrect,
         duration_seconds: parsedDuration
       }])
       .select()

@@ -42,18 +42,19 @@ export async function GET() {
     const remainingToday = isPremium ? 999 : Math.max(0, FREE_LIMIT - attemptsToday);
 
     const allAttempts = allAttemptsRes.data || [];
+    const validAttempts = allAttempts.filter(a => Number(a.wpm) > 0 || Number(a.accuracy) > 0);
     const totalAttempts = allAttempts.length;
 
     let bestWpm = 0;
     let avgWpm = 0;
     let avgAccuracy = 0;
 
-    if (totalAttempts > 0) {
-      bestWpm = Math.max(...allAttempts.map(a => Number(a.wpm) || 0));
-      const totalWpmSum = allAttempts.reduce((acc, a) => acc + (Number(a.wpm) || 0), 0);
-      avgWpm = Math.round(totalWpmSum / totalAttempts);
-      const totalAccSum = allAttempts.reduce((acc, a) => acc + (Number(a.accuracy) || 0), 0);
-      avgAccuracy = Math.round((totalAccSum / totalAttempts) * 10) / 10;
+    if (validAttempts.length > 0) {
+      bestWpm = Math.max(...validAttempts.map(a => Number(a.wpm) || 0));
+      const totalWpmSum = validAttempts.reduce((acc, a) => acc + (Number(a.wpm) || 0), 0);
+      avgWpm = Math.round(totalWpmSum / validAttempts.length);
+      const totalAccSum = validAttempts.reduce((acc, a) => acc + (Number(a.accuracy) || 0), 0);
+      avgAccuracy = Math.round((totalAccSum / validAttempts.length) * 10) / 10;
     }
 
     return NextResponse.json({
