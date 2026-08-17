@@ -33,7 +33,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const jsonPath = path.resolve(__dirname, '../typing_texts_30.json');
+const jsonPath = path.resolve(__dirname, './data/typing_texts_30.json');
 const TYPING_TEXTS = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
 
 async function seed() {
