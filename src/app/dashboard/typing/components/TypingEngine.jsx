@@ -556,52 +556,9 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
       {/* ── 3. Main Monkeytype Engine Box ── */}
       {status !== "finished" ? (
         <div
-          onClick={() => {
-            if (!user) {
-              setShowAuthModal(true);
-              return;
-            }
-            inputRef.current?.focus();
-          }}
+          onClick={() => inputRef.current?.focus()}
           className="relative min-h-[260px] sm:min-h-[300px] p-6 sm:p-10 rounded-[2.5rem] bg-card border-2 border-border/80 shadow-lg hover:border-indigo-500/40 transition-all cursor-text select-none flex flex-col justify-center overflow-hidden"
         >
-          {/* Guest Overlay Prompt */}
-          {!user && (
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowAuthModal(true);
-              }}
-              className="absolute inset-0 bg-card/85 backdrop-blur-[3px] z-30 flex flex-col items-center justify-center p-6 text-center cursor-pointer select-none rounded-[2.5rem]"
-            >
-              <div className="w-14 h-14 rounded-3xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center mb-3 shadow-xs">
-                <Sparkles className="w-7 h-7" />
-              </div>
-              <h4 className="text-xl font-black text-foreground mb-1.5">
-                Yozishni boshlash uchun tizimga kiring
-              </h4>
-              <p className="text-xs sm:text-sm text-muted-foreground max-w-md mb-5 leading-relaxed">
-                Tez yozish mashqlarini bajarish, WPM tezligingizni hisoblash, leaderboardda o&apos;rin egallash va natijalarni saqlash uchun profilingizga kiring.
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                <Link
-                  href="/login?next=/dashboard/typing"
-                  onClick={(e) => e.stopPropagation()}
-                  className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-extrabold shadow-md shadow-indigo-600/25 transition-all transform active:scale-95"
-                >
-                  Tizimga Kirish
-                </Link>
-                <Link
-                  href="/register"
-                  onClick={(e) => e.stopPropagation()}
-                  className="px-6 py-2.5 rounded-xl bg-muted hover:bg-muted/80 text-foreground text-xs sm:text-sm font-bold border border-border transition-all"
-                >
-                  Ro&apos;yxatdan o&apos;tish
-                </Link>
-              </div>
-            </div>
-          )}
-
           {/* Transparent Input covering whole surface */}
           <input
             ref={inputRef}
