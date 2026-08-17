@@ -34,38 +34,38 @@ const TYPE_META = {
   listening: {
     icon: Headphones,
     label: "Listening",
-    chip: "bg-blue-50 text-blue-700 border-blue-100",
-    num: "text-blue-600",
-    iconBg: "bg-blue-50 text-blue-600",
-    accent: "text-blue-600",
-    badge: "bg-blue-100 text-blue-800 border-blue-200",
+    chip: "bg-blue-50/90 text-blue-950 border-blue-200 shadow-2xs",
+    num: "text-blue-700 font-black",
+    iconBg: "bg-blue-100 text-blue-700",
+    accent: "text-blue-700",
+    badge: "bg-blue-100 text-blue-900 border-blue-300 font-bold",
   },
   reading: {
     icon: BookOpen,
     label: "Reading",
-    chip: "bg-green-50 text-green-700 border-green-100",
-    num: "text-green-600",
-    iconBg: "bg-green-50 text-green-600",
-    accent: "text-green-600",
-    badge: "bg-green-100 text-green-800 border-green-200",
+    chip: "bg-emerald-50/90 text-emerald-950 border-emerald-200 shadow-2xs",
+    num: "text-emerald-700 font-black",
+    iconBg: "bg-emerald-100 text-emerald-700",
+    accent: "text-emerald-700",
+    badge: "bg-emerald-100 text-emerald-900 border-emerald-300 font-bold",
   },
   writing: {
     icon: PenLine,
     label: "Writing",
-    chip: "bg-purple-50 text-purple-700 border-purple-100",
-    num: "text-purple-600",
-    iconBg: "bg-purple-50 text-purple-600",
-    accent: "text-purple-600",
-    badge: "bg-purple-100 text-purple-800 border-purple-200",
+    chip: "bg-purple-50/90 text-purple-950 border-purple-200 shadow-2xs",
+    num: "text-purple-700 font-black",
+    iconBg: "bg-purple-100 text-purple-700",
+    accent: "text-purple-700",
+    badge: "bg-purple-100 text-purple-900 border-purple-300 font-bold",
   },
   full_mock: {
     icon: Layers,
     label: "Full Mock",
-    chip: "bg-indigo-50 text-indigo-700 border-indigo-100",
-    num: "text-indigo-600",
-    iconBg: "bg-indigo-50 text-indigo-600",
-    accent: "text-indigo-600",
-    badge: "bg-indigo-100 text-indigo-800 border-indigo-200",
+    chip: "bg-indigo-50/90 text-indigo-950 border-indigo-200 shadow-2xs",
+    num: "text-indigo-700 font-black",
+    iconBg: "bg-indigo-100 text-indigo-700",
+    accent: "text-indigo-700",
+    badge: "bg-indigo-100 text-indigo-900 border-indigo-300 font-bold",
   },
 };
 
@@ -446,19 +446,19 @@ export default function PanelClient() {
                     <div className="p-5">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <h3 className="text-lg font-extrabold text-slate-800">
+                          <h3 className="text-xl font-black text-slate-900">
                             {s.student_name} {s.student_surname}
                           </h3>
-                          <p className="text-sm font-medium text-slate-600 mt-0.5">
-                            Test: <span className="text-slate-800 font-semibold">{s.test_title}</span>
+                          <p className="text-sm font-semibold text-slate-700 mt-0.5">
+                            Test: <span className="text-indigo-700 font-bold">{s.test_title}</span>
                           </p>
-                          <p className="text-xs text-slate-400 mt-0.5">
+                          <p className="text-xs text-slate-600 font-semibold mt-1">
                             Topshirildi: {fmtDate(s.created_at)}
                           </p>
                         </div>
                         <button
                           onClick={() => setToDelete(s)}
-                          className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold border border-red-100 transition-colors"
+                          className="px-3.5 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold border border-red-200 transition-colors shadow-2xs cursor-pointer"
                         >
                           O'chirish
                         </button>
@@ -481,16 +481,16 @@ export default function PanelClient() {
                               band={s.server_results?.reading?.band}
                             />
                             <div
-                              className={`flex-1 min-w-[150px] rounded-xl border px-4 py-3 ${TYPE_META.writing.chip}`}
+                              className={`flex-1 min-w-[150px] rounded-2xl border px-4 py-3.5 ${TYPE_META.writing.chip}`}
                             >
-                              <div className="flex items-center gap-2 text-sm font-semibold">
-                                <PenLine className="w-4 h-4" /> Writing
+                              <div className="flex items-center gap-2 text-sm font-bold">
+                                <PenLine className="w-4 h-4 text-purple-700" /> Writing
                               </div>
-                              <p className={`text-2xl font-extrabold mt-1 ${TYPE_META.writing.num}`}>
+                              <p className={`text-2xl font-black mt-1 ${TYPE_META.writing.num}`}>
                                 {s.writing_answers?.length || 0}{" "}
-                                <span className="text-sm font-medium">task</span>
+                                <span className="text-sm font-bold">task</span>
                                 {s.teacher_band != null && (
-                                  <span className="ml-2 text-base">
+                                  <span className="ml-2 text-base font-black">
                                     · Band {Number(s.teacher_band).toFixed(1)}
                                   </span>
                                 )}
@@ -498,25 +498,25 @@ export default function PanelClient() {
                             </div>
                           </>
                         ) : (
-                          <div className={`flex-1 min-w-[160px] rounded-xl border px-4 py-3 ${meta.chip}`}>
-                            <div className="flex items-center gap-2 text-sm font-semibold">
+                          <div className={`flex-1 min-w-[160px] rounded-2xl border px-4 py-3.5 ${meta.chip}`}>
+                            <div className="flex items-center gap-2 text-sm font-bold">
                               <Icon className="w-4 h-4" /> {meta.label}
                             </div>
                             {s.test_type === "writing" ? (
-                              <p className={`text-2xl font-extrabold mt-1 ${meta.num}`}>
+                              <p className={`text-2xl font-black mt-1 ${meta.num}`}>
                                 {s.writing_answers?.length || 0}{" "}
-                                <span className="text-sm font-medium">task</span>
+                                <span className="text-sm font-bold">task</span>
                                 {s.teacher_band != null && (
-                                  <span className="ml-2 text-base">
+                                  <span className="ml-2 text-base font-black">
                                     · Band {Number(s.teacher_band).toFixed(1)}
                                   </span>
                                 )}
                               </p>
                             ) : (
-                              <p className={`text-2xl font-extrabold mt-1 ${meta.num}`}>
+                              <p className={`text-2xl font-black mt-1 ${meta.num}`}>
                                 {s.correct_count}/{s.total_questions}
                                 {s.band_score != null && (
-                                  <span className="ml-2 text-base font-semibold">
+                                  <span className="ml-2 text-base font-black">
                                     Band {Number(s.band_score).toFixed(1)}
                                   </span>
                                 )}
@@ -528,7 +528,7 @@ export default function PanelClient() {
 
                       <button
                         onClick={() => setExpanded(isOpen ? null : s.id)}
-                        className="mt-4 flex items-center gap-1.5 text-xs sm:text-sm text-indigo-600 font-bold hover:text-indigo-700 transition-colors"
+                        className="mt-4 flex items-center gap-1.5 text-xs sm:text-sm text-indigo-600 font-bold hover:text-indigo-800 transition-colors cursor-pointer"
                       >
                         {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         <span>{isOpen ? "Yopish" : "Javoblarni batafsil ko'rish"}</span>
@@ -536,7 +536,7 @@ export default function PanelClient() {
                     </div>
 
                     {isOpen && (
-                      <div className="border-t border-slate-100 bg-slate-50/70 p-5">
+                      <div className="border-t border-slate-200 bg-slate-50/80 p-5 sm:p-6">
                         {s.test_type === "writing" ? (
                           <WritingDetails sub={s} onSaved={fetchData} />
                         ) : s.test_type === "full_mock" ? (
@@ -591,13 +591,13 @@ export default function PanelClient() {
 function SectionSummaryChip({ meta, score, total, band }) {
   const Icon = meta.icon;
   return (
-    <div className={`flex-1 min-w-[150px] rounded-xl border px-4 py-3 ${meta.chip}`}>
-      <div className="flex items-center gap-2 text-sm font-semibold">
+    <div className={`flex-1 min-w-[150px] rounded-2xl border px-4 py-3.5 ${meta.chip}`}>
+      <div className="flex items-center gap-2 text-sm font-bold">
         <Icon className="w-4 h-4" /> {meta.label}
       </div>
-      <p className={`text-2xl font-extrabold mt-1 ${meta.num}`}>
+      <p className={`text-2xl font-black mt-1 ${meta.num}`}>
         {score ?? 0}/{total ?? 0}
-        {band != null && <span className="ml-2 text-base font-semibold">Band {Number(band).toFixed(1)}</span>}
+        {band != null && <span className="ml-2 text-base font-black">Band {Number(band).toFixed(1)}</span>}
       </p>
     </div>
   );
@@ -608,21 +608,21 @@ function FullMockDetails({ sub, onSaved }) {
   return (
     <div className="space-y-6">
       <div>
-        <h4 className="font-bold text-blue-700 mb-2 flex items-center gap-2">
-          <Headphones className="w-4 h-4" /> Listening
-        </h4>
+        <div className="inline-flex items-center gap-2 mb-3 bg-blue-100 text-blue-950 px-3.5 py-1.5 rounded-xl border border-blue-200 font-black text-sm shadow-2xs">
+          <Headphones className="w-4 h-4 text-blue-700" /> Listening Natijalari
+        </div>
         <ObjectiveDetails results={sr.listening?.results} />
       </div>
       <div>
-        <h4 className="font-bold text-green-700 mb-2 flex items-center gap-2">
-          <BookOpen className="w-4 h-4" /> Reading
-        </h4>
+        <div className="inline-flex items-center gap-2 mb-3 bg-emerald-100 text-emerald-950 px-3.5 py-1.5 rounded-xl border border-emerald-200 font-black text-sm shadow-2xs">
+          <BookOpen className="w-4 h-4 text-emerald-700" /> Reading Natijalari
+        </div>
         <ObjectiveDetails results={sr.reading?.results} />
       </div>
       <div>
-        <h4 className="font-bold text-purple-700 mb-2 flex items-center gap-2">
-          <PenLine className="w-4 h-4" /> Writing
-        </h4>
+        <div className="inline-flex items-center gap-2 mb-3 bg-purple-100 text-purple-950 px-3.5 py-1.5 rounded-xl border border-purple-200 font-black text-sm shadow-2xs">
+          <PenLine className="w-4 h-4 text-purple-700" /> Writing Esse va Baholash
+        </div>
         <WritingDetails sub={sub} onSaved={onSaved} />
       </div>
     </div>
@@ -632,42 +632,69 @@ function FullMockDetails({ sub, onSaved }) {
 function ObjectiveDetails({ results: resultsProp }) {
   const results = resultsProp || {};
   const nums = Object.keys(results).sort((a, b) => Number(a) - Number(b));
-  if (nums.length === 0) return <p className="text-sm text-slate-400">Tafsilotlar yo'q.</p>;
+  if (nums.length === 0) return <p className="text-sm font-semibold text-slate-500 py-4 text-center">Tafsilotlar topilmadi.</p>;
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-left text-slate-500 border-b border-slate-200">
-            <th className="py-2 pr-3">#</th>
-            <th className="py-2 pr-3">User Answer</th>
-            <th className="py-2 pr-3">Correct Answer</th>
-            <th className="py-2">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {nums.map((n) => {
-            const r = results[n];
-            const correct = r.correct;
-            const ca = Array.isArray(r.correctAnswer) ? r.correctAnswer.join(" / ") : r.correctAnswer;
-            return (
-              <tr key={n} className="border-b border-slate-100">
-                <td className="py-2 pr-3 font-medium">Q{n}</td>
-                <td className="py-2 pr-3">{r.userAnswer || <span className="text-slate-300">—</span>}</td>
-                <td className="py-2 pr-3">{ca}</td>
-                <td className="py-2">
-                  <span
-                    className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                      correct ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
-                    }`}
-                  >
-                    {correct ? "✓ Correct" : "✗ Wrong"}
-                  </span>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs sm:text-sm">
+          <thead>
+            <tr className="bg-slate-100/90 text-slate-800 border-b border-slate-200 text-[11px] font-black uppercase tracking-wider">
+              <th className="py-3.5 px-4 w-16">#</th>
+              <th className="py-3.5 px-4">User Answer (O'quvchi javobi)</th>
+              <th className="py-3.5 px-4">Correct Answer (To'g'ri javob)</th>
+              <th className="py-3.5 px-4 text-center w-36">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 font-medium">
+            {nums.map((n) => {
+              const r = results[n];
+              const correct = r.correct;
+              const ca = Array.isArray(r.correctAnswer) ? r.correctAnswer.join(" / ") : (r.correctAnswer || "—");
+              const ua = r.userAnswer;
+              return (
+                <tr key={n} className="hover:bg-slate-50/80 transition-colors">
+                  <td className="py-3 px-4">
+                    <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-md text-xs">
+                      Q{n}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    {ua ? (
+                      <span className={`px-2.5 py-1 rounded-lg text-xs sm:text-sm font-bold border inline-block ${
+                        correct
+                          ? "bg-emerald-50 text-emerald-900 border-emerald-200"
+                          : "bg-rose-50 text-rose-900 border-rose-200"
+                      }`}>
+                        {ua}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 font-semibold italic text-xs px-1">
+                        — (Javob berilmagan)
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-3 px-4">
+                    <span className="font-mono font-bold text-slate-900 bg-slate-100/90 px-2.5 py-1 rounded-lg border border-slate-200 text-xs sm:text-sm inline-block">
+                      {ca}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    <span
+                      className={`inline-flex items-center gap-1 text-xs font-black px-3 py-1 rounded-full border shadow-2xs ${
+                        correct
+                          ? "bg-emerald-100 text-emerald-900 border-emerald-300"
+                          : "bg-rose-100 text-rose-900 border-rose-300"
+                      }`}
+                    >
+                      {correct ? "✓ Correct" : "✕ Wrong"}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -698,24 +725,24 @@ function WritingDetails({ sub, onSaved }) {
   return (
     <div className="space-y-5">
       {tasks.map((t, i) => (
-        <div key={i} className="bg-white rounded-xl border border-purple-100 p-4">
-          <div className="flex items-center justify-between mb-2">
+        <div key={i} className="bg-white rounded-2xl border border-purple-200 p-5 shadow-xs">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="font-bold text-purple-700">{t.title || `Task ${t.taskNumber || i + 1}`}</p>
-              <p className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
-                <FileText className="w-3.5 h-3.5" /> {t.wordCount} words
+              <p className="font-extrabold text-purple-950 text-base">{t.title || `Task ${t.taskNumber || i + 1}`}</p>
+              <p className="text-xs text-purple-800 font-semibold flex items-center gap-1.5 mt-0.5">
+                <FileText className="w-3.5 h-3.5" /> {t.wordCount} ta so'z
               </p>
             </div>
-            <CopyButton text={t.text} label="Copy Essay" />
+            <CopyButton text={t.text} label="Nusxa olish" />
           </div>
-          <div className="bg-slate-50 border border-slate-100 rounded-lg p-3 text-sm text-slate-700 whitespace-pre-wrap max-h-72 overflow-y-auto">
-            {t.text || <span className="text-slate-300">Bo'sh</span>}
+          <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-4 text-sm text-slate-900 font-medium leading-relaxed whitespace-pre-wrap max-h-80 overflow-y-auto">
+            {t.text || <span className="text-slate-400 italic">Matn kiritilmagan (Bo'sh)</span>}
           </div>
         </div>
       ))}
-      <div className="flex items-center gap-3 bg-white rounded-xl border border-slate-100 p-4">
-        <label className="text-sm font-medium text-slate-600 flex items-center gap-1">
-          <Clock className="w-4 h-4" /> Band (o'qituvchi):
+      <div className="flex flex-wrap items-center gap-3 bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+        <label className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+          <Clock className="w-4 h-4 text-indigo-600" /> O'qituvchi Band Bali:
         </label>
         <input
           type="number"
@@ -724,16 +751,16 @@ function WritingDetails({ sub, onSaved }) {
           max="9"
           value={band}
           onChange={(e) => setBand(e.target.value)}
-          className="w-24 px-3 py-1.5 rounded-lg border border-slate-200 text-sm"
-          placeholder="7.0"
+          className="w-28 px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-slate-900 font-bold text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          placeholder="e.g. 7.0"
         />
         <button
           onClick={save}
           disabled={saving}
-          className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-60"
+          className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold shadow-md shadow-indigo-600/20 transition-all disabled:opacity-60 cursor-pointer"
         >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}{" "}
-          Saqlash
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          Bahoni Saqlash
         </button>
       </div>
     </div>
