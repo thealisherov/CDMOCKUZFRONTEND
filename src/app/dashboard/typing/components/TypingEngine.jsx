@@ -178,7 +178,10 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
 
     const now = Date.now();
     const st = startTimeRef.current || now;
-    const computedDuration = Math.max(1, forcedDuration || Math.floor((now - st) / 1000) || 1);
+    const elapsedMs = Math.max(1, now - st);
+    
+    const computedDuration = Math.max(1, forcedDuration || Math.round(elapsedMs / 1000));
+    const exactMins = forcedDuration ? (forcedDuration / 60) : (elapsedMs / 60000);
 
     const currentInput = userInputRef.current || "";
     const currentTarget = targetTextRef.current || "";
@@ -211,8 +214,8 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
       return;
     }
 
-    const finalWpm = Math.max(1, Math.round((correctCount / 5) / (computedDuration / 60)));
-    const finalRawWpm = Math.max(1, Math.round((totalTyped / 5) / (computedDuration / 60)));
+    const finalWpm = Math.max(1, Math.round((correctCount / 5) / exactMins));
+    const finalRawWpm = Math.max(1, Math.round((totalTyped / 5) / exactMins));
     const finalAccuracy = totalTyped > 0 ? Math.round((correctCount / totalTyped) * 1000) / 10 : 100;
 
     const result = {
@@ -338,11 +341,12 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
 
     const now = Date.now();
     const st = startTimeRef.current || now;
-    const currentElapsed = Math.max(1, Math.floor((now - st) / 1000));
+    const elapsedMs = Math.max(1, now - st);
+    const exactMins = elapsedMs / 60000;
     const currentTotal = correct + incorrect;
 
-    const currentWpm = Math.round((correct / 5) / (currentElapsed / 60));
-    const currentRawWpm = Math.round((currentTotal / 5) / (currentElapsed / 60));
+    const currentWpm = Math.round((correct / 5) / exactMins) || 0;
+    const currentRawWpm = Math.round((currentTotal / 5) / exactMins) || 0;
     const currentAcc = currentTotal > 0 ? Math.round((correct / currentTotal) * 1000) / 10 : 100;
 
     setWpm(currentWpm);
@@ -351,7 +355,7 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
 
     // Words rejimida matn oxiriga yetganda testni yakunlash
     if (modeRef.current === "words" && newValue.length >= currentTarget.length) {
-      handleFinish(currentElapsed);
+      handleFinish();
     }
   }, [handleFinish, user]);
 
