@@ -123,7 +123,7 @@ export default function FullMockPage() {
 
   function handleBuy(test) {
     const msg = encodeURIComponent(`Salom! Men "${test.title}" (${test.price_uzs?.toLocaleString()} UZS / $${test.price_usd}) full mock testni sotib olmoqchiman.`);
-    window.open(`https://t.me/aziz0826?text=${msg}`, "_blank");
+    window.open(`https://t.me/megaielts_admin?text=${msg}`, "_blank");
   }
 
   // Latest result preview for compact bar
