@@ -501,8 +501,11 @@ function convertQuestionGroup(group, passageContent) {
       block.content = buildGapFillContent(group.questions);
 
       const firstQ = group.questions[0];
+      const rawOptions = (group.options && group.options.length > 0)
+        ? group.options
+        : (firstQ?.options || []);
       // Keep full options like "A. popular", "B. artistic" to derive letters
-      block.options = firstQ?.options || [];
+      block.options = rawOptions;
 
       block.questions = group.questions.map((q) => ({
         id: String(q.number),
@@ -533,10 +536,13 @@ function convertQuestionGroup(group, passageContent) {
     }
 
     case 'matching_sentence_endings': {
-      // the options are provided in the first question
+      // Options can be at group level or in the first question
       const firstQ = group.questions[0];
-      const optionLetters = firstQ?.options
-        ? extractOptionLetters(firstQ.options)
+      const rawOptions = (group.options && group.options.length > 0)
+        ? group.options
+        : (firstQ?.options || []);
+      const optionLetters = rawOptions.length > 0
+        ? extractOptionLetters(rawOptions)
         : [];
 
       block.questions = group.questions.map((q) => ({
@@ -547,7 +553,7 @@ function convertQuestionGroup(group, passageContent) {
       block.options = optionLetters;
 
       // Store the full option descriptions to show at the top
-      block.optionDescriptions = firstQ?.options || [];
+      block.optionDescriptions = rawOptions;
       break;
     }
 
