@@ -48,10 +48,10 @@ export default function TypingLeaderboard() {
           <Trophy className="w-3.5 h-3.5" /> Typing Chempionlari
         </div>
         <h2 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
-          Tez Yozish Reytingi (WPM)
+          Typing Reytingi (XP & WPM)
         </h2>
         <p className="text-xs sm:text-sm text-muted-foreground">
-          Platformadagi eng tezkor o&apos;quvchilar va ularning eng yuqori WPM rekordlari
+          Typing mashqlaridan yig&apos;ilgan XP asosida reyting — umumiy test reytingidan alohida
         </p>
       </div>
 
@@ -75,8 +75,8 @@ export default function TypingLeaderboard() {
                 </div>
               </div>
               <p className="text-sm font-bold text-foreground truncate max-w-[160px]">{top3[1].full_name}</p>
-              <p className="text-2xl font-black text-slate-700 dark:text-slate-300 mt-1">{top3[1].best_wpm} <span className="text-xs font-bold text-muted-foreground">WPM</span></p>
-              <p className="text-[11px] text-muted-foreground font-semibold mt-0.5">{top3[1].avg_accuracy}% aniqlik</p>
+              <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">{top3[1].total_xp} <span className="text-xs font-bold text-muted-foreground">XP</span></p>
+              <p className="text-[11px] text-muted-foreground font-semibold mt-0.5">{top3[1].best_wpm} WPM · {top3[1].avg_accuracy}%</p>
             </div>
           )}
 
@@ -97,8 +97,8 @@ export default function TypingLeaderboard() {
                 </div>
               </div>
               <p className="text-base font-extrabold text-foreground truncate max-w-[180px]">{top3[0].full_name}</p>
-              <p className="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">{top3[0].best_wpm} <span className="text-xs font-bold text-muted-foreground">WPM</span></p>
-              <p className="text-xs text-muted-foreground font-semibold mt-0.5">{top3[0].avg_accuracy}% aniqlik</p>
+              <p className="text-3xl font-black text-amber-600 dark:text-amber-400 mt-1">{top3[0].total_xp} <span className="text-xs font-bold text-muted-foreground">XP</span></p>
+              <p className="text-xs text-muted-foreground font-semibold mt-0.5">{top3[0].best_wpm} WPM · {top3[0].avg_accuracy}%</p>
             </div>
           )}
 
@@ -118,8 +118,8 @@ export default function TypingLeaderboard() {
                 </div>
               </div>
               <p className="text-sm font-bold text-foreground truncate max-w-[160px]">{top3[2].full_name}</p>
-              <p className="text-2xl font-black text-amber-700 dark:text-amber-500 mt-1">{top3[2].best_wpm} <span className="text-xs font-bold text-muted-foreground">WPM</span></p>
-              <p className="text-[11px] text-muted-foreground font-semibold mt-0.5">{top3[2].avg_accuracy}% aniqlik</p>
+              <p className="text-2xl font-black text-amber-700 dark:text-amber-500 mt-1">{top3[2].total_xp} <span className="text-xs font-bold text-muted-foreground">XP</span></p>
+              <p className="text-[11px] text-muted-foreground font-semibold mt-0.5">{top3[2].best_wpm} WPM · {top3[2].avg_accuracy}%</p>
             </div>
           )}
         </div>
@@ -185,10 +185,17 @@ export default function TypingLeaderboard() {
                   </div>
                 </div>
 
-                <div className="text-right shrink-0">
-                  <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">
-                    {item.best_wpm} <span className="text-xs font-bold text-muted-foreground">WPM</span>
-                  </p>
+                <div className="flex items-center gap-4 shrink-0">
+                  <div className="text-right">
+                    <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">
+                      {item.total_xp} <span className="text-xs font-bold text-muted-foreground">XP</span>
+                    </p>
+                  </div>
+                  <div className="text-right hidden sm:block">
+                    <p className="text-sm font-bold text-muted-foreground">
+                      {item.best_wpm} <span className="text-[10px]">WPM</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}

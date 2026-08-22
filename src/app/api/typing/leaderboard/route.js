@@ -40,16 +40,16 @@ export async function GET() {
       console.warn('[Typing Leaderboard] auth.admin.listUsers fallback:', e.message);
     }
 
-    // 2. Barcha typing_attempts ma'lumotlarini olish
+    // 2. Barcha typing_attempts ma'lumotlarini olish (xp_earned bilan birga)
     const { data: attempts, error: attemptsErr } = await supabaseAdmin
       .from('typing_attempts')
-      .select('user_id, wpm, accuracy, duration_seconds');
+      .select('user_id, wpm, accuracy, duration_seconds, xp_earned');
 
     if (attemptsErr && attemptsErr.code === '42P01') {
       return NextResponse.json({ leaderboard: [], currentUser: null });
     }
 
-    // Har bir user bo'yicha eng yaxshi WPM, o'rtacha aniqlik va testlar sonini hisoblash
+    // Har bir user bo'yicha eng yaxshi WPM, o'rtacha aniqlik, testlar soni va jami XP ni hisoblash
     const userStats = {};
     (attempts || []).forEach(a => {
       const uid = a.user_id;
@@ -57,12 +57,14 @@ export async function GET() {
 
       const wpm = Number(a.wpm) || 0;
       const acc = Number(a.accuracy) || 0;
+      const xp = Number(a.xp_earned) || 0;
 
       if (!userStats[uid]) {
         userStats[uid] = {
           best_wpm: wpm,
           accuracy_sum: acc,
-          test_count: 1
+          test_count: 1,
+          total_xp: xp
         };
       } else {
         if (wpm > userStats[uid].best_wpm) {
@@ -70,6 +72,7 @@ export async function GET() {
         }
         userStats[uid].accuracy_sum += acc;
         userStats[uid].test_count += 1;
+        userStats[uid].total_xp += xp;
       }
     });
 
@@ -93,14 +96,15 @@ export async function GET() {
         best_wpm: s.best_wpm,
         avg_accuracy: Math.round((s.accuracy_sum / s.test_count) * 10) / 10,
         tests_completed: s.test_count,
+        total_xp: s.total_xp,
         isCurrentUser: uid === user.id
       });
     });
 
-    // Saralash: best_wpm DESC, avg_accuracy DESC, tests_completed DESC
+    // Saralash: total_xp DESC (asosiy), best_wpm DESC (ikkinchi), tests_completed DESC
     leaderboard.sort((a, b) => {
+      if (b.total_xp !== a.total_xp) return b.total_xp - a.total_xp;
       if (b.best_wpm !== a.best_wpm) return b.best_wpm - a.best_wpm;
-      if (b.avg_accuracy !== a.avg_accuracy) return b.avg_accuracy - a.avg_accuracy;
       return b.tests_completed - a.tests_completed;
     });
 

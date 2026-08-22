@@ -14,6 +14,26 @@ import TypingBadgeModal from "./TypingBadgeModal";
 import { DailyLimitModal } from "./DailyLimitNotice";
 import AuthRequiredModal from "./AuthRequiredModal";
 
+// ═══════════════════════════════════════════════════════════════
+// WPM HISOBLASH UTILITY — yagona manba, barcha joyda ishlatiladi
+// Formula: WPM = (to'g'ri_harflar / 5) / minutlar
+// 5 harf = 1 so'z (standart Monkeytype formulasi)
+// ═══════════════════════════════════════════════════════════════
+function computeTypingMetrics(correctChars, totalChars, elapsedSeconds) {
+  // Minimum 1 sekund — 0 ga bo'lishni oldini olish
+  const safeSeconds = Math.max(1, elapsedSeconds);
+  const minutes = safeSeconds / 60;
+
+  // Net WPM (faqat to'g'ri harflar), Raw WPM (barcha harflar)
+  const netWpm = Math.min(300, Math.max(0, Math.round((correctChars / 5) / minutes)));
+  const grossWpm = Math.min(300, Math.max(0, Math.round((totalChars / 5) / minutes)));
+  const accuracy = totalChars > 0
+    ? Math.round((correctChars / totalChars) * 1000) / 10
+    : 100;
+
+  return { netWpm, grossWpm, accuracy };
+}
+
 export default function TypingEngine({ userStatus, onStatsUpdated }) {
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -177,11 +197,20 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
 
     const now = Date.now();
-    const st = startTimeRef.current || now;
-    const elapsedMs = Math.max(1, now - st);
-    
-    const computedDuration = Math.max(1, forcedDuration || Math.round(elapsedMs / 1000));
-    const exactMins = forcedDuration ? (forcedDuration / 60) : (elapsedMs / 60000);
+    const st = startTimeRef.current;
+
+    // Vaqtni hisoblash:
+    // - Time rejimida: forcedDuration (aniq taymer qiymati, masalan 30 sekund)
+    // - Words rejimida: haqiqiy o'tgan vaqt (startTime → now)
+    // - startTime null bo'lsa: forcedDuration yoki minimal 1 sekund
+    let computedDuration;
+    if (forcedDuration) {
+      computedDuration = forcedDuration;
+    } else if (st) {
+      computedDuration = Math.max(1, Math.round((now - st) / 1000));
+    } else {
+      computedDuration = 1; // Hech qachon boshlanmagan — fallback
+    }
 
     const currentInput = userInputRef.current || "";
     const currentTarget = targetTextRef.current || "";
@@ -214,9 +243,11 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
       return;
     }
 
-    const finalWpm = Math.max(1, Math.round((correctCount / 5) / exactMins));
-    const finalRawWpm = Math.max(1, Math.round((totalTyped / 5) / exactMins));
-    const finalAccuracy = totalTyped > 0 ? Math.round((correctCount / totalTyped) * 1000) / 10 : 100;
+    // Yagona WPM hisoblash funksiyasidan foydalanamiz
+    const metrics = computeTypingMetrics(correctCount, totalTyped, computedDuration);
+    const finalWpm = metrics.netWpm;
+    const finalRawWpm = metrics.grossWpm;
+    const finalAccuracy = metrics.accuracy;
 
     const result = {
       wpm: finalWpm,
@@ -321,6 +352,14 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
       }
     }
 
+    // ANTI-CHEAT: bir vaqtda 5 dan ko'p harf qo'shilsa (paste yoki autocomplete) — rad qilish
+    const prevLen = userInputRef.current.length;
+    const charsAdded = newValue.length - prevLen;
+    if (charsAdded > 5) {
+      // Paste yoki sun'iy kiritish — faqat oxirgi 1 harf qabul qilinadi
+      newValue = userInputRef.current + newValue.charAt(newValue.length - 1);
+    }
+
     setUserInput(newValue);
     userInputRef.current = newValue;
 
@@ -339,19 +378,17 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
     setCorrectChars(correct);
     setIncorrectChars(incorrect);
 
+    // Live WPM — faqat kamida 1 sekund o'tganda hisoblash
     const now = Date.now();
-    const st = startTimeRef.current || now;
-    const elapsedMs = Math.max(1, now - st);
-    const exactMins = elapsedMs / 60000;
-    const currentTotal = correct + incorrect;
-
-    const currentWpm = Math.round((correct / 5) / exactMins) || 0;
-    const currentRawWpm = Math.round((currentTotal / 5) / exactMins) || 0;
-    const currentAcc = currentTotal > 0 ? Math.round((correct / currentTotal) * 1000) / 10 : 100;
-
-    setWpm(currentWpm);
-    setRawWpm(currentRawWpm);
-    setAccuracy(currentAcc);
+    const st = startTimeRef.current;
+    if (st) {
+      const elapsedSec = Math.max(1, Math.round((now - st) / 1000));
+      const metrics = computeTypingMetrics(correct, correct + incorrect, elapsedSec);
+      setWpm(metrics.netWpm);
+      setRawWpm(metrics.grossWpm);
+      setAccuracy(metrics.accuracy);
+    }
+    // startTime yo'q bo'lsa WPM 0 qoladi (birinchi harf holatida)
 
     // Words rejimida matn oxiriga yetganda testni yakunlash
     if (modeRef.current === "words" && newValue.length >= currentTarget.length) {
@@ -569,6 +606,8 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
             type="text"
             value={userInput}
             onChange={(e) => processKeyInput(e.target.value)}
+            onPaste={(e) => e.preventDefault()}
+            onDrop={(e) => e.preventDefault()}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             autoCapitalize="off"

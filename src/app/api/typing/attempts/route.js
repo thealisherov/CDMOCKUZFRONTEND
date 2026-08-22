@@ -96,10 +96,10 @@ export async function POST(request) {
       duration_seconds = 0
     } = body;
 
-    const parsedWpm = Math.round(Number(wpm) || 0);
-    const parsedRawWpm = Math.round(Number(raw_wpm) || 0);
+    const parsedWpm = Math.min(300, Math.max(0, Math.round(Number(wpm) || 0)));
+    const parsedRawWpm = Math.min(300, Math.max(0, Math.round(Number(raw_wpm) || 0)));
     const parsedAccuracy = Math.min(100, Math.max(0, Math.round((Number(accuracy) || 0) * 10) / 10));
-    const parsedDuration = Math.round(Number(duration_seconds) || 0);
+    const parsedDuration = Math.max(1, Math.round(Number(duration_seconds) || 0));
     const parsedCorrect = Number(correct_chars) || 0;
     const parsedIncorrect = Number(incorrect_chars) || 0;
 
@@ -112,7 +112,12 @@ export async function POST(request) {
       });
     }
 
-    // 3. typing_attempts jadvaliga kiritish
+    // 3. XP hisoblash (typing_attempts jadvalida saqlanadi, umumiy user_stats ga tegmaydi)
+    const speedBonus = Math.floor(parsedWpm / 10) * 2;
+    const accuracyBonus = parsedAccuracy >= 98 ? 10 : (parsedAccuracy >= 95 ? 5 : 0);
+    const earnedXp = Math.max(5, 10 + speedBonus + accuracyBonus);
+
+    // 4. typing_attempts jadvaliga kiritish (xp_earned bilan birga)
     const { data: attemptData, error: attemptError } = await supabaseAdmin
       .from('typing_attempts')
       .insert([{
@@ -125,7 +130,8 @@ export async function POST(request) {
         accuracy: parsedAccuracy,
         correct_chars: parsedCorrect,
         incorrect_chars: parsedIncorrect,
-        duration_seconds: parsedDuration
+        duration_seconds: parsedDuration,
+        xp_earned: earnedXp
       }])
       .select()
       .single();
@@ -135,58 +141,8 @@ export async function POST(request) {
       return NextResponse.json({ error: attemptError.message }, { status: 500 });
     }
 
-    // 4. XP va user_stats ni yangilash
-    // Formulalar: Asosiy 10 XP + WPM bo'yicha bonus + Yuqori aniqlik bonusi
-    const speedBonus = Math.floor(parsedWpm / 10) * 2;
-    const accuracyBonus = parsedAccuracy >= 98 ? 10 : (parsedAccuracy >= 95 ? 5 : 0);
-    const earnedXp = Math.max(5, 10 + speedBonus + accuracyBonus);
-
+    // Daily streak va umumiy user_stats ni bu yerda yangilamaymiz (Umumiy leaderboarddan ajratilgan)
     let newDailyStreak = 1;
-
-    try {
-      const { data: existingStats } = await supabaseAdmin
-        .from('user_stats')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (existingStats) {
-        newDailyStreak = existingStats.daily_streak || 1;
-        if (existingStats.last_active_date) {
-          const lastDate = new Date(existingStats.last_active_date);
-          const now = new Date();
-          const utcLast = Date.UTC(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
-          const utcNow = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-          const diffDays = Math.floor((utcNow - utcLast) / (1000 * 60 * 60 * 24));
-
-          if (diffDays === 1) {
-            newDailyStreak += 1;
-          } else if (diffDays >= 2) {
-            newDailyStreak = 1;
-          }
-        }
-
-        await supabaseAdmin.from('user_stats').update({
-          tests_taken: (existingStats.tests_taken || 0) + 1,
-          xp: (existingStats.xp || 0) + earnedXp,
-          total_time_seconds: (existingStats.total_time_seconds || 0) + parsedDuration,
-          last_active_date: new Date().toISOString(),
-          daily_streak: newDailyStreak
-        }).eq('user_id', user.id);
-      } else {
-        await supabaseAdmin.from('user_stats').insert([{
-          user_id: user.id,
-          tests_taken: 1,
-          correct_answers: 0,
-          xp: earnedXp,
-          total_time_seconds: parsedDuration,
-          last_active_date: new Date().toISOString(),
-          daily_streak: 1
-        }]);
-      }
-    } catch (statsErr) {
-      console.error('[API /api/typing/attempts] user_stats update error:', statsErr);
-    }
 
     // 5. BADGELARNI TEKSHIRISH VA BERISH
     let newlyEarnedBadges = [];

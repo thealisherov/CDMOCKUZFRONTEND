@@ -1,4 +1,4 @@
--- =====================================================================
+https://ywyfsyjwrodfigbmhzvk.supabase.co-- =====================================================================
 -- ADMIN PANEL — TEZ FOYDALANUVCHI YUKLASH
 -- Buni Supabase SQL Editor'da BIR MARTA ishga tushiring. Xavfsiz (idempotent).
 -- =====================================================================
