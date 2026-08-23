@@ -12,10 +12,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "next-themes";
 import { createClient } from "@/utils/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "@/components/LanguageContext";
 
 export default function DashboardHeader() {
   const { user, logout } = useAuth();
   const { resolvedTheme, setTheme } = useTheme();
+  const { t } = useTranslation();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [streak, setStreak] = useState(0);
@@ -81,7 +83,7 @@ export default function DashboardHeader() {
           <Search className="h-4 w-4 shrink-0" />
           <input
             type="text"
-            placeholder="Search tests, modules..."
+            placeholder={t("header.search")}
             className="bg-transparent text-sm font-medium outline-none w-full placeholder:text-muted-foreground/60"
           />
           <kbd className="hidden lg:flex items-center gap-0.5 text-[10px] font-medium text-muted-foreground/50 border border-border/50 rounded px-1.5 py-0.5">
@@ -116,7 +118,7 @@ export default function DashboardHeader() {
               {streak}
             </span>
             <span className="text-[10px] font-semibold text-orange-500/70 dark:text-orange-400/60 uppercase tracking-wider hidden sm:inline">
-              Day{streak !== 1 ? "s" : ""}
+              {streak === 1 ? t("header.day") : t("header.days")}
             </span>
           </motion.div>
         )}
@@ -207,21 +209,21 @@ export default function DashboardHeader() {
                     className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                   >
                     <User className="h-4 w-4 text-muted-foreground" />
-                    My Profile
+                    {t("header.myProfile")}
                   </button>
                   <button
                     onClick={() => { setDropdownOpen(false); router.push("/dashboard/premium"); }}
                     className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                   >
                     <Crown className="h-4 w-4 text-muted-foreground" />
-                    {user?.isPremium ? "Manage Plan" : "Upgrade"}
+                    {user?.isPremium ? t("header.managePlan") : t("header.upgrade")}
                   </button>
                   <button
                     onClick={() => { setDropdownOpen(false); router.push("/dashboard/support"); }}
                     className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                   >
                     <Settings className="h-4 w-4 text-muted-foreground" />
-                    Settings
+                    {t("header.settings")}
                   </button>
                 </div>
 
@@ -232,7 +234,7 @@ export default function DashboardHeader() {
                     className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 transition-colors"
                   >
                     <LogOut className="h-4 w-4" />
-                    Sign Out
+                    {t("header.signOut")}
                   </button>
                 </div>
               </motion.div>

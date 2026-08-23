@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Flame, Bell, Search, ChevronDown, LogOut, User, Settings, Crown,
-  Moon, Sun, Menu, X, BookOpen, Headphones, PenTool, Lock, Sparkles, Trophy
+  Moon, Sun, Menu, X, BookOpen, Headphones, PenTool, Lock, Sparkles, Trophy, Layers, Building2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -102,7 +102,7 @@ export default function Header() {
                 <Flame className="h-4.5 w-4.5 text-orange-500 fill-orange-500" />
               </motion.div>
               <span className="text-sm font-bold text-orange-600 dark:text-orange-400 tabular-nums">
-                {streak} Days
+                {streak} {streak === 1 ? t("header.day") : t("header.days")}
               </span>
             </motion.div>
           )}
@@ -153,7 +153,7 @@ export default function Header() {
                     <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
                     {user?.isPremium && (
                       <span className="inline-flex items-center gap-1 mt-1 text-[9px] font-bold uppercase tracking-wider text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">
-                        <Crown className="w-3 h-3 fill-amber-500 text-amber-500" /> Premium Member
+                        <Crown className="w-3 h-3 fill-amber-500 text-amber-500" /> {t("header.premiumMember")}
                       </span>
                     )}
                   </div>
@@ -163,7 +163,7 @@ export default function Header() {
                     className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold rounded-xl text-foreground hover:bg-muted transition-colors"
                   >
                     <User className="h-4 w-4 text-muted-foreground" />
-                    My Profile
+                    {t("header.myProfile")}
                   </button>
 
                   <button
@@ -171,7 +171,7 @@ export default function Header() {
                     className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold rounded-xl text-foreground hover:bg-muted transition-colors"
                   >
                     <Crown className="h-4 w-4 text-muted-foreground" />
-                    {user?.isPremium ? "Manage Plan" : "Upgrade Plan"}
+                    {user?.isPremium ? t("header.managePlan") : t("header.upgrade")}
                   </button>
 
                   <div className="h-px bg-border my-1" />
@@ -181,7 +181,7 @@ export default function Header() {
                     className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-semibold rounded-xl text-red-500 hover:bg-red-500/5 transition-colors"
                   >
                     <LogOut className="h-4 w-4" />
-                    Sign Out
+                    {t("header.signOut")}
                   </button>
                 </motion.div>
               )}
@@ -213,9 +213,21 @@ export default function Header() {
             {t("nav.pricing")}
           </Link>
           
+          {/* O'quv markazlar uchun link */}
+          <Link href="#for-centers" className="hover:text-primary transition-colors flex items-center gap-1.5">
+            <Building2 size={14} className="opacity-70" />
+            {t("nav.centers")}
+          </Link>
+
+          {/* Full Mock alohida link */}
+          <Link href="/dashboard/fullmock" className="hover:text-primary transition-colors flex items-center gap-1.5 font-semibold">
+            <Layers size={14} className="opacity-70" />
+            {t("nav.fullMock")}
+          </Link>
+
           <div className="relative group py-2 z-[100]">
             <Link href="/dashboard" className="hover:text-primary transition-colors cursor-pointer flex items-center gap-1 font-medium">
-              Tests
+              {t("nav.tests")}
               <ChevronDown size={14} className="mt-0.5 group-hover:rotate-180 transition-transform duration-200" />
             </Link>
             <div className="absolute top-[80%] left-1/2 -translate-x-1/2 w-[500px] bg-background border rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100] p-4">
@@ -225,8 +237,8 @@ export default function Header() {
                     <BookOpen size={20} />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-sm mb-0.5 text-foreground group-hover/item:text-primary transition-colors">Reading Test</h4>
-                    <p className="text-[11px] text-muted-foreground leading-snug">Read academic texts and answer question types.</p>
+                    <h4 className="font-semibold text-sm mb-0.5 text-foreground group-hover/item:text-primary transition-colors">{t("header.readingTest")}</h4>
+                    <p className="text-[11px] text-muted-foreground leading-snug">{t("header.readingDesc")}</p>
                   </div>
                 </Link>
 
@@ -235,8 +247,8 @@ export default function Header() {
                     <PenTool size={20} />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-sm mb-0.5 text-foreground group-hover/item:text-primary transition-colors">Writing Test</h4>
-                    <p className="text-[11px] text-muted-foreground leading-snug">Write essays and get instant AI evaluation.</p>
+                    <h4 className="font-semibold text-sm mb-0.5 text-foreground group-hover/item:text-primary transition-colors">{t("header.writingTest")}</h4>
+                    <p className="text-[11px] text-muted-foreground leading-snug">{t("header.writingDesc")}</p>
                   </div>
                 </Link>
 
@@ -245,20 +257,24 @@ export default function Header() {
                     <Headphones size={20} />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-sm mb-0.5 text-foreground group-hover/item:text-primary transition-colors">Listening Test</h4>
-                    <p className="text-[11px] text-muted-foreground leading-snug">Answer questions from audio clips.</p>
+                    <h4 className="font-semibold text-sm mb-0.5 text-foreground group-hover/item:text-primary transition-colors">{t("header.listeningTest")}</h4>
+                    <p className="text-[11px] text-muted-foreground leading-snug">{t("header.listeningDesc")}</p>
                   </div>
                 </Link>
 
-                <div className="flex items-start gap-3 p-3 rounded-xl bg-muted/20 border border-transparent cursor-not-allowed">
-                  <div className="bg-muted/80 text-muted-foreground p-2.5 rounded-lg mt-0.5">
-                    <Lock size={20} />
+                {/* Full Mock link in dropdown */}
+                <Link href="/dashboard/fullmock" className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors group/item border border-primary/20 bg-primary/5">
+                  <div className="bg-indigo-100/80 text-indigo-600 p-2.5 rounded-lg group-hover/item:scale-105 transition-transform dark:bg-indigo-900/30 dark:text-indigo-400">
+                    <Layers size={20} />
                   </div>
-                  <div className="flex-1 mt-0.5">
-                    <h4 className="font-semibold text-sm mb-0.5 text-muted-foreground">Speaking Test</h4>
-                    <p className="text-[11px] text-muted-foreground leading-snug">Coming Soon - Practice real interview questions with our advanced AI examiner.</p>
+                  <div>
+                    <h4 className="font-semibold text-sm mb-0.5 text-foreground group-hover/item:text-primary transition-colors flex items-center gap-1.5">
+                      {t("nav.fullMock")}
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-white uppercase">New</span>
+                    </h4>
+                    <p className="text-[11px] text-muted-foreground leading-snug">{t("fullMock.desc").slice(0, 70)}...</p>
                   </div>
-                </div>
+                </Link>
               </div>
             </div>
           </div>
@@ -300,12 +316,25 @@ export default function Header() {
           <Link href="#pricing" className="text-sm font-medium hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>
             {t("nav.pricing")}
           </Link>
+          <Link href="#for-centers" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1.5" onClick={() => setMobileMenuOpen(false)}>
+            <Building2 size={14} className="opacity-70" />
+            {t("nav.centers")}
+          </Link>
+          <Link href="/dashboard/fullmock" className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1.5 font-semibold" onClick={() => setMobileMenuOpen(false)}>
+            <Layers size={14} />
+            {t("nav.fullMock")}
+          </Link>
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">Tests</span>
+            <span className="text-sm font-medium">{t("nav.tests")}</span>
             <div className="flex flex-col pl-4 gap-3">
-              <Link href="/dashboard/reading" className="text-sm hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Reading</Link>
-              <Link href="/dashboard/listening" className="text-sm hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Listening</Link>
-              <Link href="/dashboard/writing" className="text-sm hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>Writing</Link>
+              <Link href="/dashboard/reading" className="text-sm hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>{t("header.readingTest")}</Link>
+              <Link href="/dashboard/listening" className="text-sm hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>{t("header.listeningTest")}</Link>
+              <Link href="/dashboard/writing" className="text-sm hover:text-primary transition-colors" onClick={() => setMobileMenuOpen(false)}>{t("header.writingTest")}</Link>
+              <Link href="/dashboard/fullmock" className="text-sm hover:text-primary transition-colors font-semibold flex items-center gap-1.5" onClick={() => setMobileMenuOpen(false)}>
+                <Layers size={14} />
+                {t("nav.fullMock")}
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-white uppercase">New</span>
+              </Link>
             </div>
           </div>
           <div className="flex flex-col gap-2 mt-2">

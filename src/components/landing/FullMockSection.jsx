@@ -20,24 +20,24 @@ export default function FullMockSection() {
   const features = [
     {
       icon: Headphones,
-      title: "Listening Bo'limi",
-      desc: "4 ta qism, 40 ta savol, real audio va avtomatik hisoblash",
+      title: t("fullMock.listeningTitle"),
+      desc: t("fullMock.listeningDesc"),
       color: "oklch(0.55 0.22 270)",
       bg: "oklch(0.55 0.22 270 / 0.08)",
       border: "oklch(0.55 0.22 270 / 0.2)",
     },
     {
       icon: BookOpen,
-      title: "Reading Bo'limi",
-      desc: "3 ta akademik matn, 40 ta savol va qulay o'qish formati",
+      title: t("fullMock.readingTitle"),
+      desc: t("fullMock.readingDesc"),
       color: "oklch(0.52 0.16 145)",
       bg: "oklch(0.52 0.16 145 / 0.08)",
       border: "oklch(0.52 0.16 145 / 0.2)",
     },
     {
       icon: PenTool,
-      title: "Writing + AI Tekshiruv",
-      desc: "Task 1 & Task 2 insholaringiz GPT-4o orqali 4 ta mezon bo'yicha tahlil qilinadi",
+      title: t("fullMock.writingTitle"),
+      desc: t("fullMock.writingDesc"),
       color: "oklch(0.65 0.2 40)",
       bg: "oklch(0.65 0.2 40 / 0.08)",
       border: "oklch(0.65 0.2 40 / 0.2)",
@@ -70,25 +70,24 @@ export default function FullMockSection() {
             }}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            IELTS Full Mock Imtihoni
+            {t("fullMock.badge")}
           </div>
 
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-foreground leading-tight">
-            Siz to&apos;liq{" "}
+            {t("fullMock.title1")}{" "}
             <span
               className="bg-clip-text text-transparent"
               style={{
                 backgroundImage: "linear-gradient(135deg, oklch(0.48 0.22 270), #6366f1, oklch(0.65 0.2 40))",
               }}
             >
-              IELTS Mock
+              {t("fullMock.titleHighlight")}
             </span>{" "}
-            topshirishingiz mumkin!
+            {t("fullMock.title2")}
           </h2>
 
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Listening, Reading va Writing — barchasi haqiqiy imtihon muhitida. AI yordamida tezkor natija,
-            batafsil xatolar tahlili va natijalaringiz uchun PDF hisobot oling.
+            {t("fullMock.desc")}
           </p>
         </div>
 
@@ -113,7 +112,7 @@ export default function FullMockSection() {
                 <h3 className="text-lg font-bold text-foreground mb-2">{f.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed flex-1">{f.desc}</p>
                 <div className="mt-4 pt-4 border-t border-border/50 flex items-center gap-2 text-xs font-semibold" style={{ color: f.color }}>
-                  <CheckCircle2 className="w-4 h-4" /> To&apos;liq integratsiyalangan
+                  <CheckCircle2 className="w-4 h-4" /> {t("fullMock.integrated")}
                 </div>
               </div>
             );
@@ -129,14 +128,14 @@ export default function FullMockSection() {
         >
           <div className="space-y-2 text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start gap-2 text-sm font-bold" style={{ color: "oklch(0.48 0.22 270)" }}>
-              <Clock className="w-4 h-4" /> 48 soatlik kirish kodi orqali
+              <Clock className="w-4 h-4" /> {t("fullMock.accessCode")}
             </div>
             <h4 className="text-xl sm:text-2xl font-bold text-foreground">
-              O&apos;z bilimingizni hoziroq sinab ko&apos;ring
+              {t("fullMock.tryNow")}
             </h4>
             <p className="text-sm text-muted-foreground max-w-md">
-              {testCount > 0 ? `${testCount} ta full mock test mavjud` : "IELTS Full Mock testlari tayyor"}.
-              Imtihon topshiring va darajangizni aniqlang.
+              {testCount > 0 ? `${testCount} ${t("fullMock.testsAvailable")}` : t("fullMock.testsReady")}.
+              {" "}{t("fullMock.takeExam")}
             </p>
           </div>
 
@@ -149,7 +148,7 @@ export default function FullMockSection() {
             }}
           >
             <Layers className="w-4 h-4" />
-            Full Mock Topshirish
+            {t("fullMock.ctaBtn")}
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
