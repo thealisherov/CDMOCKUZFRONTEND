@@ -256,7 +256,7 @@ export default function TypingEngine({ userStatus, onStatsUpdated }) {
       correctChars: correctCount,
       incorrectChars: incorrectCount,
       durationSeconds: computedDuration,
-      earnedXp: 15 + Math.floor(finalWpm / 10) * 2 + (finalAccuracy >= 98 ? 10 : 0)
+      earnedXp: finalWpm >= 50 ? 3 : (finalWpm >= 20 ? 2 : 1)
     };
 
     setResultData(result);

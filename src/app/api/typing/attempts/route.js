@@ -112,10 +112,9 @@ export async function POST(request) {
       });
     }
 
-    // 3. XP hisoblash (typing_attempts jadvalida saqlanadi, umumiy user_stats ga tegmaydi)
-    const speedBonus = Math.floor(parsedWpm / 10) * 2;
-    const accuracyBonus = parsedAccuracy >= 98 ? 10 : (parsedAccuracy >= 95 ? 5 : 0);
-    const earnedXp = Math.max(5, 10 + speedBonus + accuracyBonus);
+    // 3. XP hisoblash — har bir mashqda 1-3 XP, WPM ga qarab
+    // WPM < 20 → 1 XP, WPM 20-49 → 2 XP, WPM >= 50 → 3 XP
+    const earnedXp = parsedWpm >= 50 ? 3 : (parsedWpm >= 20 ? 2 : 1);
 
     // 4. typing_attempts jadvaliga kiritish (xp_earned bilan birga)
     const { data: attemptData, error: attemptError } = await supabaseAdmin

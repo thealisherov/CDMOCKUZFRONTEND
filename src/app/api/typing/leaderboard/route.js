@@ -101,10 +101,10 @@ export async function GET() {
       });
     });
 
-    // Saralash: total_xp DESC (asosiy), best_wpm DESC (ikkinchi), tests_completed DESC
+    // Saralash: best_wpm DESC (asosiy), total_xp DESC (ikkinchi), tests_completed DESC
     leaderboard.sort((a, b) => {
-      if (b.total_xp !== a.total_xp) return b.total_xp - a.total_xp;
       if (b.best_wpm !== a.best_wpm) return b.best_wpm - a.best_wpm;
+      if (b.total_xp !== a.total_xp) return b.total_xp - a.total_xp;
       return b.tests_completed - a.tests_completed;
     });
 
