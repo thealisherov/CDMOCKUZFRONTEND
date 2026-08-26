@@ -15,7 +15,8 @@
 /testlar/
 testlar/
 /articles/
-articles/
+!src/**/articles/
+!src/**/articles/**
 scratch_*.md
 *.pdf
 *.docx
