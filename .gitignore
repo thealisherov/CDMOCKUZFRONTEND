@@ -14,6 +14,9 @@
 /coverage
 /testlar/
 testlar/
+/articles/
+articles/
+scratch_*.md
 *.pdf
 *.docx
 *.doc

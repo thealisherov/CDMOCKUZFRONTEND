@@ -5,9 +5,10 @@ import Link from "next/link";
 import {
   CheckCircle2, TrendingUp, Globe, ArrowRight,
   Headphones, BookOpen, PenTool, Clock, ChevronRight,
-  Sparkles, Target, Flame, Lock, Keyboard, Layers
+  Sparkles, Target, Flame, Lock, Keyboard, Layers, Crown
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/components/LanguageContext";
 import { motion } from "framer-motion";
 
 // ── Animation Variants ──
@@ -241,6 +242,9 @@ function QuickAction({ icon: Icon, title, description, href, gradient }) {
 // ── Main Dashboard Page ──
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { t } = useTranslation();
+  const dp = t?.dashboardPage || {};
+
   const [stats, setStats] = useState({
     testsCompleted: 0,
     avgBand: "0.0",
@@ -258,18 +262,11 @@ export default function DashboardPage() {
 
   // Butun tarixdagi ma'lumotlarni yuklash
   useEffect(() => {
-    // Dashboard ma'lumotini DARHOL yuklaymiz. /api/dashboard cookie orqali
-    // o'zini autentifikatsiya qiladi, shuning uchun useAuth ning to'liq
-    // yakunlanishini (getSession → getUser tarmoq so'rovi) KUTMAYMIZ.
-    // Ilgari fetch faqat authLoading=false VA user.id kelgandan keyin boshlanardi;
-    // bu ketma-ket kutish "ma'lumot bittada chiqmaydi / noto'g'ri chiqadi"
-    // muammosini keltirib chiqarardi. Endi so'rov mount paytida darrov ketadi.
     let cancelled = false;
 
     const fetchDashboardData = async () => {
       try {
         const res = await fetch("/api/dashboard");
-        // Middleware /dashboard ni himoya qiladi; agar baribir 401 bo'lsa — jimgina chiqamiz
         if (res.status === 401) {
           if (!cancelled) setLoading(false);
           return;
@@ -278,7 +275,6 @@ export default function DashboardPage() {
         const data = await res.json();
         if (cancelled) return;
 
-        // API TestAttempts dan hisoblangan to'g'ri qiymatlarni qaytaradi
         const totalTests = data.totalTests ?? data.allAttempts?.length ?? 0;
         const avgBand = data.avgBand ?? "0.0";
         const breakdown = data.breakdown ?? { listening: 0, reading: 0, writing: 0 };
@@ -338,7 +334,12 @@ export default function DashboardPage() {
   const testsToShow = recentTests.length > 0 ? recentTests : defaultTests;
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const greeting =
+    hour < 12
+      ? (dp.greetingMorning || "Good morning")
+      : hour < 18
+      ? (dp.greetingAfternoon || "Good afternoon")
+      : (dp.greetingEvening || "Good evening");
 
   return (
     <motion.div
@@ -347,17 +348,71 @@ export default function DashboardPage() {
       animate="visible"
       className="max-w-6xl mx-auto space-y-8"
     >
+      {/* ── Tezkor harakatlar (Quick Actions - At The Very Top) ── */}
+      <motion.div variants={itemVariants} className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl font-black text-foreground flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary" />
+            {dp.quickActions || "Quick Actions"}
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <QuickAction
+            icon={Target}
+            title={dp.trainingTitle || "Training"}
+            description={dp.trainingDesc || "Listening, Reading & Writing"}
+            href="/dashboard/training"
+            gradient="linear-gradient(135deg, oklch(0.55 0.22 270), oklch(0.65 0.2 300))"
+          />
+          <QuickAction
+            icon={Layers}
+            title={dp.fullmockTitle || "Full Mock Test"}
+            description={dp.fullmockDesc || "L + R + W to'liq mock imtihon"}
+            href="/dashboard/fullmock"
+            gradient="linear-gradient(135deg, oklch(0.48 0.22 270), oklch(0.55 0.2 290))"
+          />
+          <QuickAction
+            icon={Keyboard}
+            title={dp.typingTitle || "Typing Practice"}
+            description={dp.typingDesc || "Boost WPM speed and accuracy"}
+            href="/dashboard/typing"
+            gradient="linear-gradient(135deg, oklch(0.52 0.16 145), oklch(0.58 0.18 160))"
+          />
+          <QuickAction
+            icon={BookOpen}
+            title={dp.articlesTitle || "Articles"}
+            description={dp.articlesDesc || "Academic vocabulary & reading"}
+            href="/dashboard/articles"
+            gradient="linear-gradient(135deg, oklch(0.65 0.2 40), oklch(0.7 0.18 60))"
+          />
+          <QuickAction
+            icon={Flame}
+            title={dp.leaderboardTitle || "Leaderboard"}
+            description={dp.leaderboardDesc || "See how you rank globally"}
+            href="/dashboard/leaderboard"
+            gradient="linear-gradient(135deg, oklch(0.6 0.2 330), oklch(0.65 0.18 350))"
+          />
+          <QuickAction
+            icon={Crown}
+            title={dp.premiumTitle || "Premium"}
+            description={dp.premiumDesc || "Unlock all tests and features"}
+            href="/dashboard/premium"
+            gradient="linear-gradient(135deg, oklch(0.65 0.2 40), oklch(0.7 0.18 60))"
+          />
+        </div>
+      </motion.div>
+
       {/* ── Salomlashuv ── */}
-      <motion.div variants={itemVariants} className="space-y-2">
+      <motion.div variants={itemVariants} className="space-y-2 pt-2">
         <div className="flex items-center gap-2">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             {greeting}, {userName}! 👋
           </h1>
         </div>
         <p className="text-muted-foreground text-sm sm:text-base max-w-xl">
-          Let&apos;s get that{" "}
-          <span className="font-semibold text-primary">Band 8.0</span> today. Pick up
-          where you left off or start something new.
+          {dp.greetingSub1 || "Let's get that"}{" "}
+          <span className="font-semibold text-primary">Band 8.0</span>{" "}
+          {dp.greetingSub2 || "today. Pick up where you left off or start something new."}
         </p>
       </motion.div>
 
@@ -365,13 +420,13 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
           icon={CheckCircle2}
-          label="Jami ishlangan testlar"
+          label={dp.totalTests || "Jami ishlangan testlar"}
           value={loading ? "—" : stats.testsCompleted}
           gradient="linear-gradient(135deg, oklch(0.55 0.22 270), oklch(0.65 0.2 300))"
         />
         <StatCard
           icon={TrendingUp}
-          label="O'rtacha band score"
+          label={dp.avgBand || "O'rtacha band score"}
           value={loading ? "—" : stats.avgBand}
           subtitle="/ 9.0"
           gradient="linear-gradient(135deg, oklch(0.52 0.16 145), oklch(0.58 0.18 160))"
@@ -382,27 +437,27 @@ export default function DashboardPage() {
       {/* ── Test turi bo'yicha tarix ── */}
       <motion.div variants={itemVariants} className="space-y-3">
         <div>
-          <h2 className="text-lg font-bold text-foreground">Barcha vaqtdagi natijalar</h2>
+          <h2 className="text-lg font-bold text-foreground">{dp.allTimeResults || "Barcha vaqtdagi natijalar"}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Butun tarix bo&apos;yicha ishlangan testlar soni
+            {dp.allTimeSub || "Butun tarix bo'yicha ishlangan testlar soni"}
           </p>
         </div>
         <div className="grid grid-cols-3 gap-3">
           <StatCard
             icon={Headphones}
-            label="Listening testlar"
+            label={dp.listeningTests || "Listening testlar"}
             value={loading ? "—" : stats.byType.listening}
             gradient="linear-gradient(135deg, oklch(0.55 0.22 270), oklch(0.65 0.2 300))"
           />
           <StatCard
             icon={BookOpen}
-            label="Reading testlar"
+            label={dp.readingTests || "Reading testlar"}
             value={loading ? "—" : stats.byType.reading}
             gradient="linear-gradient(135deg, oklch(0.52 0.16 145), oklch(0.58 0.18 160))"
           />
           <StatCard
             icon={PenTool}
-            label="Writing testlar"
+            label={dp.writingTests || "Writing testlar"}
             value={loading ? "—" : stats.byType.writing}
             gradient="linear-gradient(135deg, oklch(0.65 0.2 40), oklch(0.7 0.18 60))"
           />
@@ -413,14 +468,14 @@ export default function DashboardPage() {
       <motion.div variants={itemVariants} className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-foreground">Continue Practicing</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Pick up where you left off</p>
+            <h2 className="text-lg font-bold text-foreground">{dp.continuePracticing || "Continue Practicing"}</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{dp.continueSub || "Pick up where you left off"}</p>
           </div>
           <Link
-            href="/dashboard/reading"
+            href="/dashboard/training"
             className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline underline-offset-4"
           >
-            View all <ArrowRight className="h-3 w-3" />
+            {dp.viewAll || "View all"} <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
 
@@ -428,55 +483,6 @@ export default function DashboardPage() {
           {testsToShow.map((test, idx) => (
             <PracticeTestCard key={test.id} {...test} index={idx} />
           ))}
-        </div>
-      </motion.div>
-
-      {/* ── Tezkor harakatlar ── */}
-      <motion.div variants={itemVariants} className="space-y-4">
-        <h2 className="text-lg font-bold text-foreground">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          <QuickAction
-            icon={Layers}
-            title="Full Mock Test"
-            description="L + R + W to'liq mock imtihon"
-            href="/dashboard/fullmock"
-            gradient="linear-gradient(135deg, oklch(0.55 0.22 270), oklch(0.65 0.2 300))"
-          />
-          <QuickAction
-            icon={Keyboard}
-            title="Typing Practice"
-            description="Boost WPM speed and accuracy"
-            href="/dashboard/typing"
-            gradient="linear-gradient(135deg, oklch(0.48 0.22 270), oklch(0.55 0.2 290))"
-          />
-          <QuickAction
-            icon={BookOpen}
-            title="Reading Practice"
-            description="Academic passages with timed questions"
-            href="/dashboard/reading"
-            gradient="linear-gradient(135deg, oklch(0.52 0.16 145), oklch(0.58 0.18 160))"
-          />
-          <QuickAction
-            icon={Headphones}
-            title="Listening Practice"
-            description="Audio-based comprehension tests"
-            href="/dashboard/listening"
-            gradient="linear-gradient(135deg, oklch(0.55 0.22 270), oklch(0.65 0.2 300))"
-          />
-          <QuickAction
-            icon={PenTool}
-            title="Writing Practice"
-            description="Task 1 & 2 with AI evaluation"
-            href="/dashboard/writing"
-            gradient="linear-gradient(135deg, oklch(0.65 0.2 40), oklch(0.7 0.18 60))"
-          />
-          <QuickAction
-            icon={Target}
-            title="Leaderboard"
-            description="See how you rank globally"
-            href="/dashboard/leaderboard"
-            gradient="linear-gradient(135deg, oklch(0.6 0.2 330), oklch(0.65 0.18 350))"
-          />
         </div>
       </motion.div>
 
@@ -493,11 +499,9 @@ export default function DashboardPage() {
             <Sparkles className="h-6 w-6 text-amber-600 dark:text-amber-400" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-foreground mb-1">💡 Daily Tip</h3>
+            <h3 className="text-base font-bold text-foreground mb-1">💡 {dp.dailyTip || "Daily Tip"}</h3>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-              For Reading section — always skim the passage first, identify keywords in
-              the questions, then scan for specific answers. This can save you up to 5
-              minutes per passage!
+              {dp.dailyTipText || "For Reading section — always skim the passage first, identify keywords in the questions, then scan for specific answers. This can save you up to 5 minutes per passage!"}
             </p>
           </div>
         </div>

@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Trophy, BarChart3, Headphones, BookOpen, PenTool, Mic,
   LogOut, PanelLeftClose, PanelLeftOpen, Zap, Crown, Settings, ShieldCheck,
-  User, X, Sparkles, MessageCircle, FileText, LifeBuoy, Keyboard, Layers
+  User, X, Sparkles, MessageCircle, FileText, LifeBuoy, Keyboard, Layers, Target
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -48,14 +48,12 @@ export default function Sidebar({ collapsed, onToggle }) {
   ];
 
   const practiceNav = [
-    { name: "Listening", href: "/dashboard/listening", icon: Headphones },
-    { name: "Reading", href: "/dashboard/reading", icon: BookOpen },
-    { name: "Writing", href: "/dashboard/writing", icon: PenTool },
+    { name: "Training", href: "/dashboard/training", icon: Target },
     { name: "Full Mock", href: "/dashboard/fullmock", icon: Layers },
     { name: "Typing", href: "/dashboard/typing", icon: Keyboard },
+    { name: "Articles", href: "/dashboard/articles", icon: FileText, badge: "NEW" },
     { name: "Speaking", href: "#", icon: Mic, locked: true, badge: "Soon" },
     { name: "Predictions", href: "#", icon: Sparkles, locked: true, badge: "Soon" },
-    { name: "Articles", href: "#", icon: FileText, locked: true, badge: "Soon" },
   ];
 
   const supportNav = [

@@ -6,7 +6,7 @@ import { translations } from "@/lib/translations";
 const LanguageContext = createContext(null);
 
 export function LanguageProvider({ children }) {
-  const [lang, setLang] = useState("en"); // Default is English — renders immediately
+  const [lang, setLang] = useState("en"); // Default is English
 
   useEffect(() => {
     // Check localStorage for saved preference on mount
@@ -16,35 +16,76 @@ export function LanguageProvider({ children }) {
         setLang(saved);
       }
     } catch (e) {
-      // Private Mode yoki localStorage bloklangan brauzerlar uchun
       console.warn("localStorage unavailable for language preference:", e);
     }
   }, []);
 
   const changeLanguage = useCallback((newLang) => {
+    if (!newLang || !["en", "uz", "ru"].includes(newLang)) return;
     setLang(newLang);
-    localStorage.setItem("mega_ielts_lang", newLang);
+    try {
+      localStorage.setItem("mega_ielts_lang", newLang);
+    } catch (e) {
+      console.warn("Could not save language to localStorage:", e);
+    }
   }, []);
 
-  const t = useCallback((key, params = {}) => {
-    const keys = key.split(".");
-    let value = translations[lang];
-    for (const k of keys) {
-      if (value && value[k] !== undefined) {
-        value = value[k];
-      } else {
-        return typeof params === "string" ? params : key; // Fallback to default or key
+  const t = useMemo(() => {
+    const currentTranslations = translations[lang] || translations.en;
+
+    const translateFn = (key, params = {}) => {
+      if (!key) return "";
+      const keys = String(key).split(".");
+      let value = currentTranslations;
+      for (const k of keys) {
+        if (value && value[k] !== undefined) {
+          value = value[k];
+        } else {
+          // Fallback to English if missing in current language
+          let fallback = translations.en;
+          for (const fbK of keys) {
+            if (fallback && fallback[fbK] !== undefined) {
+              fallback = fallback[fbK];
+            } else {
+              fallback = undefined;
+              break;
+            }
+          }
+          if (fallback !== undefined) {
+            value = fallback;
+            break;
+          }
+          return typeof params === "string" ? params : key; // Fallback to default or key
+        }
       }
-    }
-    
-    // Support interpolation: ex. t("key", { count: 5 })
-    if (typeof value === "string" && typeof params === "object") {
-      Object.keys(params).forEach((paramKey) => {
-        value = value.replace(new RegExp(paramKey, "g"), params[paramKey]);
-      });
-    }
-    
-    return value;
+
+      // Support interpolation: ex. t("key", { count: 5 }) or t("key", { {count}: 5 })
+      if (typeof value === "string" && typeof params === "object" && params !== null) {
+        Object.keys(params).forEach((paramKey) => {
+          value = value.replace(new RegExp(`{${paramKey}}`, "g"), params[paramKey]);
+          value = value.replace(new RegExp(paramKey, "g"), params[paramKey]);
+        });
+      }
+
+      return value;
+    };
+
+    // Return a Proxy so t can be called as a function `t("nav.why")`
+    // OR accessed as an object `t.trainingPage.listening.title` or `t.sidebar`!
+    return new Proxy(translateFn, {
+      get(target, prop) {
+        if (prop in target) {
+          return target[prop];
+        }
+        if (currentTranslations && currentTranslations[prop] !== undefined) {
+          return currentTranslations[prop];
+        }
+        if (translations.en && translations.en[prop] !== undefined) {
+          return translations.en[prop];
+        }
+        return undefined;
+      }
+    });
   }, [lang]);
 
   const contextValue = useMemo(() => ({
@@ -53,9 +94,6 @@ export function LanguageProvider({ children }) {
     t
   }), [lang, changeLanguage, t]);
 
-  // Render children immediately — no mount blocker!
-  // English is used as default, so content is visible from the first paint.
-  // When localStorage lang is different, it will re-render seamlessly.
   return (
     <LanguageContext.Provider value={contextValue}>
       {children}

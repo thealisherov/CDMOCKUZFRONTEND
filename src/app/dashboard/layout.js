@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-background text-foreground">
+    <div className="min-h-screen flex w-full max-w-full overflow-x-hidden bg-background text-foreground">
 
       {/* ── Desktop Sidebar ── */}
       <aside
@@ -45,7 +45,7 @@ export default function DashboardLayout({ children }) {
       {/* ── Main content ── */}
       <div
         className={cn(
-          "flex-1 flex flex-col transition-all duration-300 ease-in-out min-h-screen",
+          "flex-1 flex flex-col min-w-0 max-w-full transition-all duration-300 ease-in-out min-h-screen overflow-x-hidden",
           collapsed ? "md:pl-[68px]" : "md:pl-64"
         )}
       >
@@ -84,7 +84,7 @@ export default function DashboardLayout({ children }) {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-hidden relative">
+        <main className="flex-1 min-w-0 max-w-full p-4 sm:p-6 md:p-8 overflow-x-hidden relative">
           {children}
         </main>
       </div>

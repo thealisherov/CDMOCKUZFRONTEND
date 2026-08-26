@@ -393,4 +393,11 @@ label[for] {
   .container-custom {
     @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
   }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
