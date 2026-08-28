@@ -1,0 +1,86 @@
+{
+  "order_index": 29,
+  "title": "Advanced Vocabulary Exercises",
+  "slug": "advanced-vocabulary-exercises",
+  "category": "Health",
+  "level": "B2 (IELTS 6.5+)",
+  "read_time": "3 min read",
+  "is_free": false,
+  "image_url": "",
+  "excerpt": "5 Advanced Vocabulary Exercises",
+  "content": "5 Advanced Vocabulary Exercises",
+  "vocabulary": [],
+  "exercises": [
+    {
+      "instruction": "Exercise 1: Match the Meaning",
+      "description": "Match each term to its definition: a) Biodegradable b) Microplastics c) Eco-friendly alternatives d) Collective action e) Waste management systems",
+      "type": "matching",
+      "word_bank": [],
+      "questions": [
+        "1. Small plastic particles that pollute soil and water",
+        "2. Coordinated efforts by people or groups to solve a problem",
+        "3. Environmentally safe substitutes for harmful products",
+        "4. Materials capable of decomposing naturally",
+        "5. Processes used to handle and dispose of waste properly"
+      ]
+    },
+    {
+      "instruction": "Exercise 2: Fill in the Blanks",
+      "description": "Use the correct form of the words:",
+      "type": "gap_fill",
+      "word_bank": [],
+      "questions": [
+        "1. The introduction of _____________ (eco) products helps minimize plastic waste.",
+        "2. Many cities suffer from _____________ (flood) due to blocked drains filled with plastic.",
+        "3. People should develop more _____________ (sustain) habits to protect the environment.",
+        "4. The government has introduced strict _____________ (regulate) on plastic bags.",
+        "5. The presence of _____________ (microplastic) in food poses health risks."
+      ]
+    },
+    {
+      "instruction": "Exercise 3: Synonym Challenge",
+      "description": "Find synonyms for the following highlighted expressions:",
+      "type": "gap_fill",
+      "word_bank": [],
+      "questions": [
+        "1. consumer culture of disposability → ____________",
+        "2. eco-friendly alternatives → ____________",
+        "3. collective action → ____________",
+        "4. policy enforcement → ____________",
+        "5. technological advancement → ____________"
+      ]
+    },
+    {
+      "instruction": "Exercise 4: Collocation Practice",
+      "description": "Combine the words correctly:",
+      "type": "gap_fill",
+      "word_bank": [],
+      "questions": [
+        "1. reduce / ban / recycle / reuse → plastic ________",
+        "2. raise / conduct / support → public ________ campaigns",
+        "3. impose / introduce → environmental ________",
+        "4. develop / promote → biodegradable ________",
+        "5. encourage / adopt → sustainable ________"
+      ]
+    },
+    {
+      "instruction": "Exercise 5: Discussion Prompts",
+      "description": "Use the highlighted topic vocabulary to discuss:",
+      "type": "discussion",
+      "word_bank": [],
+      "questions": [
+        "1. What are the main causes of plastic pollution in your country?",
+        "2. How can public awareness campaigns help reduce waste?",
+        "3. Do you believe biodegradable product innovation can fully replace plastics?",
+        "4. What kind of government policies are effective against plastic pollution?",
+        "5. How can individuals contribute through sustainable habits? IELTS Essay Topic \"Plastic pollution has become one of the biggest environmental problems in the world. What are its causes and what measures can be taken to solve it?\"",
+        "11. Pros and Cons of Robot Teachers in the Classroom",
+        "1. Introduction The integration of robot teachers into contemporary education has sparked extensive debate among policymakers, educators, and researchers. While these systems promise to revolutionise teaching through advanced automation, adaptive learning algorithms, and data- driven instruction, concerns persist regarding their impact on human interaction, emotional development, and pedagogical quality. Evaluating both advantages and disadvantages is therefore essential for understanding their potential role in future classrooms.",
+        "2. Advantages of Robot Teachers a. Consistency and Precision One major advantage of robot instructors is their ability to deliver consistent, error-free instruction. Unlike human teachers, robots do not experience fatigue, emotional fluctuations, or stress. This ensures highly standardised teaching practices, particularly valuable in contexts that demand accuracy, such as delivering STEM-based content or conducting routine assessments. Such reliability can contribute to equal learning opportunities and minimise instructional disparities. b. Personalised Learning and Data Analytics Robot teachers often incorporate AI-driven personalisation systems, which analyse students' performance in real time and adapt tasks according to individual needs. This promotes differentiated learning pathways, helping students who require additional support while allowing advanced learners to move ahead. By continuously gathering learning analytics, robot teachers can create detailed progress reports that empower educators and parents to make informed decisions. c. Enhanced Engagement Through Technology Robotic instruction can significantly increase students' motivation by providing interactive experiences, especially through gamified learning platforms, multisensory lessons, and speech-recognition interfaces. The novelty of robot-mediated teaching often results in heightened curiosity among students, which may lead to improved academic engagement.",
+        "3. Disadvantages of Robot Teachers a. Lack of Emotional Intelligence Despite advancements in affective computing, robot teachers still lack genuine emotional intelligence, empathy, and the ability to build meaningful relationships with students. Many aspects of education-such as fostering resilience, offering emotional support, or managing behavioural challenges-require human sensitivity, something robots cannot authentically replicate. b. Ethical and Privacy Concerns Robot teachers often operate by collecting and processing substantial amounts of personal data. This raises serious concerns about student privacy, data security, and the potential misuse of sensitive information. Ethical issues, such as algorithmic bias or surveillance-based learning environments, also risk undermining trust between learners and educational institutions. c. Over-reliance on Technology A heavy dependence on robotic systems may reduce students' opportunities to develop interpersonal skills, critical thinking, and creativity. Furthermore, technical failures or software malfunctions can disrupt lessons and widen the gap between well-resourced schools and those lacking technological infrastructure. As a result, robot teachers might unintentionally reinforce educational inequality.",
+        "4. Conclusion Robot teachers present a blend of promising benefits and significant challenges. While they can enhance personalisation, efficiency, and engagement, they cannot fully replace the emotional depth and social understanding offered by human educators. A balanced approach- integrating robotic tools as supplements rather than substitutes-may offer the most effective path for future educational systems."
+      ]
+    }
+  ],
+  "source": "IDEA BOOK.pdf (Pages 41-44)"
+}

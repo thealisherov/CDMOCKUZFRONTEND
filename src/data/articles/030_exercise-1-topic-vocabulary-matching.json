@@ -1,0 +1,100 @@
+{
+  "order_index": 30,
+  "title": "Exercise 1: Topic Vocabulary Matching",
+  "slug": "exercise-1-topic-vocabulary-matching",
+  "category": "Health",
+  "level": "C1 (IELTS 7.5+)",
+  "read_time": "3 min read",
+  "is_free": false,
+  "image_url": "",
+  "excerpt": "",
+  "content": "",
+  "vocabulary": [],
+  "exercises": [
+    {
+      "instruction": "Exercise 1: Topic Vocabulary Matching",
+      "description": "Match each highlighted term with its correct definition:",
+      "type": "matching",
+      "word_bank": [],
+      "questions": [
+        "1. Learning analytics",
+        "2. Algorithmic bias",
+        "3. Differentiated learning pathways",
+        "4. Affective computing",
+        "5. Pedagogical quality A. Emotional recognition technologies used in machines B. Unequal outcomes produced by flawed data-based systems C. The academic effectiveness of teaching methods D. Tailored instructional routes based on students' needs E. Data-driven evaluations of learners' performance"
+      ]
+    },
+    {
+      "instruction": "Exercise 2: Fill in the Blanks (Advanced Noun Phrases)",
+      "description": "Use the highlighted noun phrases to complete the sentences:",
+      "type": "gap_fill",
+      "word_bank": [],
+      "questions": [
+        "1. Schools increasingly rely on __________ to monitor student progress in real time.",
+        "2. Teachers fear that __________ may threaten fairness in assessment systems.",
+        "3. Many experts argue that robots struggle to maintain high __________ when dealing with diverse learners.",
+        "4. AI-powered platforms help create __________ for students with varying abilities.",
+        "5. Researchers are expanding __________ to improve emotional responsiveness in robots."
+      ]
+    },
+    {
+      "instruction": "Exercise 3: Paraphrasing Task",
+      "description": "Rewrite the sentences using academic expressions from the text:",
+      "type": "paraphrase",
+      "word_bank": [],
+      "questions": [
+        "1. Robot teachers always deliver the same quality of lessons.",
+        "2. Human teachers understand students in ways robots cannot.",
+        "3. Using robots too much might damage students' communication skills.",
+        "4. There are ethical dangers in collecting a lot of learner data.",
+        "5. Robot-based instruction can boost students' curiosity."
+      ]
+    },
+    {
+      "instruction": "Exercise 4: Word Formation",
+      "description": "Transform the words in brackets into the correct form:",
+      "type": "word_transformation",
+      "word_bank": [],
+      "questions": [
+        "1. Robot teachers offer highly _________ instruction. (standard)",
+        "2. Over-reliance on technology can reduce students' _________",
+        "3. Modern robots are becoming more _________ at analysing data.",
+        "4. Some schools lack the necessary _________ to adopt robotic",
+        "5. Emotional support requires a great deal of teacher _________."
+      ]
+    },
+    {
+      "instruction": "Exercise 5: Critical Thinking Questions",
+      "description": "Answer in 2-3 sentences each:",
+      "type": "discussion",
+      "word_bank": [],
+      "questions": [
+        "1. To what extent can robot teachers reduce inequality in education?",
+        "2. Should emotional interaction be considered as important as academic efficiency in the classroom?",
+        "3. What ethical guidelines should schools implement before deploying robot teachers?",
+        "4. How might hybrid teaching models-combining robots and humans- benefit modern learning?",
+        "5. Could an overdependence on data-based instruction weaken traditional forms of creativity? Suggested Essay Topic \"To what extent can robot teachers replace human educators in modern education systems?\" Do you agree or disagree with the statement?",
+        "12. Extreme Sports Advantages of Extreme Sports",
+        "1. Enhanced Physical Fitness Extreme sports demand intense physical activity, which helps improve cardiovascular health, muscle strength, balance, and flexibility. Activities like rock climbing, surfing, and snowboarding engage multiple muscle groups and promote an active lifestyle.",
+        "2. Mental Toughness and Stress Relief Participating in high-risk sports can significantly boost mental resilience. Facing dangerous situations requires focus, self-control, and emotional regulation. The adrenaline rush also releases endorphins, helping to reduce stress and improve mental well-being.",
+        "3. Improved Reflexes and Coordination Extreme sports such as skateboarding, mountain biking, or paragliding require quick decision-making, sharp reflexes, and excellent hand-eye coordination. These skills are developed over time and can be useful in other aspects of life.",
+        "4. Boost in Confidence and Self-Esteem Successfully overcoming challenging situations, such as conquering a steep climb or landing a difficult jump, can lead to a strong sense of accomplishment, boosting self-confidence and personal growth.",
+        "5. Community and Social Connection Many extreme sports foster a sense of belonging through clubs, online forums, and group expeditions. Shared experiences in challenging environments often create strong bonds between participants. Disadvantages of Extreme Sports",
+        "1. High Risk of Injury or Fatality One of the most significant downsides is the serious risk of physical injury or even death. Activities like base jumping, free solo climbing, and motocross come with a high probability of accidents, even for experienced athletes.",
+        "2. High Costs and Accessibility Issues Extreme sports often require specialized equipment, protective gear, and sometimes travel to remote locations. This makes them expensive and not easily accessible to everyone.",
+        "3. Environmental Concerns Some activities can have a negative impact on nature, such as off- roading, which can damage natural habitats, or heli-skiing, which contributes to carbon emissions. These practices may raise ethical and environmental questions.",
+        "4. Legal and Insurance Challenges Due to the dangerous nature of these sports, participants may face legal restrictions or struggle to get insurance coverage. Some events may be unauthorized or unregulated, increasing risks further.",
+        "5. Psychological Stress and Trauma While some thrive on the adrenaline, others may experience anxiety, pressure to perform, or psychological trauma from accidents or witnessing injuries. This can lead to long-term mental health issues. Extreme Sports - Vocabulary Exercises ⃣ Matching Exercise A",
+        "1. Adrenaline rush",
+        "2. Endorphins",
+        "3. Fatality",
+        "4. Coordination",
+        "5. Accessibility",
+        "6. Resilience",
+        "7. Self-esteem",
+        "8. Regulation"
+      ]
+    }
+  ],
+  "source": "IDEA BOOK.pdf (Pages 45-48)"
+}

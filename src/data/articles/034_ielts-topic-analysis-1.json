@@ -1,0 +1,99 @@
+{
+  "order_index": 34,
+  "title": "IELTS Topic Analysis",
+  "slug": "ielts-topic-analysis-1",
+  "category": "Society",
+  "level": "C1 (IELTS 7.5+)",
+  "read_time": "3 min read",
+  "is_free": false,
+  "image_url": "",
+  "excerpt": "care, resulting in malnutrition, disease outbreaks, and shortened life  expectancy. Moreover, poverty is closely linked to social exclusion,  crime, and mental health problems, as individuals exper...",
+  "content": "care, resulting in malnutrition, disease outbreaks, and shortened life \nexpectancy. Moreover, poverty is closely linked to social exclusion, \ncrime, and mental health problems, as individuals experience \nhopelessness and loss of dignity. \n \nSolutions to Poverty \nAddressing poverty requires a multi-dimensional approach. Firstly, \ngovernments should invest in quality education and skills training \nprograms to empower individuals with the tools needed to secure better \nemployment. Education acts as a long-term investment that can break \nthe cycle of poverty. \nSecondly, the creation of sustainable jobs through industrial \ndevelopment, agricultural modernization, and entrepreneurship \nincentives can boost economic productivity. Governments should also \nimplement progressive taxation systems to reduce inequality and ensure \nfair wealth distribution. \nMoreover, social protection schemes-such as affordable healthcare, \nhousing support, and child benefits-play a crucial role in providing \nsafety nets for vulnerable groups. International cooperation is also vital, as \nglobal organizations can assist poorer nations through financial aid, \ntechnological transfer, and capacity-building initiatives. \n \n### Conclusion\n\nIn summary, poverty is a complex global issue driven by economic, \nsocial, and political factors. Its effects are devastating, limiting human \npotential and weakening social stability. By implementing inclusive \npolicies, promoting economic equality, and enhancing education and \nsocial welfare, societies can move toward a future where poverty is \nsignificantly reduced or even eradicated.",
+  "vocabulary": [],
+  "exercises": [
+    {
+      "instruction": "Exercise 1 - Word Formation",
+      "description": "Use the correct form of the words in brackets:",
+      "type": "word_transformation",
+      "word_bank": [],
+      "questions": [
+        "1. Government __________ (intervene) can play a major role in poverty reduction.",
+        "2. Many families live in __________ (deprive) due to low income.",
+        "3. Corruption often leads to the __________ (allocate) of public resources.",
+        "4. Sustainable development requires __________ (cooperate) among nations.",
+        "5. The program aims to promote economic __________ (equal)."
+      ]
+    },
+    {
+      "instruction": "Exercise 3 - Synonym Identification",
+      "description": "Find a synonym in the text for each of the following:",
+      "type": "gap_fill",
+      "word_bank": [],
+      "questions": [
+        "1. Disparity = __________",
+        "2. Support = __________",
+        "3. Consequences = __________",
+        "4. Empower = __________",
+        "5. Eliminate = __________"
+      ]
+    },
+    {
+      "instruction": "Exercise 4 - Sentence Completion",
+      "description": "Complete the sentences with appropriate topic vocabulary:",
+      "type": "gap_fill",
+      "word_bank": [],
+      "questions": [
+        "1. __________ inequality remains one of the root causes of poverty.",
+        "2. The government introduced new __________ programs to assist low- income families.",
+        "3. Many rural areas suffer from poor __________, limiting access to basic services.",
+        "4. Education is considered the most effective __________ to break the poverty cycle.",
+        "5. __________ cooperation can help nations tackle poverty together."
+      ]
+    },
+    {
+      "instruction": "Exercise 6 - Academic Vocabulary in Context",
+      "description": "Fill in the blanks with the most suitable topic words or noun phrases",
+      "type": "gap_fill",
+      "word_bank": [
+        "choose from: economic inequality",
+        "social exclusion",
+        "sustainable development",
+        "financial independence",
+        "progressive taxation",
+        "natural disasters",
+        "limited access to education",
+        "political instability",
+        "intergenerational poverty",
+        "social protection schemes"
+      ],
+      "questions": [
+        "1. Many developing countries struggle with __________, where wealth is concentrated among a small elite.",
+        "2. When governments fail to maintain stability, __________ often worsens poverty conditions.",
+        "3. Families who cannot afford schooling face __________, which keeps them trapped in low-skilled jobs.",
+        "4. Effective __________ can reduce income gaps by requiring the wealthy to contribute more.",
+        "5. People in poverty often experience __________, feeling isolated from society and lacking opportunities.",
+        "6. Recurrent floods and earthquakes are examples of __________ that destroy homes and livelihoods.",
+        "7. A key goal of the United Nations is to achieve __________ by 2030 to ensure prosperity for all.",
+        "8. Providing __________ such as healthcare, housing, and unemployment benefits helps protect the vulnerable.",
+        "9. Job creation is crucial for helping people achieve __________ and escape reliance on charity.",
+        "10. Without education and economic reform, many families continue to suffer from __________, passing poverty from parents to children."
+      ]
+    },
+    {
+      "instruction": "Exercise 7 - Paraphrasing for Academic Style",
+      "description": "Rewrite each sentence below using different words or noun phrases from the text while keeping the same meaning. Use highlighted topic vocabulary such as economic inequality, social welfare, intergenerational poverty, sustainable jobs, social exclusion, or financial assistance where appropriate.",
+      "type": "paraphrase",
+      "word_bank": [],
+      "questions": [
+        "1. Poor families often cannot afford healthcare or education, which keeps them trapped in a cycle of poverty. → _______________________________________________________ _",
+        "2. The government should collect more taxes from the wealthy to reduce income differences. → _______________________________________________________ _",
+        "3. Many young people in developing countries cannot find work and become dependent on others. → _______________________________________________________ _",
+        "4. Natural events such as floods and droughts can destroy people's sources of income. → _______________________________________________________ _",
+        "5. People living in poverty sometimes feel disconnected from society and opportunities. → _______________________________________________________ _",
+        "6. Providing affordable housing and healthcare can protect low-income families from economic hardship. → _______________________________________________________ _",
+        "7. Creating industries and training programs can help citizens earn steady incomes. → _______________________________________________________ _"
+      ]
+    }
+  ],
+  "source": "IDEA BOOK.pdf (Pages 61-64)"
+}

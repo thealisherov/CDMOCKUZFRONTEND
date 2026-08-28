@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import ArticleExercises from "./ArticleExercises";
 
 const CATEGORY_GRADIENTS = {
   Society: "from-blue-900 via-indigo-950 to-slate-950",
@@ -33,6 +34,17 @@ export default function ArticleDetailPage() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [copiedWord, setCopiedWord] = useState(null);
   const [activeTab, setActiveTab] = useState("content"); // content, vocabulary, exercises
+  const [readMode, setReadMode] = useState("study"); // study, exam
+
+  const validExercises = useMemo(() => {
+    return (article?.exercises || []).filter(
+      ex => ex && Array.isArray(ex.questions) && ex.questions.length > 0
+    );
+  }, [article?.exercises]);
+
+  const validVocabulary = useMemo(() => {
+    return article?.vocabulary || [];
+  }, [article?.vocabulary]);
 
   useEffect(() => {
     if (slug) {
@@ -113,7 +125,12 @@ export default function ArticleDetailPage() {
               return (
                 <strong
                   key={pIdx}
-                  className="font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md shadow-2xs inline"
+                  className={cn(
+                    "font-bold px-1.5 py-0.5 rounded-md inline transition-all",
+                    readMode === "study"
+                      ? "text-primary bg-primary/10 shadow-2xs"
+                      : "text-foreground font-semibold"
+                  )}
                 >
                   {boldWord}
                 </strong>
@@ -181,71 +198,86 @@ export default function ArticleDetailPage() {
           <span>All Topics</span>
         </Link>
 
-        {/* Font size control */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-card border border-border shadow-xs">
+        {/* Action icons */}
+        <div className="flex items-center gap-2">
+          {/* Font Size Adjuster */}
+          <div className="flex items-center bg-card border border-border rounded-2xl p-1 shadow-xs">
+            <button
+              onClick={() => setFontSize(s => Math.max(14, s - 1))}
+              className="p-1.5 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground text-xs font-bold"
+              title="Decrease text size"
+            >
+              A-
+            </button>
+            <span className="text-[11px] font-bold px-1.5 text-muted-foreground">
+              {fontSize}px
+            </span>
+            <button
+              onClick={() => setFontSize(s => Math.min(24, s + 1))}
+              className="p-1.5 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground text-xs font-bold"
+              title="Increase text size"
+            >
+              A+
+            </button>
+          </div>
+
+          {/* Read Mode Toggle */}
           <button
-            onClick={() => setFontSize(f => Math.max(14, f - 1))}
-            className="px-3 py-1 rounded-xl text-xs font-bold hover:bg-muted text-muted-foreground transition-colors"
-            title="Decrease font size"
+            onClick={() => setReadMode(m => m === "study" ? "exam" : "study")}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-bold transition-all border shadow-xs",
+              readMode === "exam"
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-card border-border text-muted-foreground hover:text-foreground"
+            )}
+            title="Toggle Exam Focus Mode"
           >
-            A-
-          </button>
-          <span className="text-xs font-bold text-foreground px-1.5">
-            {fontSize}px
-          </span>
-          <button
-            onClick={() => setFontSize(f => Math.min(24, f + 1))}
-            className="px-3 py-1 rounded-xl text-xs font-bold hover:bg-muted text-muted-foreground transition-colors"
-            title="Increase font size"
-          >
-            A+
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{readMode === "exam" ? "Exam Mode" : "Study Mode"}</span>
           </button>
         </div>
       </div>
 
-      <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* ── Main Article Container ── */}
+      <div className="w-full max-w-4xl mx-auto space-y-8 mt-2">
         
-        {/* ── Article Banner Header ── */}
-        <div className="relative overflow-hidden rounded-3xl bg-slate-950 border border-border/80 shadow-lg p-6 sm:p-10 min-h-[220px] flex flex-col justify-end">
-          {/* Ambient Glow */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
-          <div className={cn(
-            "absolute inset-0 bg-gradient-to-br opacity-80",
-            CATEGORY_GRADIENTS[article.category] || "from-indigo-950 via-slate-950 to-slate-900"
-          )} />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
-
-          <div className="relative z-10 space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-xl text-xs font-extrabold bg-primary text-primary-foreground shadow-sm">
-                {article.category}
+        {/* Article Meta Hero Header */}
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+            <span className="px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+              {article.category || "IELTS Essay"}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground border border-border">
+              {article.level || "B2-C1 Band 7.5+"}
+            </span>
+            <span className="flex items-center gap-1 text-muted-foreground">
+              <Clock className="w-3.5 h-3.5" />
+              {article.read_time || "4 min read"}
+            </span>
+            {article.is_free ? (
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
+                FREE
               </span>
-              <span className="px-3 py-1 rounded-xl text-xs font-semibold bg-white/15 backdrop-blur-md text-white border border-white/10">
-                {article.level}
+            ) : (
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-[10px] flex items-center gap-1">
+                <Crown className="w-3 h-3" />
+                PREMIUM
               </span>
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium bg-black/40 backdrop-blur-md text-white/90 border border-white/10">
-                <Clock className="w-3.5 h-3.5 text-white/80" />
-                <span>{article.read_time}</span>
-              </div>
-              {article.is_free ? (
-                <span className="px-3 py-1 rounded-xl text-xs font-extrabold bg-emerald-500 text-white shadow-sm">
-                  FREE
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm">
-                  <Crown className="w-3.5 h-3.5 text-yellow-200" />
-                  PREMIUM
-                </span>
-              )}
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight tracking-tight drop-shadow-sm">
-              {article.title}
-            </h1>
+            )}
           </div>
+
+          <h1 className="text-2xl sm:text-4xl font-black text-foreground tracking-tight leading-tight">
+            {article.title}
+          </h1>
+
+          {article.excerpt && (
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed font-normal">
+              {article.excerpt}
+            </p>
+          )}
         </div>
 
-        {/* ── Modern Tabs Navigation ── */}
+        {/* ── View Switcher Navigation Tabs ── */}
         <div className="flex items-center gap-2 p-1.5 bg-muted/60 rounded-2xl border border-border/80 w-full overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab("content")}
@@ -260,20 +292,22 @@ export default function ArticleDetailPage() {
             <span>Essay & Reading</span>
           </button>
 
-          <button
-            onClick={() => setActiveTab("vocabulary")}
-            className={cn(
-              "flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all",
-              activeTab === "vocabulary"
-                ? "bg-card text-foreground shadow-xs border border-border"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Flame className="w-4 h-4 text-amber-500" />
-            <span>Key Vocabulary ({article.vocabulary?.length || 0})</span>
-          </button>
+          {validVocabulary.length > 0 && (
+            <button
+              onClick={() => setActiveTab("vocabulary")}
+              className={cn(
+                "flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all",
+                activeTab === "vocabulary"
+                  ? "bg-card text-foreground shadow-xs border border-border"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Flame className="w-4 h-4 text-amber-500" />
+              <span>Key Vocabulary ({validVocabulary.length})</span>
+            </button>
+          )}
 
-          {article.exercises && article.exercises.length > 0 && (
+          {validExercises.length > 0 && (
             <button
               onClick={() => setActiveTab("exercises")}
               className={cn(
@@ -284,7 +318,7 @@ export default function ArticleDetailPage() {
               )}
             >
               <HelpCircle className="w-4 h-4 text-indigo-500" />
-              <span>Exercises ({article.exercises.length})</span>
+              <span>Exercises ({validExercises.length})</span>
             </button>
           )}
         </div>
@@ -326,34 +360,64 @@ export default function ArticleDetailPage() {
               )}
             </div>
 
-            {/* Quick Vocabulary Strip at bottom of article */}
-            {article.vocabulary && article.vocabulary.length > 0 && (
-              <div className="w-full rounded-3xl bg-card border border-border/80 p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
-                    <Flame className="w-5 h-5" />
+            {/* Bottom Actions Banner (Vocabulary & Interactive Exercises) */}
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {article.vocabulary && article.vocabulary.length > 0 && (
+                <div className="p-6 rounded-3xl bg-card border border-border/80 shadow-xs flex flex-col justify-between space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                      <Flame className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-foreground">
+                        Review Topic Vocabulary
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        {article.vocabulary.length} academic terms extracted.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-foreground">
-                      Review Topic Vocabulary
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      {article.vocabulary.length} key academic terms extracted for this topic.
-                    </p>
-                  </div>
-                </div>
 
-                <button
-                  onClick={() => {
-                    setActiveTab("vocabulary");
-                    window.scrollTo({ top: 300, behavior: "smooth" });
-                  }}
-                  className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs hover:opacity-90 transition-all"
-                >
-                  View Vocabulary List
-                </button>
-              </div>
-            )}
+                  <button
+                    onClick={() => {
+                      setActiveTab("vocabulary");
+                      window.scrollTo({ top: 250, behavior: "smooth" });
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl bg-muted hover:bg-muted/80 text-foreground text-xs font-bold transition-all border border-border"
+                  >
+                    View Vocabulary List
+                  </button>
+                </div>
+              )}
+
+              {validExercises.length > 0 && (
+                <div className="p-6 rounded-3xl bg-gradient-to-tr from-indigo-500/10 via-primary/10 to-purple-500/10 border border-primary/30 shadow-xs flex flex-col justify-between space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center text-primary">
+                      <HelpCircle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-foreground">
+                        Practice Questions & Gap Filling
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        {validExercises.length} interactive exercises with instant feedback.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setActiveTab("exercises");
+                      window.scrollTo({ top: 250, behavior: "smooth" });
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-extrabold shadow-sm hover:opacity-90 transition-all"
+                  >
+                    Start Practice Exercises ({validExercises.length})
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -426,42 +490,12 @@ export default function ArticleDetailPage() {
           </div>
         )}
 
-        {/* 3. Practice Exercises View */}
-        {activeTab === "exercises" && article.exercises && (
-          <div className="w-full space-y-6 animate-in fade-in-50 duration-200">
-            <div className="rounded-3xl bg-card border border-border/80 p-6 sm:p-8 space-y-6 shadow-xs">
-              <div className="flex items-center gap-2.5 pb-4 border-b border-border">
-                <HelpCircle className="w-5 h-5 text-indigo-500" />
-                <h3 className="font-extrabold text-base text-foreground">
-                  Practice Questions & Exercises
-                </h3>
-              </div>
-
-              <div className="space-y-4">
-                {article.exercises.map((ex, exIdx) => (
-                  <div
-                    key={exIdx}
-                    className="p-5 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/60 dark:border-indigo-800/60 space-y-3"
-                  >
-                    <h4 className="font-bold text-sm text-indigo-700 dark:text-indigo-300">
-                      {ex.instruction || ex.title || `Exercise ${exIdx + 1}`}
-                    </h4>
-                    {Array.isArray(ex.questions) ? (
-                      <ul className="text-xs font-sans text-muted-foreground space-y-2 leading-relaxed list-disc list-inside">
-                        {ex.questions.map((q, qIdx) => (
-                          <li key={qIdx}>{q}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <pre className="text-xs font-sans text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                        {ex.content}
-                      </pre>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+        {/* 3. Interactive Practice Exercises View */}
+        {activeTab === "exercises" && validExercises.length > 0 && (
+          <ArticleExercises
+            exercises={validExercises}
+            vocabulary={validVocabulary}
+          />
         )}
 
         {/* Master IELTS Reading Callout Card */}

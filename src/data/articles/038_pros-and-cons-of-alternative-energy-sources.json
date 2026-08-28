@@ -1,0 +1,91 @@
+{
+  "order_index": 38,
+  "title": "Pros and Cons of ALTERNATIVE ENERGY SOURCES",
+  "slug": "pros-and-cons-of-alternative-energy-sources",
+  "category": "Technology",
+  "level": "C1 (IELTS 7.5+)",
+  "read_time": "3 min read",
+  "is_free": false,
+  "image_url": "",
+  "excerpt": "19. PROS AND CONS OF ALTERNATIVE ENERGY SOURCES  ### Introduction",
+  "content": "19. PROS AND CONS OF ALTERNATIVE ENERGY SOURCES \n### Introduction\n\nAlternative energy sources-such as solar power, wind energy, \nhydroelectric power, and geothermal energy-are increasingly viewed \nas essential for a sustainable future. As the world faces rising emissions \nand environmental degradation, governments and industries are exploring \nthese **renewable energy** technologies to reduce dependence on fossil \nfuels. \n \n### Advantages\n\nOne major advantage of alternative energy sources is their environmental \nsustainability. Unlike traditional fuels, renewables produce minimal \n**carbon emissions**, helping countries combat climate change and \nimprove air quality. For example, solar and wind power generate \nelectricity without burning any fuel, making them vital components of a low-\ncarbon economy. \nAnother key benefit is energy security. Nations with access to renewable \nresources such as sunshine, rivers, or wind can reduce their reliance on \nimported oil and gas. This enhances long-term energy independence \nand stabilises national economies by shielding them from volatile global \nfuel markets. \n \n### Disadvantages\n\nDespite these benefits, alternative energy sources also have drawbacks. \nOne common issue is their intermittency; solar panels and wind turbines \ndepend on weather conditions, which can disrupt energy supply \nreliability. As a result, many countries must invest in energy storage \nsystems or maintain backup power plants. \nAdditionally, the initial cost of installing **renewable energy** \ninfrastructure-such as wind farms or large solar fields-can be extremely \nhigh. Some technologies, including geothermal plants, require specialised \nlocations, limiting their global accessibility. Environmental concerns also \nexist, as hydroelectric dams can disrupt ecosystems and displace \ncommunities. \n\n### Conclusion\n\nIn conclusion, alternative energy sources offer substantial environmental \nand economic benefits, but they also present practical challenges. A \nbalanced approach that combines investment, innovation, and responsible \nplanning is essential to maximise the potential of these clean energy \nsolutions. \n \nHighlighted Topic Vocabulary & Useful Noun Phrases \n• **renewable energy** \ntechnologies \n• environmental \nsustainability \n• **carbon emissions** \n• air quality \n• low-carbon economy \n• long-term energy \nindependence \n• energy security \n• energy supply reliability \n• intermittency of renewable \nsources \n• energy storage systems \n• **renewable energy** \ninfrastructure \n• clean energy solutions \n \n5 ADVANCED VOCABULARY EXERCISES",
+  "vocabulary": [],
+  "exercises": [
+    {
+      "instruction": "Exercise 1 - Fill in the gaps with the correct phrase",
+      "description": "Use these phrases: environmental sustainability, energy security, low- carbon economy, intermittency, carbon emissions",
+      "type": "gap_fill",
+      "word_bank": [],
+      "questions": [
+        "1. Countries aim to reduce _________ by switching to solar and wind power.",
+        "2. The main drawback of wind turbines is their _________, which depends on weather conditions.",
+        "3. Achieving _________ requires reliable domestic sources of power.",
+        "4. Investing in renewables is essential for transitioning to a _________.",
+        "5. Hydropower is widely considered a clean source that supports _________."
+      ]
+    },
+    {
+      "instruction": "Exercise 2 - Match the terms to their definitions",
+      "description": "a. renewable energy infrastructure b. energy storage systems c. environmental degradation d. energy independence e. geothermal energy Definitions:",
+      "type": "matching",
+      "word_bank": [],
+      "questions": [
+        "1. The ability of a country to rely on its own energy resources.",
+        "2. Power obtained from heat beneath the Earth's surface.",
+        "3. Facilities and structures that support renewable energy production.",
+        "4. Severe harm or damage to ecosystems.",
+        "5. Technologies that store electricity for later use."
+      ]
+    },
+    {
+      "instruction": "Exercise 3 - Rewrite the sentences using the highlighted vocabulary",
+      "description": "",
+      "type": "gap_fill",
+      "word_bank": [],
+      "questions": [
+        "1. Using fossil fuels harms the environment.",
+        "2. Solar farms help countries avoid relying on imported oil.",
+        "3. Wind and solar power depend too much on weather.",
+        "4. Governments must build batteries to keep extra electricity.",
+        "5. A sustainable future requires cleaner forms of energy."
+      ]
+    },
+    {
+      "instruction": "Exercise 5 - Academic paraphrasing",
+      "description": "Paraphrase these phrases using advanced vocabulary:",
+      "type": "paraphrase",
+      "word_bank": [],
+      "questions": [
+        "1. \"clean forms of energy\" → __________________________",
+        "2. \"countries that make their own energy\" → __________________________",
+        "3. \"systems that keep extra electricity\" → __________________________",
+        "4. \"pollution from burning fuels\" → __________________________",
+        "5. \"unpredictable renewable sources\" → __________________________"
+      ]
+    },
+    {
+      "instruction": "Exercise 6 - Error Correction (Advanced Academic Style)",
+      "description": "Correct the errors in the following sentences related to alternative energy sources. Focus on word choice, collocation, and academic tone.",
+      "type": "gap_fill",
+      "word_bank": [],
+      "questions": [
+        "1. Solar energy is one of the most reliable sources, but its constantly depends on daylight.",
+        "2. Governments should allocate more money for building renewable equipments.",
+        "3. Wind farms can cause light pollution and create uncomfortable noises for residents.",
+        "4. Hydroelectric power is a clean source, nevertheless it can make big damages to natural habitats.",
+        "5. The transition to green energy are requiring long-term planning and investment."
+      ]
+    },
+    {
+      "instruction": "Exercise 7 - Sentence Transformation (Cause-Effect / Contrast)",
+      "description": "Rewrite the sentences using the structure in brackets. Keep meaning as close as possible.",
+      "type": "word_transformation",
+      "word_bank": [],
+      "questions": [
+        "1. Renewable energy is expensive to install; however, it reduces costs in the long term.",
+        "2. Countries invest in energy storage systems because renewable sources are intermittent."
+      ]
+    }
+  ],
+  "source": "IDEA BOOK.pdf (Pages 77-80)"
+}
