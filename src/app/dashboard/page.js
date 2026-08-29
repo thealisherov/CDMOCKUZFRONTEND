@@ -417,19 +417,12 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* ── Asosiy statistika ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <StatCard
           icon={CheckCircle2}
           label={dp.totalTests || "Jami ishlangan testlar"}
           value={loading ? "—" : stats.testsCompleted}
           gradient="linear-gradient(135deg, oklch(0.55 0.22 270), oklch(0.65 0.2 300))"
-        />
-        <StatCard
-          icon={TrendingUp}
-          label={dp.avgBand || "O'rtacha band score"}
-          value={loading ? "—" : stats.avgBand}
-          subtitle="/ 9.0"
-          gradient="linear-gradient(135deg, oklch(0.52 0.16 145), oklch(0.58 0.18 160))"
         />
         <RankCard loading={loading} rank={stats.globalRank} isPremium={!!user?.isPremium} />
       </div>

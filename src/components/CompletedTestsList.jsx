@@ -195,7 +195,6 @@ export default function CompletedTestsList({ moduleType = "reading" }) {
               </p>
               {[
                 { icon: <BarChart3 className="w-3.5 h-3.5" />, label: "Attempts", value: summary.total },
-                { icon: <FileText className="w-3.5 h-3.5" />, label: "Avg score", value: summary.avgScore },
                 { icon: <Clock className="w-3.5 h-3.5" />, label: "Best score", value: summary.bestScore },
               ].map((s, i) => (
                 <div key={i} className="flex items-center justify-between text-sm">
