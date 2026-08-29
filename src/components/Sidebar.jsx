@@ -48,7 +48,7 @@ export default function Sidebar({ collapsed, onToggle }) {
   ];
 
   const practiceNav = [
-    { name: "Training", href: "/dashboard/training", icon: Target },
+    { name: "Tests", href: "/dashboard/training", icon: Target },
     { name: "Full Mock", href: "/dashboard/fullmock", icon: Layers },
     { name: "Typing", href: "/dashboard/typing", icon: Keyboard },
     { name: "Articles", href: "/dashboard/articles", icon: FileText, badge: "NEW" },

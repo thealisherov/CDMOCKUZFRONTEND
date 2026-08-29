@@ -90,11 +90,11 @@ export default function TrainingPage() {
         <div className="relative z-10 max-w-3xl space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-indigo-200">
             <Target className="w-3.5 h-3.5 text-yellow-300 animate-pulse" />
-            {tp.badge || "IELTS Skills Training"}
+            {tp.badge || "IELTS Skills Tests"}
           </div>
 
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
-            {tp.title1 || "Select Your"} <span className="bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">{tp.titleHighlight || "Training Module"}</span>
+            {tp.title1 || "Select Your"} <span className="bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">{tp.titleHighlight || "Test Module"}</span>
           </h1>
 
           <p className="text-sm sm:text-base text-slate-300 max-w-2xl leading-relaxed">
