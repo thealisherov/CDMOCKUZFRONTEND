@@ -25,15 +25,20 @@ export async function GET(req) {
     const { data: rpcUsers, error: rpcError } = await supabaseAdmin.rpc('admin_list_users');
 
     if (!rpcError && Array.isArray(rpcUsers)) {
+      const { data: pUsers } = await supabaseAdmin.from('users').select('id, phone');
+      const phoneMap = new Map((pUsers || []).map(p => [p.id, p.phone]));
+
       const shaped = rpcUsers.map((u) => ({
         id: u.id,
         email: u.email,
+        phone: phoneMap.get(u.id) || '',
         created_at: u.created_at,
         user_metadata: {
           full_name: u.full_name,
           avatar_url: u.avatar_url,
           role: u.role,
           premium_until: u.premium_until,
+          phone: phoneMap.get(u.id) || '',
         },
       }));
       return NextResponse.json(shaped);
