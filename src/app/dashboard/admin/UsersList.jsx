@@ -6,9 +6,8 @@ import { format } from "date-fns";
 import { createClient } from "@/utils/supabase/client";
 import { getAccessToken } from "@/utils/supabase/token";
 import { useRouter } from "next/navigation";
-import { Search, UserPlus, Shield, X, Check, DollarSign, Wallet, ExternalLink, AlertTriangle, Trash2, Download } from "lucide-react";
+import { Search, UserPlus, Shield, X, Check, DollarSign, Wallet, ExternalLink, AlertTriangle, Trash2 } from "lucide-react";
 import toast, { Toaster } from 'react-hot-toast';
-import { downloadStudentCsv } from "@/utils/studentCsvExport";
 
 export default function UsersList() {
   const router = useRouter();
@@ -220,44 +219,25 @@ export default function UsersList() {
               />
             </div>
             
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => {
-                  const studentUsers = users.filter(u => (u.user_metadata?.role || u.role) !== 'admin');
-                  if (studentUsers.length === 0) {
-                    toast.error("Hech qanday student topilmadi");
-                    return;
-                  }
-                  downloadStudentCsv(studentUsers, `studentlar_${new Date().toISOString().slice(0, 10)}.csv`);
-                  toast.success(`${studentUsers.length} ta student CSV formatida yuklab olindi!`);
-                }}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-all shadow-xs cursor-pointer"
-                title="Barcha studentlarni CSV formatida yuklab olish"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Studentlarni CSV yuklab olish</span>
-              </button>
-
-              <div className="flex flex-wrap items-center gap-1.5 bg-gray-100 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10">
-                 {[
-                   {id: 'all', label: 'All'},
-                   {id: 'admin', label: 'Admins'},
-                   {id: 'premium', label: 'Premium'},
-                   {id: 'free', label: 'Free'}
-                 ].map(f => (
-                   <button
-                      key={f.id}
-                      onClick={() => setFilterRole(f.id)}
-                      className={`px-3 py-1.5 rounded-lg text-[11px] uppercase tracking-wider font-bold transition-all ${
-                        filterRole === f.id
-                          ? 'bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white shadow-sm'
-                          : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
-                      }`}
-                   >
-                      {f.label}
-                   </button>
-                 ))}
-              </div>
+            <div className="flex flex-wrap items-center gap-1.5 bg-gray-100 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10">
+               {[
+                 {id: 'all', label: 'All'},
+                 {id: 'admin', label: 'Admins'},
+                 {id: 'premium', label: 'Premium'},
+                 {id: 'free', label: 'Free'}
+               ].map(f => (
+                 <button
+                    key={f.id}
+                    onClick={() => setFilterRole(f.id)}
+                    className={`px-3 py-1.5 rounded-lg text-[11px] uppercase tracking-wider font-bold transition-all ${
+                      filterRole === f.id
+                        ? 'bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white shadow-sm'
+                        : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                 >
+                    {f.label}
+                 </button>
+               ))}
             </div>
         </div>
         
