@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import StreakModal from "@/components/StreakModal";
-import PremiumPromoToast from "@/components/PremiumPromoToast";
+
+const StreakModal = dynamic(() => import("@/components/StreakModal"), { ssr: false });
+const PremiumPromoToast = dynamic(() => import("@/components/PremiumPromoToast"), { ssr: false });
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);

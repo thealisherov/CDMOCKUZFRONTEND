@@ -2,6 +2,48 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 
 export async function updateSession(request) {
+  const path = request.nextUrl.pathname;
+  const isAuthRoute = path.startsWith('/login') || path.startsWith('/register');
+
+  // ── Protected dashboard sub-routes (auth required) ──
+  const protectedPrefixes = [
+    '/dashboard/profile',
+    '/dashboard/admin',
+    '/dashboard/payment',
+    '/dashboard/premium',
+    '/dashboard/support',
+  ];
+
+  // Test detail & attempts pages: /dashboard/{skill}/{id} or /dashboard/{skill}/attempts
+  const testDetailPattern = /^\/dashboard\/(listening|reading|writing)\/(.+)/;
+
+  const isProtectedRoute =
+    protectedPrefixes.some((prefix) => path.startsWith(prefix)) ||
+    testDetailPattern.test(path);
+
+  // Check if any Supabase auth session cookies exist
+  const allCookies = request.cookies.getAll();
+  const hasAuthCookie = allCookies.some(
+    (c) =>
+      (c.name.startsWith('sb-') && c.name.includes('auth-token')) ||
+      c.name.includes('supabase-auth-token')
+  );
+
+  // ── FAST PATH 1: Unauthenticated visitor accessing a protected route ──
+  // No need to query Supabase — redirect to /login instantly
+  if (!hasAuthCookie && isProtectedRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
+  }
+
+  // ── FAST PATH 2: Public marketing / landing page without auth cookie ──
+  // Eliminates 300-800ms network roundtrip on every visit to '/'
+  if (!hasAuthCookie && !isAuthRoute) {
+    return NextResponse.next({ request });
+  }
+
+  // ── STANDARD PATH: Session refresh & verification for authenticated users ──
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -27,47 +69,18 @@ export async function updateSession(request) {
     }
   );
 
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser().
+  // Verify and refresh session
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const path = request.nextUrl.pathname;
-  const isAuthRoute = path.startsWith('/login') || path.startsWith('/register');
-
-  // ── Protected dashboard sub-routes (auth required) ──
-  // Test pages:  /dashboard/listening/[id], /dashboard/reading/[id], /dashboard/writing/[id]
-  // Attempts:    /dashboard/listening/attempts, etc.
-  // User pages:  /dashboard/profile, /dashboard/payment, /dashboard/premium
-  // Admin/other: /dashboard/admin, /dashboard/support, /dashboard/comments
-  //
-  // Public (no auth): /dashboard, /dashboard/listening, /dashboard/reading,
-  //                   /dashboard/writing, /dashboard/leaderboard
-  const protectedPrefixes = [
-    '/dashboard/profile',
-    '/dashboard/admin',
-    '/dashboard/payment',
-    '/dashboard/premium',
-    '/dashboard/support',
-  ];
-
-  // Test detail & attempts pages: /dashboard/{skill}/{id} or /dashboard/{skill}/attempts
-  const testDetailPattern = /^\/dashboard\/(listening|reading|writing)\/(.+)/;
-
-  const isProtectedRoute =
-    protectedPrefixes.some((prefix) => path.startsWith(prefix)) ||
-    testDetailPattern.test(path);
-
   if (!user && isProtectedRoute) {
-    // Users who are not logged in but trying to access protected routes must login first
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
   if (user && isAuthRoute) {
-    // Users who are already logged in shouldn't see the login page anymore
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);

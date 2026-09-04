@@ -15,16 +15,19 @@ async function loadTestData(testId) {
 
     let testRow = null
 
+    // Strategy 1: numeric ID → fetch single target test using SQL offset
     if (!isNaN(numericId) && numericId > 0) {
-      const { data: rows, error } = await supabase
+      const { data: row, error } = await supabase
         .from('Tests')
         .select('*')
         .eq('type', 'reading')
         .is('center_id', null)
         .order('created_at', { ascending: true })
+        .range(numericId - 1, numericId - 1)
+        .maybeSingle()
 
-      if (!error && rows) {
-        testRow = rows[numericId - 1] || null
+      if (!error && row) {
+        testRow = row
       }
     }
 
@@ -33,7 +36,8 @@ async function loadTestData(testId) {
         .from('Tests')
         .select('*')
         .eq('test_id', testId)
-        .single()
+        .is('center_id', null)
+        .maybeSingle()
 
       if (!error && row) {
         testRow = row

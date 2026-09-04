@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
+import { getCachedListeningTests } from "@/utils/cachedTests";
 import ListeningClient from "./ListeningClient";
 
 export const dynamic = 'force-dynamic';
@@ -9,23 +10,17 @@ export default async function ListeningPage() {
   try {
     const supabase = await createClient();
 
-    // Fetch tests and auth user in parallel to eliminate waterfall latency
-    const [testsResult, userResult] = await Promise.all([
-      supabase.from("Tests")
-        .select("id, test_id, type, data, created_at")
-        .eq("type", "listening")
-        .is("center_id", null)
-        .order("created_at", { ascending: true }),
-      supabase.auth.getUser().catch(() => ({ data: { user: null } }))
+    // Fetch cached tests list and auth user in parallel
+    const [baseTests, userResult] = await Promise.all([
+      getCachedListeningTests(),
+      supabase.auth.getUser().catch(() => ({ data: { user: null } })),
     ]);
 
-    const rows = testsResult.data;
-    const user = userResult.data?.user;
-
-    // Check user attempts
+    const user = userResult?.data?.user;
     let completedMap = {};
-    try {
-      if (user) {
+
+    if (user) {
+      try {
         const { data: attempts } = await supabase
           .from("TestAttempts")
           .select("test_numeric_id, test_type, band_score")
@@ -47,36 +42,17 @@ export default async function ListeningPage() {
             }
           });
         }
+      } catch (err) {
+        console.error("[ListeningPage] Error fetching attempts:", err);
       }
-    } catch {
-      /* not logged in */
     }
 
-    initialTests = (rows || []).map((row, index) => {
-      const d = row.data || {};
-      const numericId = index + 1;
-      const attemptInfo = completedMap[`listening_${numericId}`];
+    initialTests = (baseTests || []).map((test) => {
+      const attemptInfo = completedMap[`listening_${test.id}`];
       return {
-        id: numericId,
-        supabaseId: row.id,
-        test_id: row.test_id,
-        type: row.type,
-        title: d.title || `Test ${index + 1}`,
-        description:
-          d.testFormat === "full_test" || (!d.testFormat && (!d.testType || d.testType === "full_test"))
-            ? "4-Section Listening · 40 Questions"
-            : d.description || `${(d.testFormat || d.testType || "Part").replace('_', ' ').replace(/\\b\\w/g, l => l.toUpperCase())} · ${d.totalQuestions || 10} Questions`,
-        duration: d.timer || 40,
-        level: d.level || "medium",
-        testType: d.testFormat || d.testType || "full_test",
-        questions: d.totalQuestions || 40,
-        access:
-          d.testTution === "paid" || d.access === "paid"
-            ? "premium"
-            : d.testTution || d.access || "free",
+        ...test,
         completed: attemptInfo?.completed || false,
         bestBand: attemptInfo?.bestBand || null,
-        createdAt: row.created_at,
       };
     });
 

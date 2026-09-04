@@ -25,14 +25,33 @@ export default async function CenterTestPage({ params }) {
   if (!session) redirect('/markaz');
 
   const supabase = createAdminClient();
-  const { data: rows } = await supabase
-    .from('Tests')
-    .select('*')
-    .eq('center_id', session.centerId)
-    .eq('type', type)
-    .order('created_at', { ascending: true });
+  const numericId = Number(id);
 
-  const testRow = rows?.[Number(id) - 1] || null;
+  let testRow = null;
+  if (!isNaN(numericId) && numericId > 0) {
+    const { data: row } = await supabase
+      .from('Tests')
+      .select('*')
+      .eq('center_id', session.centerId)
+      .eq('type', type)
+      .order('created_at', { ascending: true })
+      .range(numericId - 1, numericId - 1)
+      .maybeSingle();
+
+    if (row) testRow = row;
+  }
+
+  if (!testRow) {
+    const { data: row } = await supabase
+      .from('Tests')
+      .select('*')
+      .eq('center_id', session.centerId)
+      .eq('test_id', id)
+      .maybeSingle();
+
+    if (row) testRow = row;
+  }
+
   if (!testRow) redirect(session.kind === 'admin' ? '/markaz/panel' : '/markaz/tests');
 
   const center = {

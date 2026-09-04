@@ -6,11 +6,19 @@ import {
   Keyboard, Trophy, Award, History, Zap, Crown, Flame, Sparkles, Target
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import dynamic from "next/dynamic";
 import TypingEngine from "./components/TypingEngine";
-import TypingLeaderboard from "./components/TypingLeaderboard";
-import TypingBadgesList from "./components/TypingBadgesList";
-import TypingHistory from "./components/TypingHistory";
 import { DailyLimitBadge, DailyLimitModal } from "./components/DailyLimitNotice";
+
+const TypingLeaderboard = dynamic(() => import("./components/TypingLeaderboard"), {
+  loading: () => <div className="p-8 text-center text-muted-foreground animate-pulse">Loading Leaderboard...</div>,
+});
+const TypingBadgesList = dynamic(() => import("./components/TypingBadgesList"), {
+  loading: () => <div className="p-8 text-center text-muted-foreground animate-pulse">Loading Badges...</div>,
+});
+const TypingHistory = dynamic(() => import("./components/TypingHistory"), {
+  loading: () => <div className="p-8 text-center text-muted-foreground animate-pulse">Loading History...</div>,
+});
 
 export default function TypingPage() {
   const { user, loading: authLoading } = useAuth();

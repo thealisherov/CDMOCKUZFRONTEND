@@ -4,24 +4,24 @@ import { isUserPremium, isTestPremium } from '@/lib/premium-guard'
 import WritingTestClient from './WritingTestClient'
 import { generateTestMetadata } from '@/utils/seoTestMetadata'
 
-async function loadTestData(testId) {
+async function loadTestData(supabase, testId) {
   try {
-    const supabase = await createClient()
     const numericId = Number(testId)
-
     let testRow = null
 
-    // Strategy 1: numeric ID → fetch by type + position
+    // Strategy 1: numeric ID → fetch single target test using SQL offset
     if (!isNaN(numericId) && numericId > 0) {
-      const { data: rows, error } = await supabase
+      const { data: row, error } = await supabase
         .from('Tests')
         .select('*')
         .eq('type', 'writing')
         .is('center_id', null)
         .order('created_at', { ascending: true })
+        .range(numericId - 1, numericId - 1)
+        .maybeSingle()
 
-      if (!error && rows) {
-        testRow = rows[numericId - 1] || null
+      if (!error && row) {
+        testRow = row
       }
     }
 
@@ -32,7 +32,7 @@ async function loadTestData(testId) {
         .select('*')
         .eq('test_id', testId)
         .is('center_id', null)
-        .single()
+        .maybeSingle()
 
       if (!error && row) {
         testRow = row
@@ -56,16 +56,22 @@ export async function generateMetadata({ params }) {
 export default async function WritingTestPage({ params }) {
   const resolvedParams = await Promise.resolve(params);
   const id = resolvedParams?.id;
-  const { testRow, rawData } = await loadTestData(id)
+  const supabase = await createClient();
+
+  // Run test data fetch and user authentication in parallel to eliminate waterfall
+  const [testResult, userResult] = await Promise.all([
+    loadTestData(supabase, id),
+    supabase.auth.getUser().catch(() => ({ data: { user: null } })),
+  ]);
+
+  const { testRow, rawData } = testResult;
 
   if (!testRow) {
     redirect('/dashboard/writing');
   }
 
   // SECURITY GUARD: Check if test is Premium and user has active Premium access
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
+  const user = userResult?.data?.user;
   if (isTestPremium(testRow) && !isUserPremium(user)) {
     redirect('/dashboard/payment');
   }

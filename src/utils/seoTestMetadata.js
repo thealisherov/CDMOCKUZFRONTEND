@@ -11,23 +11,26 @@ export async function generateTestMetadata({ id, type, params }) {
 
     let testRow = null;
     if (!isNaN(numericId) && numericId > 0) {
-      const { data: rows } = await supabase
+      const { data: row } = await supabase
         .from('Tests')
-        .select('*')
+        .select('data')
         .eq('type', type)
         .is('center_id', null)
-        .order('created_at', { ascending: true });
-      if (rows && rows.length >= numericId) {
-        testRow = rows[numericId - 1];
+        .order('created_at', { ascending: true })
+        .range(numericId - 1, numericId - 1)
+        .maybeSingle();
+      if (row) {
+        testRow = row;
       }
     }
 
     if (!testRow) {
       const { data: row } = await supabase
         .from('Tests')
-        .select('*')
+        .select('data')
         .eq('test_id', id)
-        .single();
+        .is('center_id', null)
+        .maybeSingle();
       if (row) testRow = row;
     }
 

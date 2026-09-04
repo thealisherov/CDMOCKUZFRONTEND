@@ -20,7 +20,7 @@ const nextConfig = {
       bodySizeLimit: '4mb',
     },
     // Enable optimized package imports for common libraries
-    optimizePackageImports: ['lucide-react', '@tanstack/react-query', 'date-fns'],
+    optimizePackageImports: ['lucide-react', '@tanstack/react-query', 'date-fns', 'framer-motion'],
   },
   // Enable gzip/brotli compression
   compress: true,
