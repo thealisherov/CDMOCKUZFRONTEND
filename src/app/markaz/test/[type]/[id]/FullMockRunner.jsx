@@ -28,24 +28,24 @@ const STEPS = [
 export default function FullMockRunner({ id, title, center, sections, videos }) {
   const router = useRouter();
 
-  // Qulf YO'Q: har kirishda yangi ism/familiya so'raladi — bitta kompyuterda
-  // bir nechta o'quvchi ketma-ket topshira oladi.
+  // localStorage kalitlari uchun markaz nomi bilan ajratilgan prefiks —
+  // platforma testlari bilan to'qnashmaydi.
+  const storageTag = `mkz_${center.slug}_fm${id}`;
+  const sessionKey = `${storageTag}_session`;
+
   const [phase, setPhase] = useState("gate"); // gate | running | submitting | done | error
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [stepIndex, setStepIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const [isPreview, setIsPreview] = useState(false); // admin sinovi — natija saqlanmaydi
+  const [isRestoring, setIsRestoring] = useState(true);
 
   const startedAtRef = useRef(0);
   const collectedRef = useRef({});          // { listening, reading, writing }
   const lastAdvancedRef = useRef(-1);        // qadam bir marta oldinga siljishi uchun
 
-  // localStorage kalitlari uchun markaz nomi bilan ajratilgan prefiks —
-  // platforma testlari bilan to'qnashmaydi.
-  const storageTag = `mkz_${center.slug}_fm${id}`;
-
-  // Yangi o'quvchi boshlaganda oldingi urinishning javob/timer/notes qoldiqlari tozalanadi
+  // Yangi o'quvchi boshlaganda yoki test topshirilganda barcha ma'lumotlar tozalanadi
   const clearStaleState = useCallback(() => {
     try {
       Object.keys(localStorage).forEach((k) => {
@@ -54,11 +54,70 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
     } catch { /* ignore */ }
   }, [storageTag]);
 
+  // Sahifa yangilanganda (refresh) mavjud sessiyani tiklash
+  useEffect(() => {
+    try {
+      const savedRaw = localStorage.getItem(sessionKey);
+      if (savedRaw) {
+        const saved = JSON.parse(savedRaw);
+        if (saved?.phase === "running" && saved?.name && saved?.surname) {
+          const now = Date.now();
+          const age = now - (saved.startedAt || 0);
+          // 24 soatdan oshmagan faol sessiya bo'lsa tiklaymiz
+          if (age < 24 * 60 * 60 * 1000) {
+            const restoredStep = typeof saved.stepIndex === "number" ? saved.stepIndex : 0;
+            setName(saved.name);
+            setSurname(saved.surname);
+            setStepIndex(restoredStep);
+            startedAtRef.current = saved.startedAt || now;
+            collectedRef.current = saved.collected || {};
+            lastAdvancedRef.current = restoredStep - 1;
+            setPhase("running");
+            setIsRestoring(false);
+            return;
+          }
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    setIsRestoring(false);
+  }, [sessionKey]);
+
+  // Faol sessiyani localStorage ga saqlab borish
+  const saveSession = useCallback((overrideStep = null, overrideCollected = null) => {
+    try {
+      localStorage.setItem(
+        sessionKey,
+        JSON.stringify({
+          phase: "running",
+          name: name.trim(),
+          surname: surname.trim(),
+          stepIndex: overrideStep !== null ? overrideStep : stepIndex,
+          startedAt: startedAtRef.current,
+          collected: overrideCollected !== null ? overrideCollected : collectedRef.current,
+        })
+      );
+    } catch {
+      /* ignore */
+    }
+  }, [sessionKey, name, surname, stepIndex]);
+
+  useEffect(() => {
+    if (phase === "running" && !isRestoring) {
+      saveSession();
+    }
+  }, [phase, stepIndex, name, surname, isRestoring, saveSession]);
+
   const advanceFrom = useCallback((idx) => {
     if (lastAdvancedRef.current >= idx) return; // allaqachon siljigan
     lastAdvancedRef.current = idx;
-    setStepIndex(idx + 1);
-  }, []);
+    setStepIndex((cur) => {
+      const next = idx + 1;
+      saveSession(next);
+      return next;
+    });
+  }, [saveSession]);
 
   const handleSection = useCallback((section, answers) => {
     if (collectedRef.current[section] === undefined) {
@@ -68,9 +127,11 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
     setStepIndex((cur) => {
       if (lastAdvancedRef.current >= cur) return cur;
       lastAdvancedRef.current = cur;
-      return cur + 1;
+      const next = cur + 1;
+      saveSession(next, { ...collectedRef.current });
+      return next;
     });
-  }, []);
+  }, [saveSession]);
 
   const doSubmit = useCallback(async () => {
     setPhase("submitting");
@@ -93,7 +154,7 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
       }
       const result = await res.json().catch(() => ({}));
       if (result.preview) setIsPreview(true);
-      clearStaleState(); // keyingi o'quvchi toza boshlashi uchun
+      clearStaleState(); // keyingi o'quvchi toza boshlashi uchun barcha sessiya ma'lumotlarini tozalaymiz
       setPhase("done");
     } catch (err) {
       setErrorMsg(err.message || "Yuborishda xatolik");
@@ -107,6 +168,15 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
       doSubmit();
     }
   }, [phase, stepIndex, doSubmit]);
+
+  // ── RESTORING (Sessiyani tiklash) ────────────────────────────────────
+  if (isRestoring) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
   // ── DONE ─────────────────────────────────────────────────────────────
   if (phase === "done") {
@@ -130,7 +200,13 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
               </p>
             </>
           )}
-          <button onClick={() => router.replace("/markaz/tests")} className="mt-6 inline-flex items-center gap-2 text-indigo-600 font-medium hover:gap-3 transition-all">
+          <button
+            onClick={() => {
+              clearStaleState();
+              router.replace("/markaz/tests");
+            }}
+            className="mt-6 inline-flex items-center gap-2 text-indigo-600 font-medium hover:gap-3 transition-all"
+          >
             <ArrowLeft className="w-4 h-4" /> Testlar ro'yxatiga qaytish
           </button>
         </div>
@@ -175,7 +251,33 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
             <p className="text-sm text-slate-500">{title || "IELTS Full Mock"}</p>
           </div>
           <form
-            onSubmit={(e) => { e.preventDefault(); if (canStart) { clearStaleState(); startedAtRef.current = Date.now(); setPhase("running"); } }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (canStart) {
+                clearStaleState();
+                const now = Date.now();
+                startedAtRef.current = now;
+                setStepIndex(0);
+                collectedRef.current = {};
+                lastAdvancedRef.current = -1;
+                try {
+                  localStorage.setItem(
+                    sessionKey,
+                    JSON.stringify({
+                      phase: "running",
+                      name: name.trim(),
+                      surname: surname.trim(),
+                      stepIndex: 0,
+                      startedAt: now,
+                      collected: {},
+                    })
+                  );
+                } catch {
+                  /* ignore */
+                }
+                setPhase("running");
+              }
+            }}
             className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 space-y-4"
           >
             {center.preview && (

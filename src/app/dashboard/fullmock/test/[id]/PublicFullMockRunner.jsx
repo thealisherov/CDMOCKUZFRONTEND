@@ -85,16 +85,18 @@ function BreakScreen({ section, sectionLabel, onContinue }) {
 export default function PublicFullMockRunner({ session, onComplete }) {
   const router = useRouter();
 
+  const storageTag = `pub_fm_${session.mock_id}`;
+  const sessionKey = `${storageTag}_session`;
+
   const [phase, setPhase] = useState("gate"); // gate | running | submitting | done | error
   const [stepIndex, setStepIndex] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
   const [results, setResults] = useState(null);
+  const [isRestoring, setIsRestoring] = useState(true);
 
   const startedAtRef = useRef(0);
   const collectedRef = useRef({});
   const lastAdvancedRef = useRef(-1);
-
-  const storageTag = `pub_fm_${session.mock_id}`;
 
   const clearStaleState = useCallback(() => {
     try {
@@ -104,11 +106,66 @@ export default function PublicFullMockRunner({ session, onComplete }) {
     } catch { /* ignore */ }
   }, [storageTag]);
 
+  // Sahifa yangilanganda (refresh) mavjud sessiyani tiklash
+  useEffect(() => {
+    try {
+      const savedRaw = localStorage.getItem(sessionKey);
+      if (savedRaw) {
+        const saved = JSON.parse(savedRaw);
+        if (saved?.phase === "running") {
+          const now = Date.now();
+          const age = now - (saved.startedAt || 0);
+          // 24 soatdan oshmagan faol sessiya bo'lsa tiklaymiz
+          if (age < 24 * 60 * 60 * 1000) {
+            const restoredStep = typeof saved.stepIndex === "number" ? saved.stepIndex : 0;
+            setStepIndex(restoredStep);
+            startedAtRef.current = saved.startedAt || now;
+            collectedRef.current = saved.collected || {};
+            lastAdvancedRef.current = restoredStep - 1;
+            setPhase("running");
+            setIsRestoring(false);
+            return;
+          }
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    setIsRestoring(false);
+  }, [sessionKey]);
+
+  // Faol sessiyani localStorage ga saqlab borish
+  const saveSession = useCallback((overrideStep = null, overrideCollected = null) => {
+    try {
+      localStorage.setItem(
+        sessionKey,
+        JSON.stringify({
+          phase: "running",
+          stepIndex: overrideStep !== null ? overrideStep : stepIndex,
+          startedAt: startedAtRef.current,
+          collected: overrideCollected !== null ? overrideCollected : collectedRef.current,
+        })
+      );
+    } catch {
+      /* ignore */
+    }
+  }, [sessionKey, stepIndex]);
+
+  useEffect(() => {
+    if (phase === "running" && !isRestoring) {
+      saveSession();
+    }
+  }, [phase, stepIndex, isRestoring, saveSession]);
+
   const advanceFrom = useCallback((idx) => {
     if (lastAdvancedRef.current >= idx) return;
     lastAdvancedRef.current = idx;
-    setStepIndex(idx + 1);
-  }, []);
+    setStepIndex((cur) => {
+      const next = idx + 1;
+      saveSession(next);
+      return next;
+    });
+  }, [saveSession]);
 
   const handleSection = useCallback((section, answers) => {
     if (collectedRef.current[section] === undefined) {
@@ -117,9 +174,11 @@ export default function PublicFullMockRunner({ session, onComplete }) {
     setStepIndex((cur) => {
       if (lastAdvancedRef.current >= cur) return cur;
       lastAdvancedRef.current = cur;
-      return cur + 1;
+      const next = cur + 1;
+      saveSession(next, { ...collectedRef.current });
+      return next;
     });
-  }, []);
+  }, [saveSession]);
 
   const doSubmit = useCallback(async () => {
     setPhase("submitting");
@@ -175,13 +234,25 @@ export default function PublicFullMockRunner({ session, onComplete }) {
     }
   }, [phase, stepIndex, doSubmit]);
 
+  // ── RESTORING ──
+  if (isRestoring) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
   // ── DONE — Natijalar ──
   if (phase === "done" && results) {
     return (
       <div className="min-h-screen py-8 px-4 flex flex-col items-center justify-center">
         <FullMockResultView
           resultData={results}
-          onBack={() => router.replace("/dashboard/fullmock")}
+          onBack={() => {
+            clearStaleState();
+            router.replace("/dashboard/fullmock");
+          }}
         />
       </div>
     );
@@ -245,14 +316,39 @@ export default function PublicFullMockRunner({ session, onComplete }) {
             </div>
 
             <button
-              onClick={() => { clearStaleState(); startedAtRef.current = Date.now(); setPhase("running"); }}
+              onClick={() => {
+                clearStaleState();
+                const now = Date.now();
+                startedAtRef.current = now;
+                setStepIndex(0);
+                collectedRef.current = {};
+                lastAdvancedRef.current = -1;
+                try {
+                  localStorage.setItem(
+                    sessionKey,
+                    JSON.stringify({
+                      phase: "running",
+                      stepIndex: 0,
+                      startedAt: now,
+                      collected: {},
+                    })
+                  );
+                } catch {
+                  /* ignore */
+                }
+                setPhase("running");
+              }}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-medium text-white transition-colors"
               style={{ background: "linear-gradient(135deg, oklch(0.48 0.22 270), oklch(0.55 0.2 290))" }}
             >
               <Send className="w-4 h-4" /> Testni boshlash
             </button>
             <button
-              onClick={() => { localStorage.removeItem("fullmock_session"); router.replace("/dashboard/fullmock"); }}
+              onClick={() => {
+                clearStaleState();
+                localStorage.removeItem("fullmock_session");
+                router.replace("/dashboard/fullmock");
+              }}
               className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Bekor qilish
