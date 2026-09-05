@@ -68,13 +68,13 @@ function replaceGapPlaceholders(questionStr, qNumber) {
   // Step 1: Replace current question's own bold-numbered blank
   const numRegex = new RegExp(`(?:<(?:b|strong)[^>]*>\\s*)?0*${qNumber}(?:\\s*<\/(?:b|strong)>)?\\s*[\\.\\)]?\\s*_{3,}`, 'gi');
   let result = questionStr.replace(numRegex, `{${qNumber}}`);
-  // Step 2: Protect other numbered blanks like "14 ______" with a null-byte marker
+  // Step 2: Protect other numbered blanks like "14 ______" with a null-byte marker so their underscores aren't replaced
   const MARKER = '\x00';
-  result = result.replace(/(\d+)(\s*_{3,})/g, `${MARKER}$1${MARKER}$2`);
+  result = result.replace(/((?:<(?:b|strong)[^>]*>\s*)?\d+(?:\s*<\/(?:b|strong)>)?\s*[\.\)]?\s*)(_{3,})/g, `${MARKER}$1PROTECTED_BLANK${MARKER}`);
   // Step 3: Replace remaining unprotected underscores
   result = result.replace(/_{3,}/g, `{${qNumber}}`);
   // Step 4: Restore protected blanks
-  result = result.replace(new RegExp(`${MARKER}(\\d+)${MARKER}`, 'g'), '$1');
+  result = result.replace(new RegExp(`${MARKER}((?:<(?:b|strong)[^>]*>\\s*)?\\d+(?:\\s*<\\/(?:b|strong)>)?\\s*[\\.\\)]?\\s*)PROTECTED_BLANK${MARKER}`, 'g'), '$1______');
   return result;
 }
 

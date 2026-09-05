@@ -46,10 +46,13 @@ function mapGroupType(groupType) {
     case 'matching_paragraphs':
       return 'radio_matrix'; // Show a grid with questions as rows and paragraph letters as columns
 
+    case 'multiple_choice':
     case 'multiple_choice_single':
+    case 'multiple_choice_single_answer':
       return 'true_false'; // radio-select from A/B/C/D
 
     case 'multiple_choice_multiple':
+    case 'multiple_choice_multiple_answer':
       return 'checkbox_multiple'; // checkbox-select from options
 
     case 'matching': // Generic matching
@@ -78,16 +81,15 @@ function mapGroupType(groupType) {
 function replaceGapPlaceholders(questionStr, qNumber) {
   if (!questionStr) return '';
   // Step 1: Replace current question's own bold-numbered blank e.g. "<b>15</b> ______" → "{15}"
-  const numRegex = new RegExp(`(?:<(?:b|strong)[^>]*>\\s*)?0*${qNumber}(?:\\s*<\/(?:b|strong)>)?\\s*[\.\\)]?\\s*_{3,}`, 'gi');
+  const numRegex = new RegExp(`(?:<(?:b|strong)[^>]*>\\s*)?0*${qNumber}(?:\\s*<\/(?:b|strong)>)?\\s*[\\.\\)]?\\s*_{3,}`, 'gi');
   let result = questionStr.replace(numRegex, `{${qNumber}}`);
-  // Step 2: Protect other numbered blanks like "14 ______" so they don't get stolen.
-  // Replace "<number> ______" with a null-byte marker to restore later.
+  // Step 2: Protect other numbered blanks like "14 ______" with a marker so their underscores aren't replaced
   const MARKER = '\x00';
-  result = result.replace(/(\d+)(\s*_{3,})/g, `${MARKER}$1${MARKER}$2`);
+  result = result.replace(/((?:<(?:b|strong)[^>]*>\s*)?\d+(?:\s*<\/(?:b|strong)>)?\s*[\.\)]?\s*)(_{3,})/g, `${MARKER}$1PROTECTED_BLANK${MARKER}`);
   // Step 3: Replace any remaining unprotected underscores with the current question number
   result = result.replace(/_{3,}/g, `{${qNumber}}`);
-  // Step 4: Restore protected blanks ("\x00<num>\x00 ______" → "<num> ______")
-  result = result.replace(new RegExp(`${MARKER}(\\d+)${MARKER}`, 'g'), '$1');
+  // Step 4: Restore protected blanks
+  result = result.replace(new RegExp(`${MARKER}((?:<(?:b|strong)[^>]*>\\s*)?\\d+(?:\\s*<\\/(?:b|strong)>)?\\s*[\\.\\)]?\\s*)PROTECTED_BLANK${MARKER}`, 'g'), '$1______');
   return result;
 }
 
@@ -559,7 +561,9 @@ function convertQuestionGroup(group, passageContent) {
 
 
 
-    case 'multiple_choice_single': {
+    case 'multiple_choice':
+    case 'multiple_choice_single':
+    case 'multiple_choice_single_answer': {
       // Each question has its own options
       const firstQ = group.questions[0];
       const optionLetters = firstQ?.options
@@ -579,7 +583,8 @@ function convertQuestionGroup(group, passageContent) {
       break;
     }
 
-    case 'multiple_choice_multiple': {
+    case 'multiple_choice_multiple':
+    case 'multiple_choice_multiple_answer': {
       const firstQ = group.questions[0];
       const optionLetters = firstQ?.options
         ? extractOptionLetters(firstQ.options)
@@ -657,9 +662,9 @@ function convertQuestionGroup(group, passageContent) {
     }
 
     case 'matching_headings': {
-      // Heading options come from the first question's options
+      // Heading options come from group.options or first question's options
       const firstQ = group.questions[0];
-      block.headings = firstQ?.options || [];
+      block.headings = (group.options && group.options.length > 0) ? group.options : (firstQ?.options || []);
       block.questions = group.questions.map((q) => ({
         id: String(q.number),
         number: q.number,
