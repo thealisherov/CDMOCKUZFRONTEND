@@ -469,8 +469,10 @@ export function adaptListeningData(rawData) {
     groups.forEach((group, groupIdx) => {
       const block = convertQuestionGroup(group, part.partNumber, partTitle);
 
-      // Part title handling: only show title for the first group
-      if (groupIdx > 0) {
+      // Part title handling: only show title for the first group unless group has explicit title
+      if (group.title) {
+        block.title = group.title;
+      } else if (groupIdx > 0) {
         block.title = null;
       }
       

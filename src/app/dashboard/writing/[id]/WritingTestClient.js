@@ -328,7 +328,25 @@ function WritingTestInner({ id, rawData, isReviewMode = false, initialEssays = {
   }, []);
 
   const handleRetry = () => { clearAllTestData(); };
-  const handleExit = useCallback(() => { clearAllTestData(); router.back(); }, [clearAllTestData, router]);
+  const handleExit = useCallback(() => {
+    try { localStorage.removeItem(timerKey); } catch { /* */ }
+    clearNotes();
+    try { localStorage.removeItem(notesKey); } catch { /* */ }
+    clearEssays();
+    clearSubmitted();
+    clearEvaluationResult();
+    clearSavedAttemptId();
+
+    if (centerConfig?.onExit) {
+      centerConfig.onExit();
+      return;
+    }
+    if (centerConfig) {
+      window.location.href = '/markaz/tests';
+      return;
+    }
+    router.back();
+  }, [clearNotes, timerKey, notesKey, clearEssays, clearSubmitted, clearEvaluationResult, clearSavedAttemptId, centerConfig, router]);
   // Timer expired: just submit current essays (don't clear first!)
   const handleSubmitRef = useRef(handleSubmit);
   handleSubmitRef.current = handleSubmit;

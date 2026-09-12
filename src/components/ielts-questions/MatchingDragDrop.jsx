@@ -61,7 +61,11 @@ const MatchingDragDrop = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) 
       'position:fixed;top:-1000px;padding:8px 16px;background:#333;color:#fff;border-radius:4px;font-size:14px;font-weight:700;max-width:400px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 4px 12px rgba(0,0,0,.25);';
     document.body.appendChild(dragEl);
     e.dataTransfer.setDragImage(dragEl, 0, 0);
-    setTimeout(() => document.body.removeChild(dragEl), 0);
+    setTimeout(() => {
+      if (dragEl && dragEl.parentNode) {
+        dragEl.parentNode.removeChild(dragEl);
+      }
+    }, 0);
   };
 
   const handleDragEnd = () => {

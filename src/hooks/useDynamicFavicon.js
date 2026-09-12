@@ -1,33 +1,42 @@
 import { useEffect } from "react";
 
 /**
- * Forcefully swaps the browser tab favicon while the component is mounted.
- * Removes ALL existing <link rel="icon"> elements, injects a fresh one,
- * and restores the originals on unmount.
+ * Safely updates the browser tab favicon without removing DOM nodes.
+ * React 19 hoists head tags, so calling .remove() on <link> tags breaks
+ * React's internal fiber tree and causes "Cannot read properties of null (reading 'removeChild')"
+ * during unmounting or page navigation.
  */
 export function useDynamicFavicon(iconHref) {
   useEffect(() => {
     if (typeof document === "undefined" || !iconHref) return;
 
-    // 1. Collect all existing favicon link elements
-    const existing = Array.from(
-      document.querySelectorAll("link[rel~='icon'], link[rel='shortcut icon'], link[rel='apple-touch-icon']")
-    );
+    // Find any existing favicon link element
+    let link = document.querySelector("link[rel~='icon'], link[rel='shortcut icon']");
+    const createdByUs = !link;
+    const originalHref = link ? link.getAttribute("href") : null;
 
-    // 2. Remove them from head temporarily
-    existing.forEach((el) => el.remove());
-
-    // 3. Inject our test favicon (cache-busted)
-    const link = document.createElement("link");
-    link.setAttribute("rel", "icon");
-    link.setAttribute("type", "image/png");
-    link.setAttribute("href", `${iconHref}?v=${Date.now()}`);
-    document.head.appendChild(link);
+    if (link) {
+      // Safely update the existing link href without detaching the node from the DOM
+      link.setAttribute("href", `${iconHref}?v=${Date.now()}`);
+    } else {
+      link = document.createElement("link");
+      link.setAttribute("rel", "icon");
+      link.setAttribute("type", "image/png");
+      link.setAttribute("href", `${iconHref}?v=${Date.now()}`);
+      document.head.appendChild(link);
+    }
 
     return () => {
-      // 4. On cleanup: remove ours and restore originals
-      link.remove();
-      existing.forEach((el) => document.head.appendChild(el));
+      if (link) {
+        if (createdByUs) {
+          if (link.parentNode) {
+            link.parentNode.removeChild(link);
+          }
+        } else if (originalHref) {
+          link.setAttribute("href", originalHref);
+        }
+      }
     };
   }, [iconHref]);
 }
+

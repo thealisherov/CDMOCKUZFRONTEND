@@ -359,9 +359,34 @@ function ListeningTestInner({ id, rawData, centerConfig = null }) {
 
   // Exit via button: full reset, navigate away
   const handleExit = useCallback(() => {
-    clearAllTestData();
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.stopAndReset();
+    }
+    try { localStorage.removeItem(timerKey); } catch { /* */ }
+    clearNotes();
+    try { localStorage.removeItem(notesKey); } catch { /* */ }
+    clearHighlights();
+    clearAnswers();
+    clearSubmitted();
+    clearActivePart();
+    try { localStorage.removeItem(`started_listening_${id}`); } catch { /* */ }
+    try { localStorage.removeItem(audioKey); } catch { /* */ }
+    try { localStorage.removeItem(`confirm_listening_${id}`); } catch { /* */ }
+    try { localStorage.removeItem(`opts_listening_${id}`); } catch { /* */ }
+    try { localStorage.removeItem(`cq_listening_${id}`); } catch { /* */ }
+    clearServerResult();
+    clearSavedAttemptId();
+
+    if (centerConfig?.onExit) {
+      centerConfig.onExit();
+      return;
+    }
+    if (centerConfig) {
+      window.location.href = '/markaz/tests';
+      return;
+    }
     router.back();
-  }, [clearAllTestData, router]);
+  }, [clearNotes, clearHighlights, timerKey, notesKey, audioKey, clearAnswers, clearSubmitted, clearActivePart, id, clearServerResult, clearSavedAttemptId, centerConfig, router]);
 
   // Use ref to always capture latest userAnswers (avoids stale closure in timer callback)
   const userAnswersRef = useRef(userAnswers);

@@ -146,12 +146,6 @@ const FlowChart = ({ data, onAnswer, startIndex = 1, userAnswers = {} }) => {
 
   return (
     <div className="mb-8 font-sans">
-      {data.instruction && (
-        <p className="mb-5 font-medium text-gray-800" style={{ fontSize: '1.05em' }}>
-          {data.instruction}
-        </p>
-      )}
-
       <div className={`flex flex-col gap-10 lg:flex-row ${hasOptions ? 'items-start' : 'items-center justify-center'}`}>
         
         {/* Flowchart Diagram (Left Side) */}

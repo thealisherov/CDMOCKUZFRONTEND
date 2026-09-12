@@ -18,6 +18,7 @@ import ReadingTestClient from "@/app/dashboard/reading/[id]/ReadingTestClient";
 import ListeningTestClient from "@/app/dashboard/listening/[id]/ListeningTestClient";
 import WritingTestClient from "@/app/dashboard/writing/[id]/WritingTestClient";
 import FullMockResultView from "@/app/dashboard/fullmock/components/FullMockResultView";
+import SectionInstructions from "@/app/markaz/test/[type]/[id]/SectionInstructions";
 
 const SECTION_LABEL = {
   listening: "Listening bo'limi",
@@ -365,12 +366,13 @@ export default function PublicFullMockRunner({ session, onComplete }) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-indigo-500" /></div>;
   }
 
-  if (step.kind === "break") {
+  if (step.kind === "break" || step.kind === "instruction") {
     return (
-      <BreakScreen
-        key={`break-${stepIndex}`}
+      <SectionInstructions
+        key={`instruction-${stepIndex}`}
         section={step.section}
         sectionLabel={SECTION_LABEL[step.section]}
+        candidateName={session.person_name}
         onContinue={() => advanceFrom(stepIndex)}
       />
     );
@@ -383,6 +385,11 @@ export default function PublicFullMockRunner({ session, onComplete }) {
     surname: session.person_name.split(" ").slice(1).join(" ") || "",
     startedAt: startedAtRef.current,
     onSection: (answers) => handleSection(step.section, answers),
+    onExit: () => {
+      clearStaleState();
+      try { localStorage.removeItem("fullmock_session"); } catch {}
+      window.location.href = "/dashboard/fullmock";
+    },
   };
   const secData = session.sections[step.section];
   const secId = `${storageTag}_${step.section}`;

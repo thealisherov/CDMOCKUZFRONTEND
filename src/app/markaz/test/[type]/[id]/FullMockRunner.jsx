@@ -6,8 +6,7 @@ import { Building2, User, Send, Loader2, CheckCircle2, ArrowLeft, AlertTriangle 
 import ReadingTestClient from "@/app/dashboard/reading/[id]/ReadingTestClient";
 import ListeningTestClient from "@/app/dashboard/listening/[id]/ListeningTestClient";
 import WritingTestClient from "@/app/dashboard/writing/[id]/WritingTestClient";
-import InstructionVideo from "./InstructionVideo";
-import BreakScreen from "./BreakScreen";
+import SectionInstructions from "./SectionInstructions";
 
 const SECTION_LABEL = {
   listening: "Listening bo'limi",
@@ -15,13 +14,13 @@ const SECTION_LABEL = {
   writing: "Writing bo'limi",
 };
 
-// HAR DOIM shu tartib: video → bo'lim → video → bo'lim → video → bo'lim
+// HAR DOIM shu tartib: instruction → bo'lim → instruction → bo'lim → instruction → bo'lim
 const STEPS = [
-  { kind: "video", section: "listening" },
+  { kind: "instruction", section: "listening" },
   { kind: "section", section: "listening" },
-  { kind: "video", section: "reading" },
+  { kind: "instruction", section: "reading" },
   { kind: "section", section: "reading" },
-  { kind: "video", section: "writing" },
+  { kind: "instruction", section: "writing" },
   { kind: "section", section: "writing" },
 ];
 
@@ -303,7 +302,7 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
               </div>
             </div>
             <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-xs text-amber-700">
-              Diqqat: testni boshlagach, <b>yakuniga yetkazing</b> — to'xtatib bo'lmaydi, chiqib ketsangiz javoblaringiz saqlanmaydi. {center?.slug === "istudy" ? "Har bo'lim oldidan ko'rsatma video chiqadi." : "Har bo'lim oldidan 1 daqiqalik tanaffus beriladi."}
+              Diqqat: testni boshlagach, <b>yakuniga yetkazing</b> — to'xtatib bo'lmaydi, chiqib ketsangiz javoblaringiz saqlanmaydi. Har bo'lim oldidan 1 daqiqalik rasmiy yo'riqnoma (Official Instructions) beriladi.
             </div>
             <button type="submit" disabled={!canStart}
               className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white rounded-lg py-2.5 font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50">
@@ -316,7 +315,7 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
     );
   }
 
-  // ── RUNNING (video / break / section) ────────────────────────────────
+  // ── RUNNING (instruction / section) ────────────────────────────────
   const step = STEPS[stepIndex];
   if (!step) {
     // stepIndex >= STEPS.length — submit useEffect ishga tushadi
@@ -325,23 +324,13 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
     );
   }
 
-  if (step.kind === "video") {
-    const isIstudy = center?.slug === "istudy";
-    if (isIstudy) {
-      return (
-        <InstructionVideo
-          key={`video-${stepIndex}`}
-          url={videos[step.section]}
-          sectionLabel={SECTION_LABEL[step.section]}
-          onContinue={() => advanceFrom(stepIndex)}
-        />
-      );
-    }
+  if (step.kind === "instruction" || step.kind === "video" || step.kind === "break") {
     return (
-      <BreakScreen
-        key={`break-${stepIndex}`}
+      <SectionInstructions
+        key={`instruction-${stepIndex}`}
         section={step.section}
         sectionLabel={SECTION_LABEL[step.section]}
+        candidateName={`${name} ${surname}`.trim()}
         onContinue={() => advanceFrom(stepIndex)}
       />
     );
@@ -354,6 +343,10 @@ export default function FullMockRunner({ id, title, center, sections, videos }) 
     surname: surname.trim(),
     startedAt: startedAtRef.current,
     onSection: (answers) => handleSection(step.section, answers),
+    onExit: () => {
+      clearStaleState();
+      window.location.href = "/markaz/tests";
+    },
   };
   const secData = sections[step.section];
   const secId = `${storageTag}_${step.section}`;

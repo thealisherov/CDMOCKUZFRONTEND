@@ -202,7 +202,7 @@ export default function HighlightableContent({
     el.querySelectorAll('mark.hl-mark').forEach(m => {
       const p = m.parentNode; if (!p) return;
       while (m.firstChild) p.insertBefore(m.firstChild, m);
-      p.removeChild(m);
+      if (p.contains(m)) p.removeChild(m);
     });
     const highlights = loadHighlights();
     if (!highlights.length) return;
@@ -250,7 +250,7 @@ export default function HighlightableContent({
     el.querySelectorAll('mark[data-note-id]').forEach(m => {
       const p = m.parentNode; if (!p) return;
       while (m.firstChild) p.insertBefore(m.firstChild, m);
-      p.removeChild(m);
+      if (p.contains(m)) p.removeChild(m);
     });
     [...relevant].sort((a, b) => b.start - a.start).forEach(note => {
       try {
@@ -280,6 +280,18 @@ export default function HighlightableContent({
     const timer = requestAnimationFrame(() => applyAll());
     return () => cancelAnimationFrame(timer);
   }); // Ataylab dependency array kiritilmadi
+
+  // Unmount paytida CSS highlight'larni tozalash
+  useEffect(() => {
+    return () => {
+      if (CSS_HL_SUPPORTED && typeof CSS !== 'undefined' && CSS.highlights) {
+        try {
+          CSS.highlights.delete(hlName);
+          CSS.highlights.delete(noteHlName);
+        } catch { /* ignore */ }
+      }
+    };
+  }, [hlName, noteHlName]);
 
   const isSidebarOpen = notesCtx?.isSidebarOpen ?? false;
 

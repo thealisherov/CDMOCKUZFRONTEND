@@ -50,6 +50,10 @@ export default function CenterTestRunner({ type, id, rawData, center }) {
     telegram: center.telegram,
     startedAt,
     onComplete: handleComplete,
+    onExit: () => {
+      clearStaleState();
+      window.location.href = "/markaz/tests";
+    },
   }), [type, id, name, surname, center, startedAt]);
 
   // ── DONE ─────────────────────────────────────────────────────────────
